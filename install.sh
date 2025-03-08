@@ -154,13 +154,14 @@ configure_ohmzsh() {
 configure_zsh_codex() {
     
     logProgress "configuring zsh_codex\n"
-    cp openaiapirc $HOME/.config/
+    cp zsh_codex.ini $HOME/.config/
 
     read -s -p "Enter your openai api key: "
     OPENAI_API_KEY=$REPLY
 
-    sed -i "s/TOBEREPLEACED/$OPENAI_API_KEY/g" $HOME/.config/openaiapirc
+    sed -i "s/TOBEREPLEACED/$OPENAI_API_KEY/g" $HOME/.config/zsh_codex.ini
     pip3 install openai --break-system-packages
+    pip3 install groq --break-system-packages
 }
 
 
