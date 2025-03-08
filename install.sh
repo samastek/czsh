@@ -154,13 +154,14 @@ configure_ohmzsh() {
 configure_zsh_codex() {
     
     logProgress "configuring zsh_codex\n"
-    cp openaiapirc $HOME/.config/
+    cp zsh_codex.ini $HOME/.config/
 
     read -s -p "Enter your openai api key: "
     OPENAI_API_KEY=$REPLY
 
-    sed -i "s/TOBEREPLEACED/$OPENAI_API_KEY/g" $HOME/.config/openaiapirc
+    sed -i "s/TOBEREPLEACED/$OPENAI_API_KEY/g" $HOME/.config/zsh_codex.ini
     pip3 install openai --break-system-packages
+    pip3 install groq --break-system-packages
 }
 
 
@@ -169,7 +170,7 @@ install_fzf() {
         git -C $FZF_INSTALLATION_PATH pull
         $FZF_INSTALLATION_PATH/install --all --key-bindings --completion --no-update-rc
     else
-        git clone --depth 1 $FZF_REPO $FZF_INSTALLATION_PATH
+        git clone --branch 0.60.3 --depth 1 $FZF_REPO $FZF_INSTALLATION_PATH
         "$FZF_INSTALLATION_PATH"/install --all --key-bindings --completion --no-update-rc
     fi
 
@@ -252,6 +253,20 @@ finish_installation() {
 }
 
 
+install_nvim() {
+    if ! command -v nvim &>/dev/null; then
+        curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
+        sudo rm -rf /opt/nvim
+        sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
+        sudo ln -sf /opt/nvim-linux64/bin/nvim /usr/local/bin/nvim
+        rm nvim-linux-x86_64.tar.gz
+        git clone https://github.com/NvChad/starter ~/.config/nvim && nvim
+        logInfo "Neovim installed successfully"
+    else
+        logInfo "✅ Neovim is already installed"
+    fi
+}
+
 
 #############################################################################################
 ####################################### MAIN SCRIPT #########################################
@@ -317,6 +332,8 @@ install_lazydocker
 setup_plugins
 
 install_todo
+
+install_nvim
 
 copy_history
 

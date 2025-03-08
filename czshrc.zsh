@@ -57,6 +57,7 @@ fi
 export PATH=$PATH:~/.local/bin
 
 export PATH=$PATH:~/.config/czsh/bin
+export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
 
 NPM_PACKAGES="${HOME}/.npm"
 PATH="$NPM_PACKAGES/bin:$PATH"
@@ -117,3 +118,4 @@ git config --global alias.amend '!git add . && git commit --amend --no-edit && g
 
 
 alias kp='ps -ef | fzf --multi | awk '\''{print $2}'\'' | xargs sudo kill -9'
+alias git-update-all='find . -type d -name .git -execdir git pull --rebase --autostash \;'
