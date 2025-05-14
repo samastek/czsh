@@ -255,17 +255,38 @@ finish_installation() {
 
 install_nvim() {
     if ! command -v nvim &>/dev/null; then
-        curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
+        ARCH=$(uname -m)
+        case "$ARCH" in
+            x86_64)
+                NVIM_PKG="nvim-linux-x86_64.tar.gz"
+                ;;
+            aarch64 | arm64)
+                NVIM_PKG="nvim-linux-arm64.tar.gz"
+                ;;
+            armv7l)
+                NVIM_PKG="nvim-linux-armv7.tar.gz"
+                ;;
+            *)
+                echo "❌ Unsupported architecture: $ARCH"
+                return 1
+                ;;
+        esac
+
+        curl -LO "https://github.com/neovim/neovim/releases/latest/download/$NVIM_PKG"
+
         sudo rm -rf /opt/nvim
-        sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
-        sudo ln -sf /opt/nvim-linux64/bin/nvim /usr/local/bin/nvim
-        rm nvim-linux-x86_64.tar.gz
-        git clone https://github.com/NvChad/starter ~/.config/nvim && nvim
-        logInfo "Neovim installed successfully"
+        sudo tar -C /opt -xzf "$NVIM_PKG"
+        sudo ln -sf /opt/nvim-linux*/bin/nvim /usr/local/bin/nvim
+        rm "$NVIM_PKG"
+
+        git clone https://github.com/samastek/starter ~/.config/nvim
+
+        logInfo "✅ Neovim installed successfully"
     else
         logInfo "✅ Neovim is already installed"
     fi
 }
+
 
 
 #############################################################################################
