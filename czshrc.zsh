@@ -114,7 +114,7 @@ s() {
 
 f() { find . -type f -print0 | fzf --read0 --preview 'batcat --color=always {}' | xargs -0 file -b; }
 
-git config --global alias.amend '!git add . && git commit --amend --no-edit && git push -f'
+git config --global alias.amend '!git add -u && git commit --amend --no-edit && git push -f'
 
 
 alias kp='ps -ef | fzf --multi | awk '\''{print $2}'\'' | xargs sudo kill -9'
