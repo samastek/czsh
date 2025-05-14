@@ -2,11 +2,24 @@
 
 This project sets up a customized Zsh environment with various plugins and tools to enhance your terminal experience.
 
+## Supported Operating Systems
+
+- **Linux**: Ubuntu, Debian, Arch, Fedora, CentOS, and other major distributions
+- **macOS**: Intel and Apple Silicon Macs with automatic Homebrew installation
+
 ## Prerequisites
 
+### Linux
 - Git
 - Python3
-- wget
+- wget or curl
+- fontconfig (for font management)
+
+### macOS  
+- Git (usually pre-installed or via Xcode Command Line Tools)
+- Python3 (usually pre-installed or via Homebrew)
+- wget or curl (curl is pre-installed, wget will be installed via Homebrew if needed)
+- Homebrew (will be automatically installed if not present)
 
 ## Installation
 
@@ -14,6 +27,17 @@ To install the project, run the `install.sh` script:
 
 ```sh
 ./install.sh
+```
+
+### Command Line Options
+
+- `--cp-hist` or `-c`: Copy bash history to zsh history
+- `--interactive` or `-n`: Run in interactive mode (prompts for shell change)
+- `--codex` or `-x`: Enable zsh-codex with OpenAI integration
+
+Example:
+```sh
+./install.sh --cp-hist --codex
 ```
 This script will:
 
