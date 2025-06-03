@@ -1,42 +1,37 @@
 #!/bin/bash
 
-
+set -x
 ##########################################################
 ###################### SOURCE FILES ######################
 ##########################################################
 source ./utils.sh
 ##########################################################
 
-
 cp_hist_flag=false
 noninteractive_flag=true
 zsh_codex_flag=false
 
-
-OH_MY_ZSH_FOLDER="$HOME/.config/czsh/oh-my-zsh"
-OHMYZSH_CUSTOM_PLUGIN_PATH="$OH_MY_ZSH_FOLDER/custom/plugins"
-OHMYZSH_CUSTOM_THEME_PATH="$OH_MY_ZSH_FOLDER/custom/themes"
+# Updated paths for standalone plugin system
+CZSH_HOME="$HOME/.config/czsh"
+CZSH_PLUGINS_DIR="$CZSH_HOME/plugins"
+CZSH_THEMES_DIR="$CZSH_HOME/themes"
 
 #############################################################################################
 ######################################### VARIABLES #########################################
 #############################################################################################
 
-
-OH_MY_ZSHR_REPO="https://github.com/ohmyzsh/ohmyzsh.git"
 POWERLEVEL10K_REPO="https://github.com/romkatv/powerlevel10k.git"
-POWERLEVEL_10K_PATH=$OHMYZSH_CUSTOM_THEME_PATH/powerlevel10k
-
+POWERLEVEL_10K_PATH="$CZSH_THEMES_DIR/powerlevel10k"
 
 FZF_REPO="https://github.com/junegunn/fzf.git"
+MARKER_REPO="https://github.com/pindexis/marker.git"
 LAZYDOCKER_REPO="https://github.com/jesseduffield/lazydocker.git"
-POWERLEVEL_10K_PATH=$OHMYZSH_CUSTOM_THEME_PATH/powerlevel10k
 
-FZF_INSTALLATION_PATH=$HOME/.config/czsh/fzf    
+FZF_INSTALLATION_PATH=$HOME/.config/czsh/fzf
+MARKER_INSTALLATION_PATH=$HOME/.config/czsh/marker
 LAZYDOCKER_INSTALLATION_PATH=$HOME/.config/czsh/lazydocker
 
-
-
-
+# Plugin repositories - these will be installed directly without Oh My Zsh
 declare -A PLUGINS_MAP
 
 export PLUGINS_MAP=(
@@ -47,11 +42,8 @@ export PLUGINS_MAP=(
     ["zsh-completions"]="https://github.com/zsh-users/zsh-completions.git"
     ["history-substring-search"]="https://github.com/zsh-users/zsh-history-substring-search.git"
     ["forgit"]="https://github.com/wfxr/forgit.git"
+    ["z"]="https://github.com/rupa/z.git"
 )
-
-
-
-
 
 # Loop through all arguments
 for arg in "$@"; do
@@ -71,13 +63,11 @@ for arg in "$@"; do
     esac
 done
 
-
-
 #############################################################################################
 ####################################### FUNCTIONS #########################################
 #############################################################################################
 
-prerequists=("zsh" "git" "wget" "bat" "curl" "python3-pip" "fontconfig")
+prerequists=("zsh" "git" "wget" "curl" "python3" "build-essential")
 missing_packages=()
 
 detect_missing_packages() {
@@ -86,19 +76,23 @@ detect_missing_packages() {
             missing_packages+=("$package")
         fi
     done
-}
-
-perform_update() {
-    if sudo apt update || sudo pacman -Sy || sudo dnf check-update || sudo yum check-update || pkg update; then
-        logInfo "System updated\n"
-    else
-        logError "System update failed\n"
+    
+    # Check if bat is installed as 'bat' or 'batcat'
+    if ! command -v bat &>/dev/null && ! command -v batcat &>/dev/null; then
+        missing_packages+=("bat")
     fi
 }
 
+perform_update() {
+    sudo apt update && logInfo "Packages updated\n"
+}
+
+# Setup plugins directly without Oh My Zsh
 setup_plugins(){
+    mkdir -p "$CZSH_PLUGINS_DIR"
+    
     for PLUGIN_NAME in "${!PLUGINS_MAP[@]}"; do
-         PLUGIN_PATH="$OHMYZSH_CUSTOM_PLUGIN_PATH/$PLUGIN_NAME"
+         PLUGIN_PATH="$CZSH_PLUGINS_DIR/$PLUGIN_NAME"
          if [ -d "$PLUGIN_PATH" ]; then
               logInfo "✅ $PLUGIN_NAME plugin is already installed"
               git -C "$PLUGIN_PATH" pull
@@ -110,7 +104,6 @@ setup_plugins(){
     done
 }
 
-
 install_missing_packages() {
     if [[ ${#missing_packages[@]} -eq 0 ]]; then
         logInfo "All prerequisites are already installed\n"
@@ -120,7 +113,7 @@ install_missing_packages() {
     perform_update
     
     for package in "${missing_packages[@]}"; do
-        if sudo apt install -y "$package" || sudo pacman -S "$package" || sudo dnf install -y "$package" || sudo yum install -y "$package" || pkg install "$package"; then
+        if sudo apt install -y "$package"; then
             logInfo "$package Installed\n"
         else
             logWarning "🚨 Please install the following packages first, then try again: $package 🚨" && exit
@@ -128,48 +121,24 @@ install_missing_packages() {
     done
 }
 
-
 backup_existing_zshrc_config() {
     if mv -n $HOME/.zshrc $HOME/.zshrc-backup-"$(date +"%Y-%m-%d")"; then # backup .zshrc
         logInfo -e "Backed up the current .zshrc to .zshrc-backup-date\n"
     fi
 }
 
-# -d checks if the directory exists
-# git -C checks if the directory exists and runs the command in that directory
-configure_ohmzsh() {
-    if [ -d "$OH_MY_ZSH_FOLDER" ]; then
-        logInfo "✅ oh-my-zsh is already installed\n"
-        git -C "$OH_MY_ZSH_FOLDER" remote set-url origin "$OH_MY_ZSHR_REPO"
-        export ZSH=$OH_MY_ZSH_FOLDER;
-        git -C "$OH_MY_ZSH_FOLDER" pull
-    elif [ -d "$HOME/.oh-my-zsh" ]; then
-        logProgress "⏳ oh-my-zsh is already installed at '$HOME/.oh-my-zsh'. Moving it to '$HOME/.config/czsh/oh-my-zsh'"
-        export ZSH=$OH_MY_ZSH_FOLDER;
-        mv "$HOME/.oh-my-zsh" "$OH_MY_ZSH_FOLDER"
-        git -C "$OH_MY_ZSH_FOLDER" remote set-url origin "$OH_MY_ZSHR_REPO"
-        git -C "$OH_MY_ZSH_FOLDER" pull
+# Setup Powerlevel10k theme directly (without Oh My Zsh)
+configure_powerlevel10k() {
+    mkdir -p "$CZSH_THEMES_DIR"
+    
+    if [ -d "$POWERLEVEL_10K_PATH" ]; then
+        logInfo "✅ Powerlevel10k is already installed\n"
+        git -C "$POWERLEVEL_10K_PATH" pull
     else
-        git clone --depth=1 $OH_MY_ZSHR_REPO "$OH_MY_ZSH_FOLDER"
-        export ZSH=$OH_MY_ZSH_FOLDER;
+        git clone --depth=1 $POWERLEVEL10K_REPO "$POWERLEVEL_10K_PATH"
+        logInfo "✅ Powerlevel10k theme installed"
     fi
 }
-
-
-
-configure_zsh_codex() {
-    
-    logProgress "configuring zsh_codex\n"
-    cp zsh_codex.ini $HOME/.config/
-
-    read -s -p "Enter your openai api key: "
-    OPENAI_API_KEY=$REPLY
-
-    sed -i "s/TOBEREPLEACED/$OPENAI_API_KEY/g" $HOME/.config/zsh_codex.ini
-    pip3 install openai --break-system-packages
-    pip3 install groq --break-system-packages
-}
-
 
 install_fzf() {
     if [ -d $FZF_INSTALLATION_PATH ]; then
@@ -179,14 +148,15 @@ install_fzf() {
         git clone --branch 0.60.3 --depth 1 $FZF_REPO $FZF_INSTALLATION_PATH
         "$FZF_INSTALLATION_PATH"/install --all --key-bindings --completion --no-update-rc
     fi
-
 }
 
-install_powerlevel10k() {
-    if [ -d "$POWERLEVEL_10K_PATH" ]; then
-        git -C "$POWERLEVEL_10K_PATH" pull
+install_marker() {
+    if [ -d $MARKER_INSTALLATION_PATH ]; then
+        git -C $MARKER_INSTALLATION_PATH pull
+        $MARKER_INSTALLATION_PATH/install.sh
     else
-        git clone --depth=1 $POWERLEVEL10K_REPO "$POWERLEVEL_10K_PATH"
+        git clone --depth 1 $MARKER_REPO $MARKER_INSTALLATION_PATH
+        $MARKER_INSTALLATION_PATH/install.sh
     fi
 }
 
@@ -201,7 +171,6 @@ install_lazydocker() {
     fi
     sleep 3
 }
-
 
 install_todo() {
     if [ ! -L $HOME/.config/czsh/todo/bin/todo.sh ]; then
@@ -269,16 +238,14 @@ finish_installation() {
     else
         logWarning "\nSudo access is needed to change default shell\n"
 
-        if chsh -s "$(which zsh)" && /bin/zsh -i -c 'omz update'; then
+        if chsh -s "$(which zsh)"; then
             logInfo "Installation complete, exit terminal and enter a new zsh session"
             logWarning "In a new zsh session manually run: build-fzf-tab-module"
         else
             logError "Something is wrong, the password you entered might be wrong\n"
-
         fi
     fi
 }
-
 
 install_nvim() {
     if ! command -v nvim &>/dev/null; then
@@ -319,13 +286,44 @@ install_nvim() {
     fi
 }
 
+configure_zsh_codex() {
+    logProgress "configuring zsh_codex\n"
+    cp zsh_codex.ini $HOME/.config/
 
+    read -s -p "Enter your openai api key: "
+    OPENAI_API_KEY=$REPLY
+
+    sed -i "s/TOBEREPLEACED/$OPENAI_API_KEY/g" $HOME/.config/zsh_codex.ini
+    pip3 install openai --break-system-packages
+    pip3 install groq --break-system-packages
+}
+
+install_nerd_fonts() {
+    logProgress "Installing Nerd Fonts version of Hack, Roboto Mono, DejaVu Sans Mono\n"
+    
+    mkdir -p $HOME/.fonts
+    
+    if [ ! -f $HOME/.fonts/HackNerdFont-Regular.ttf ]; then
+        wget -q --show-progress -N https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Hack/Regular/HackNerdFont-Regular.ttf -P $HOME/.fonts/
+    fi
+    
+    if [ ! -f $HOME/.fonts/RobotoMonoNerdFont-Regular.ttf ]; then
+        wget -q --show-progress -N https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/RobotoMono/Regular/RobotoMonoNerdFont-Regular.ttf -P $HOME/.fonts/
+    fi
+    
+    if [ ! -f $HOME/.fonts/DejaVuSansMNerdFont-Regular.ttf ]; then
+        wget -q --show-progress -N https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/DejaVuSansMono/Regular/DejaVuSansMNerdFont-Regular.ttf -P $HOME/.fonts/
+    fi
+    
+    fc-cache -fv $HOME/.fonts
+    logInfo "Fonts installed and font cache refreshed."
+}
 
 #############################################################################################
 ####################################### MAIN SCRIPT #########################################
 #############################################################################################
 
-logInfo "🐧 Starting Debian/Ubuntu Zsh Setup Installation\n"
+logInfo "🐧 Starting Debian/Ubuntu Zsh Setup Installation (No Oh My Zsh)\n"
 
 detect_missing_packages
 
@@ -339,10 +337,9 @@ logWarning "Place your personal zshrc config files under '$HOME/.config/czsh/zsh
 
 mkdir -p $HOME/.config/czsh/zshrc
 
-logInfo "Installing oh-my-zsh\n"
+logInfo "Installing Powerlevel10k theme\n"
 
-configure_ohmzsh
-
+configure_powerlevel10k
 
 cp -f ./.zshrc $HOME/
 cp -f ./czshrc.zsh $HOME/.config/czsh/
@@ -355,32 +352,15 @@ if [ -f $HOME/.zcompdump ]; then
     mv $HOME/.zcompdump* $HOME/.cache/zsh/
 fi
 
-
 if [ "$zsh_codex_flag" = true ]; then
     configure_zsh_codex 
 fi
 
-
-install_powerlevel10k
-
-
-logProgress "Installing Nerd Fonts version of Hack, Roboto Mono, DejaVu Sans Mono\n"
-
-if [ ! -f $HOME/.fonts/HackNerdFont-Regular.ttf ]; then
-    wget -q --show-progress -N https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Hack/Regular/HackNerdFont-Regular.ttf -P $HOME/.fonts/
-fi
-
-if [ ! -f $HOME/.fonts/RobotoMonoNerdFont-Regular.ttf ]; then
-    wget -q --show-progress -N https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/RobotoMono/Regular/RobotoMonoNerdFont-Regular.ttf -P $HOME/.fonts/
-fi
-
-if [ ! -f $HOME/.fonts/DejaVuSansMNerdFont-Regular.ttf ]; then
-    wget -q --show-progress -N https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/DejaVuSansMono/Regular/DejaVuSansMNerdFont-Regular.ttf -P $HOME/.fonts/
-fi
-
-fc-cache -fv $HOME/.fonts
+install_nerd_fonts
 
 install_fzf
+
+install_marker
 
 install_lazydocker
 

@@ -35,6 +35,9 @@ show_usage() {
     echo "Universal installer for czsh (Customized Zsh) that automatically detects"
     echo "your operating system and runs the appropriate installation script."
     echo ""
+    echo "This is a standalone zsh configuration that does NOT require Oh My Zsh."
+    echo "All plugins are installed and managed directly for better performance."
+    echo ""
     echo "OPTIONS:"
     echo "  --cp-hist, -c     Copy bash history to zsh history"
     echo "  --interactive, -n Run in interactive mode (prompts for shell change)"
@@ -51,9 +54,9 @@ show_usage() {
     echo "  • Linux (Debian, Ubuntu, Arch, Fedora, CentOS)"
     echo ""
     echo "The installer will automatically:"
-    echo "  • Install oh-my-zsh and plugins"
+    echo "  • Install zsh plugins directly (no Oh My Zsh dependency)"
     echo "  • Install fzf for fuzzy finding"
-    echo "  • Install powerlevel10k theme"
+    echo "  • Install powerlevel10k theme (standalone)"
     echo "  • Install lazydocker for Docker management"
     echo "  • Install todo.sh for task management"
     echo "  • Install Neovim with NvChad config"
@@ -87,9 +90,6 @@ if [ ! -f "./utils.sh" ]; then
     echo "This file is required for the installation scripts to work properly."
     exit 1
 fi
-
-# Run the appropriate installer
-detect_os_and_run "$@"
 
 # Run the appropriate installer
 detect_os_and_run "$@"

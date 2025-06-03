@@ -23,15 +23,9 @@ if [ "$(ls -A $ZSH_CONFIGS_DIR)" ]; then
     done
 fi
 
-# Now source oh-my-zsh.sh so that any plugins added in ~/.config/czsh/zshrc/* files also get loaded
-source $ZSH/oh-my-zsh.sh
-
-
-# Configs that can only work after "source $ZSH/oh-my-zsh.sh", such as Aliases that depend oh-my-zsh plugins
-
-# Now source fzf.zsh , otherwise Ctr+r is overwritten by ohmyzsh
+# Enable fzf integration (replaces the need for Oh My Zsh fzf integration)
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 export FZF_DEFAULT_OPS="--extended"
 
-
+# Additional environment setup
 [ -f "/home/user/.ghcup/env" ] && . "/home/user/.ghcup/env" # ghcup-env

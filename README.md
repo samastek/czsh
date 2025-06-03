@@ -1,6 +1,14 @@
-# Project Setup
+# CZSH - Standalone Zsh Configuration
 
-This project sets up a customized Zsh environment with various plugins and tools to enhance your terminal experience.
+This project sets up a customized Zsh environment with various plugins and tools to enhance your terminal experience. **This configuration does NOT require Oh My Zsh** - all plugins are installed and managed directly for better performance and reduced overhead.
+
+## Features
+
+- 🚀 **No Oh My Zsh dependency** - Lightweight and fast
+- 🎨 **Powerlevel10k theme** - Beautiful and highly customizable prompt
+- 🔍 **Smart plugin management** - Direct plugin loading without framework overhead
+- 📦 **Essential plugins included** - Auto-suggestions, syntax highlighting, completions, and more
+- 🛠️ **Modern tools integration** - fzf, lazydocker, marker, todo.sh, Neovim with NvChad
 
 ## Supported Operating Systems
 
@@ -41,30 +49,58 @@ Example:
 ```
 This script will:
 
-- Clone and set up various Zsh plugins.
-- Install fzf for fuzzy finding.
-- Install powerlevel10k for a beautiful Zsh prompt.
-- Install lazydocker for managing Docker containers.
-- Install marker for command bookmarking.
-- Install todo.sh for managing todo lists.
+- Install and configure zsh plugins directly (no Oh My Zsh needed)
+- Install fzf for fuzzy finding
+- Install powerlevel10k theme (standalone version)
+- Install lazydocker for managing Docker containers
+- Install marker for command bookmarking
+- Install todo.sh for managing todo lists
+- Install Neovim with NvChad configuration
 
 ## Configuration
 
 ### Zsh Plugins
-The following Zsh plugins are configured:
+The following Zsh plugins are configured and loaded directly:
 
-- zsh-autosuggestions
-- zsh-syntax-highlighting
-- zsh-completions
-- zsh-history-substring-search
-- fzf-tab
-- zsh-codex
+- **zsh-autosuggestions** - Fish-like autosuggestions
+- **zsh-syntax-highlighting** - Real-time syntax highlighting
+- **zsh-completions** - Additional completion definitions
+- **zsh-history-substring-search** - Search history with arrow keys
+- **fzf-tab** - Fuzzy completion with fzf
+- **forgit** - Interactive git commands
+- **z** - Smart directory jumping
+- **zsh-codex** - AI-powered command completion (optional)
+
+### Built-in Functionality
+The configuration includes replacements for common Oh My Zsh plugins:
+
+- **Web search** - Search engines directly from terminal
+- **Extract** - Universal archive extraction function
+- **Docker aliases** - Common docker command shortcuts
+- **Git aliases** - Useful git shortcuts and functions
 
 ### Custom Zsh Configuration
 Place your personal Zsh configuration files under:
+```
+~/.config/czsh/zshrc/
+```
+
+All files in this directory will be automatically sourced.
+
+## Plugin Management
+
+The configuration uses a lightweight plugin management system that:
+
+- Loads plugins directly without framework overhead
+- Automatically handles different plugin file naming conventions
+- Provides better performance than Oh My Zsh
+- Maintains compatibility with most zsh plugins
 
 ## OpenAI API Key
 To configure the OpenAI API key for zsh-codex, the script will prompt you to enter your API key. This key will be stored in:
+```
+~/.config/zsh_codex.ini
+```
 
 ## Usage
 After installation, start a new Zsh session to apply the changes. Make sure to change Zsh to the default shell by running:
@@ -78,6 +114,17 @@ In a new Zsh session, manually run:
 ```
 source ~/.zshrc
 ```
+
+## Migration from Oh My Zsh
+
+If you're migrating from Oh My Zsh, this configuration provides:
+
+- **Better performance** - No framework overhead
+- **Same functionality** - All popular plugins work the same way
+- **Easier customization** - Direct plugin management
+- **Reduced complexity** - No need to understand Oh My Zsh internals
+
+Your existing plugin configurations should work with minimal changes.
 
 ## License
 This project is licensed under the MIT License.
