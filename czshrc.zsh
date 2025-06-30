@@ -62,6 +62,11 @@ export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
 NPM_PACKAGES="${HOME}/.npm"
 PATH="$NPM_PACKAGES/bin:$PATH"
 
+# Load nvm (Node Version Manager)
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
 [[ -s "$HOME/.config/czsh/marker/marker.sh" ]] && source "$HOME/.config/czsh/marker/marker.sh"
 
 
@@ -118,4 +123,78 @@ git config --global alias.amend '!git add -u && git commit --amend --no-edit && 
 
 
 alias kp='ps -ef | fzf --multi | awk '\''{print $2}'\'' | xargs sudo kill -9'
+
+# Load Gemini CLI configuration if available
+[[ -f "$HOME/.config/czsh/gemini/config.sh" ]] && source "$HOME/.config/czsh/gemini/config.sh"
+
+# GEMINI CLI FUNCTIONS AND ALIASES
+
+# Quick start Gemini CLI
+alias g="gemini"
+alias gai="gemini"
+
+# Gemini CLI with specific contexts
+alias gcode="gemini"  # General code assistance
+alias gdebug="gemini" # Debugging assistance 
+alias gtest="gemini"  # Testing assistance
+
+# Function to quickly start Gemini with a specific prompt
+gask() {
+    if [ "$1" ]; then
+        echo "$*" | gemini
+    else
+        echo "Usage: gask <your question or prompt>"
+        echo "Example: gask 'Explain this code and suggest improvements'"
+    fi
+}
+
+# Function to use Gemini for code review on git changes
+greview() {
+    local target="${1:-HEAD~1}"
+    git diff "$target" | gemini "Please review this git diff and provide feedback on code quality, potential issues, and suggestions for improvement:"
+}
+
+# Function to use Gemini for commit message generation
+gcommit() {
+    local staged_diff=$(git diff --staged)
+    if [[ -z "$staged_diff" ]]; then
+        echo "No staged changes found. Please stage your changes first with 'git add'."
+        return 1
+    fi
+    
+    echo "Staged changes:"
+    git diff --staged --stat
+    echo
+    echo "Generating commit message with Gemini..."
+    echo "$staged_diff" | gemini "Based on this git diff, generate a concise and descriptive commit message following conventional commit format. Only return the commit message, nothing else:"
+}
+
+# Function to explain error messages
+gexplain() {
+    if [ "$1" ]; then
+        echo "Error: $*" | gemini "Please explain this error message and provide potential solutions:"
+    else
+        echo "Usage: gexplain <error message>"
+        echo "Example: gexplain 'segmentation fault (core dumped)'"
+    fi
+}
+
+# Function to use Gemini for documentation generation
+gdoc() {
+    local file="$1"
+    if [[ -f "$file" ]]; then
+        cat "$file" | gemini "Please generate comprehensive documentation for this code file. Include function descriptions, usage examples, and any important notes:"
+    else
+        echo "Usage: gdoc <filename>"
+        echo "Generate documentation for a code file using Gemini"
+    fi
+}
+
+# Function to use Gemini for project analysis
+ganalyze() {
+    local path="${1:-.}"
+    echo "Analyzing project structure in: $path"
+    find "$path" -type f -name "*.md" -o -name "*.txt" -o -name "package.json" -o -name "requirements.txt" -o -name "Makefile" -o -name "*.yml" -o -name "*.yaml" | head -10 | xargs cat | gemini "Analyze this project structure and files. Provide insights about the project type, technologies used, and suggestions for improvement:"
+}
+
 alias git-update-all='find . -type d -name .git -execdir git pull --rebase --autostash \;'
