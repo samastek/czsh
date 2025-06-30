@@ -1,0 +1,4 @@
+[openai]
+secret_key = TOBEREPLEACED
+api_base = https://api.groq.com/openai/v1
+model = llama3-70b-8192
