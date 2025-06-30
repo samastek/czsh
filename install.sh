@@ -11,6 +11,7 @@ source ./utils.sh
 cp_hist_flag=false
 noninteractive_flag=true
 zsh_codex_flag=false
+gemini_cli_flag=false
 
 
 OH_MY_ZSH_FOLDER="$HOME/.config/czsh/oh-my-zsh"
@@ -64,6 +65,9 @@ for arg in "$@"; do
         ;;
     --codex | -x)
         zsh_codex_flag=true
+        ;;
+    --gemini | -g)
+        gemini_cli_flag=true
         ;;
     *)
         # Handle any other arguments or provide an error message
@@ -167,11 +171,14 @@ configure_zsh_codex() {
 
 install_fzf() {
     if [ -d $FZF_INSTALLATION_PATH ]; then
+        logInfo "✅ FZF is already installed, updating...\n"
         git -C $FZF_INSTALLATION_PATH pull
         $FZF_INSTALLATION_PATH/install --all --key-bindings --completion --no-update-rc
     else
-        git clone --branch 0.60.3 --depth 1 $FZF_REPO $FZF_INSTALLATION_PATH
+        logProgress "Installing FZF...\n"
+        git clone --depth 1 $FZF_REPO $FZF_INSTALLATION_PATH
         "$FZF_INSTALLATION_PATH"/install --all --key-bindings --completion --no-update-rc
+        logInfo "✅ FZF installed successfully\n"
     fi
 
 }
@@ -267,7 +274,135 @@ install_nvim() {
     fi
 }
 
+configure_gemini_cli() {
+    logProgress "configuring Gemini CLI\n"
+    
+    # Source nvm to ensure npm is available
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    
+    # Check if npm is available
+    if ! command -v npm &>/dev/null; then
+        logError "npm is not available. Node.js installation may have failed."
+        return 1
+    fi
+    
+    # Install Gemini CLI globally
+    if npm install -g @google/gemini-cli; then
+        logInfo "✅ Gemini CLI installed successfully\n"
+        
+        # Create configuration directory
+        mkdir -p $HOME/.config/czsh/gemini
+        
+        # Ask user for authentication preference
+        echo "Choose authentication method for Gemini CLI:"
+        echo "1. API Key (requires Google AI Studio key)"
+        echo "2. OAuth (will authenticate later with 'gemini auth')"
+        echo "3. Skip configuration"
+        read -p "Enter your choice (1-3): " auth_choice
+        
+        case $auth_choice in
+            1)
+                echo "Get your API key from: https://aistudio.google.com/apikey"
+                read -s -p "Enter your Gemini API key: "
+                GEMINI_API_KEY=$REPLY
+                echo
+                
+                if [[ -n "$GEMINI_API_KEY" ]]; then
+                    # Create config file with API key
+                    cat > $HOME/.config/czsh/gemini/config.sh << EOF
+#!/bin/bash
+# Gemini CLI Configuration
+export GEMINI_API_KEY="$GEMINI_API_KEY"
+EOF
+                    logInfo "✅ API key saved to ~/.config/czsh/gemini/config.sh\n"
+                else
+                    logWarning "No API key provided. You can set it later in ~/.config/czsh/gemini/config.sh\n"
+                fi
+                ;;
+            2)
+                # Create config file without API key
+                cat > $HOME/.config/czsh/gemini/config.sh << 'EOF'
+#!/bin/bash
+# Gemini CLI Configuration
 
+# Set your Gemini API key here (get it from https://aistudio.google.com/apikey)
+# export GEMINI_API_KEY="your_api_key_here"
+
+# Uncomment the line above and replace with your actual API key
+# Or authenticate with: gemini auth
+EOF
+                logInfo "✅ Configuration file created. Run 'gemini auth' after installation to authenticate\n"
+                ;;
+            3)
+                # Create minimal config file
+                cat > $HOME/.config/czsh/gemini/config.sh << 'EOF'
+#!/bin/bash
+# Gemini CLI Configuration - Run 'gemini auth' to authenticate
+EOF
+                logInfo "✅ Minimal configuration created\n"
+                ;;
+            *)
+                logWarning "Invalid choice. Creating minimal configuration\n"
+                cat > $HOME/.config/czsh/gemini/config.sh << 'EOF'
+#!/bin/bash
+# Gemini CLI Configuration - Run 'gemini auth' to authenticate
+EOF
+                ;;
+        esac
+    else
+        logError "❌ Failed to install Gemini CLI\n"
+        return 1
+    fi
+}
+
+install_nodejs() {
+    logProgress "Checking Node.js installation...\n"
+    
+    # Check if node is already available
+    if command -v node &>/dev/null; then
+        local node_version=$(node -v)
+        logInfo "✅ Node.js is already installed: $node_version\n"
+        return 0
+    fi
+    
+    logProgress "Node.js not found. Installing via nvm...\n"
+    
+    # Download and install nvm
+    if ! command -v nvm &>/dev/null && [ ! -f "$HOME/.nvm/nvm.sh" ]; then
+        logProgress "Installing nvm...\n"
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+        
+        if [ $? -ne 0 ]; then
+            logError "❌ Failed to install nvm\n"
+            return 1
+        fi
+    fi
+    
+    # Source nvm to make it available in current session
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+    
+    # Install Node.js version 22
+    logProgress "Installing Node.js v22...\n"
+    if nvm install 22; then
+        nvm use 22
+        nvm alias default 22
+        
+        # Verify installation
+        local node_version=$(node -v)
+        local npm_version=$(npm -v)
+        
+        logInfo "✅ Node.js installed successfully: $node_version\n"
+        logInfo "✅ npm version: $npm_version\n"
+        
+        return 0
+    else
+        logError "❌ Failed to install Node.js\n"
+        return 1
+    fi
+}
 #############################################################################################
 ####################################### MAIN SCRIPT #########################################
 #############################################################################################
@@ -275,6 +410,8 @@ install_nvim() {
 detect_missing_packages
 
 install_missing_packages
+
+install_nodejs
 
 backup_existing_zshrc_config
 
@@ -303,6 +440,10 @@ fi
 
 if [ "$zsh_codex_flag" = true ]; then
     configure_zsh_codex 
+fi
+
+if [ "$gemini_cli_flag" = true ]; then
+    configure_gemini_cli
 fi
 
 

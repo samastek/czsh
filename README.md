@@ -9,6 +9,7 @@ A comprehensive and feature-rich Zsh configuration setup that transforms your te
 - **Advanced plugins** for enhanced productivity
 - **FZF integration** for fuzzy finding
 - **AI-powered command completion** with zsh_codex
+- **Gemini CLI integration** for AI assistance
 - **Modern tools** like lazydocker, bat, and more
 - **Nerd Fonts** for beautiful icons
 - **Smart aliases** and custom functions
@@ -32,6 +33,7 @@ A comprehensive and feature-rich Zsh configuration setup that transforms your te
 
 ### Tools & Utilities
 - **bat** - Better cat with syntax highlighting
+- **Gemini CLI** - AI-powered coding assistant and workflow tool
 - **Nerd Fonts** - Beautiful icon fonts
 - **Custom aliases** and functions
 - **Enhanced history** configuration
@@ -46,6 +48,8 @@ The installer will check for these packages and install them if missing:
 - `curl` - URL transfer tool
 - `python3-pip` - Python package manager
 - `fontconfig` - Font configuration
+
+**Node.js** is automatically installed via nvm (Node Version Manager) if not present, ensuring you have the latest stable version for Gemini CLI.
 
 ## 📥 Installation
 
@@ -74,14 +78,18 @@ The installer supports several flags for customization:
 # Include AI-powered command completion
 ./install.sh --codex
 
+# Include Gemini CLI for AI assistance
+./install.sh --gemini
+
 # Combine multiple options
-./install.sh --cp-hist --codex
+./install.sh --cp-hist --codex --gemini
 ```
 
 #### Flag Details
 - `--cp-hist` or `-c`: Copies your existing shell history to the new Zsh configuration
 - `--interactive` or `-n`: Runs in interactive mode, asking for user input during installation
 - `--codex` or `-x`: Installs and configures zsh_codex for AI-powered command completion
+- `--gemini` or `-g`: Installs and configures Gemini CLI for AI-powered coding assistance
 
 ## ⚙️ Configuration
 
@@ -95,6 +103,55 @@ If you use the `--codex` flag, you'll need to provide an API key for AI-powered 
 Configuration files:
 - `~/.config/zsh_codex.ini` - Main configuration
 - `~/.config/openaiapirc` - Alternative OpenAI configuration
+
+### Gemini CLI Integration
+
+The setup includes Google's Gemini CLI for AI-powered coding assistance when using the `--gemini` flag:
+
+#### Setup
+1. Install with Gemini CLI: `./install.sh --gemini`
+2. During installation, choose your authentication method:
+   - **API Key**: Enter your key from https://aistudio.google.com/apikey
+   - **OAuth**: Authenticate later with `gemini auth`
+   - **Skip**: Configure manually later
+
+#### Built-in Aliases & Functions
+```bash
+# Quick access
+g                    # Start Gemini CLI
+gai                  # Alternative alias for Gemini
+
+# Specialized functions
+gask "your question" # Ask Gemini a quick question
+greview             # Review git changes with AI
+gcommit             # Generate commit messages
+gexplain "error"    # Explain error messages
+gdoc filename       # Generate documentation
+ganalyze            # Analyze project structure
+```
+
+#### Usage Examples
+```bash
+# Get code help
+gask "How to implement a binary search in Python?"
+
+# Review your changes
+git add .
+greview
+
+# Generate a commit message
+git add .
+gcommit
+
+# Explain an error
+gexplain "segmentation fault core dumped"
+
+# Document your code
+gdoc src/main.py
+
+# Analyze project
+ganalyze ./my-project
+```
 
 ### Theme Customization
 
@@ -113,6 +170,10 @@ alias l="ls --hyperlink=auto -lAhrtF"  # Enhanced ls
 alias e="exit"                         # Quick exit
 alias myip="wget -qO- https://wtfismyip.com/text"  # Show external IP
 
+# AI Assistance
+alias g="gemini"                       # Quick Gemini CLI access
+alias gai="gemini"                     # Alternative Gemini alias
+
 # Git
 alias git-update-all='find . -type d -name .git -execdir git pull --rebase --autostash \;'
 
@@ -125,6 +186,12 @@ Custom functions:
 - `speedtest()` - Run internet speed test
 - `s()` - Search files with ripgrep and FZF
 - `f()` - Find and preview files with FZF
+- `gask()` - Ask Gemini AI quick questions
+- `greview()` - AI-powered git diff review
+- `gcommit()` - Generate commit messages with AI
+- `gexplain()` - Explain error messages
+- `gdoc()` - Generate code documentation
+- `ganalyze()` - Analyze project structure
 
 ## 🎨 Font Setup
 
@@ -144,6 +211,8 @@ After installation, your configuration will be organized as:
 ├── oh-my-zsh/           # Oh My Zsh framework
 ├── fzf/                 # FZF fuzzy finder
 ├── lazydocker/          # Docker TUI
+├── gemini/              # Gemini CLI configuration
+│   └── config.sh        # Gemini API key configuration
 └── bin/                 # Additional binaries
 
 ~/.zshrc                 # Main Zsh configuration (sourced from czsh/)
