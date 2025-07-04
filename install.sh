@@ -1,10 +1,19 @@
 #!/bin/bash
 
-
 ##########################################################
 ###################### SOURCE FILES ######################
 ##########################################################
 source ./utils.sh
+
+# Record start time for installation summary
+INSTALL_START_TIME=$(date +%s)
+
+# Welcome header
+print_header "CZSH - Enhanced Zsh Configuration Installer" "$CYAN" "$BG_BLUE"
+logInfo "Welcome to the enhanced zsh setup installer! $SPARKLES"
+logNote "This installer will set up a powerful zsh environment with modern tools and plugins"
+echo
+
 ##########################################################
 
 
@@ -115,211 +124,334 @@ detect_missing_packages() {
 }
 
 perform_update() {
+    print_section "System Update" "$ZAPP" "$BLUE"
     if [[ "$OSTYPE" == "darwin"* ]]; then
         # macOS - use Homebrew without sudo
+        logProgress "Updating Homebrew packages..."
         if brew update; then
-            logInfo "System updated\n"
+            logSuccess "System updated successfully"
         else
-            logError "System update failed\n"
+            logError "System update failed"
         fi
     else
         # Linux - try different package managers
+        logProgress "Updating system packages..."
         if sudo apt update || sudo pacman -Sy || sudo dnf check-update || sudo yum check-update || pkg update; then
-            logInfo "System updated\n"
+            logSuccess "System updated successfully"
         else
-            logError "System update failed\n"
+            logError "System update failed"
         fi
     fi
+    echo
 }
 
 setup_plugins(){
+    print_section "Zsh Plugins Installation" "$PACKAGE" "$PURPLE"
+    
+    local plugin_count=0
+    local total_plugins=$(echo $PLUGINS_LIST | wc -w)
+    
     for PLUGIN_ENTRY in $PLUGINS_LIST; do
+        ((plugin_count++))
         PLUGIN_NAME="${PLUGIN_ENTRY%%:*}"
-        PLUGIN_REPO_LINK="${PLUGIN_ENTRY##*:}"
+        PLUGIN_REPO_LINK="${PLUGIN_ENTRY#*:}"
         PLUGIN_PATH="$OHMYZSH_CUSTOM_PLUGIN_PATH/$PLUGIN_NAME"
         
+        logStepProgress "$plugin_count" "$total_plugins" "$PLUGIN_NAME"
+        
         if [ -d "$PLUGIN_PATH" ]; then
-            logInfo "✅ $PLUGIN_NAME plugin is already installed"
-            git -C "$PLUGIN_PATH" pull
+            logAlreadyInstalled "$PLUGIN_NAME plugin"
+            logUpdating "$PLUGIN_NAME"
+            if git -C "$PLUGIN_PATH" pull --quiet 2>/dev/null; then
+                logUpdated "$PLUGIN_NAME"
+            else
+                logWarning "Failed to update $PLUGIN_NAME, but continuing..."
+            fi
         else
-            git clone --depth=1 "$PLUGIN_REPO_LINK" "$PLUGIN_PATH"
-            logInfo "✅ $PLUGIN_NAME plugin installed"
+            logInstalling "$PLUGIN_NAME plugin"
+            git clone --depth=1 --quiet "$PLUGIN_REPO_LINK" "$PLUGIN_PATH"
+            logInstalled "$PLUGIN_NAME plugin"
         fi
+        echo
     done
 }
 
 
 install_missing_packages() {
+    if [ ${#missing_packages[@]} -eq 0 ]; then
+        logSuccess "All required packages are already installed!"
+        return
+    fi
+    
+    print_section "Package Installation" "$PACKAGE" "$YELLOW"
+    logWarning "Missing packages detected: ${missing_packages[*]}"
+    
     perform_update
+    
+    local package_count=0
+    local total_packages=${#missing_packages[@]}
+    
     for package in "${missing_packages[@]}"; do
+        ((package_count++))
+        logStepProgress "$package_count" "$total_packages" "Installing $package"
+        
         if [[ "$OSTYPE" == "darwin"* ]]; then
             # macOS - use Homebrew without sudo
-            if brew install "$package"; then
-                logInfo "$package Installed\n"
+            logInstalling "$package"
+            if brew install "$package" >/dev/null 2>&1; then
+                logInstalled "$package"
             else
-                logWarning "🚨 Please install the following packages first, then try again: $package 🚨" && exit
+                logErrorWithSuggestion "Failed to install $package" "Try running 'brew install $package' manually"
+                exit 1
             fi
         else
             # Linux - try different package managers
-            if sudo apt install -y "$package" || sudo pacman -S "$package" || sudo dnf install -y "$package" || sudo yum install -y "$package" || pkg install "$package"; then
-                logInfo "$package Installed\n"
+            logInstalling "$package"
+            if sudo apt install -y "$package" >/dev/null 2>&1 || sudo pacman -S "$package" >/dev/null 2>&1 || sudo dnf install -y "$package" >/dev/null 2>&1 || sudo yum install -y "$package" >/dev/null 2>&1 || pkg install "$package" >/dev/null 2>&1; then
+                logInstalled "$package"
             else
-                logWarning "🚨 Please install the following packages first, then try again: $package 🚨" && exit
+                logErrorWithSuggestion "Failed to install $package" "Try installing manually with your system's package manager"
+                exit 1
             fi
         fi
+        echo
     done
 }
 
 
 backup_existing_zshrc_config() {
-    if mv -n $HOME/.zshrc $HOME/.zshrc-backup-"$(date +"%Y-%m-%d")"; then # backup .zshrc
-        logInfo -e "Backed up the current .zshrc to .zshrc-backup-date\n"
+    print_section "Configuration Backup" "$FOLDER" "$YELLOW"
+    if [ -f "$HOME/.zshrc" ]; then
+        local backup_file="$HOME/.zshrc-backup-$(date +"%Y-%m-%d-%H%M%S")"
+        if mv "$HOME/.zshrc" "$backup_file"; then
+            logSuccess "Backed up existing .zshrc to $(basename $backup_file)"
+        else
+            logWarning "Failed to backup existing .zshrc"
+        fi
+    else
+        logInfo "No existing .zshrc found, skipping backup"
     fi
+    echo
 }
 
 # -d checks if the directory exists
 # git -C checks if the directory exists and runs the command in that directory
 configure_ohmzsh() {
+    print_section "Oh My Zsh Setup" "$STAR" "$GREEN"
+    
     if [ -d "$OH_MY_ZSH_FOLDER" ]; then
-        logInfo "✅ oh-my-zsh is already installed\n"
+        logAlreadyInstalled "oh-my-zsh"
+        logUpdating "oh-my-zsh"
         git -C "$OH_MY_ZSH_FOLDER" remote set-url origin "$OH_MY_ZSHR_REPO"
         export ZSH=$OH_MY_ZSH_FOLDER;
-        git -C "$OH_MY_ZSH_FOLDER" pull
+        if git -C "$OH_MY_ZSH_FOLDER" pull --quiet 2>/dev/null; then
+            logUpdated "oh-my-zsh"
+        else
+            logWarning "Failed to update oh-my-zsh, but continuing..."
+        fi
     elif [ -d "$HOME/.oh-my-zsh" ]; then
-        logProgress "⏳ oh-my-zsh is already installed at '$HOME/.oh-my-zsh'. Moving it to '$HOME/.config/czsh/oh-my-zsh'"
+        logProgress "Moving existing oh-my-zsh from '$HOME/.oh-my-zsh' to '$HOME/.config/czsh/oh-my-zsh'"
         export ZSH=$OH_MY_ZSH_FOLDER;
         mv "$HOME/.oh-my-zsh" "$OH_MY_ZSH_FOLDER"
         git -C "$OH_MY_ZSH_FOLDER" remote set-url origin "$OH_MY_ZSHR_REPO"
-        git -C "$OH_MY_ZSH_FOLDER" pull
+        if git -C "$OH_MY_ZSH_FOLDER" pull --quiet 2>/dev/null; then
+            logSuccess "oh-my-zsh moved and updated successfully"
+        else
+            logSuccess "oh-my-zsh moved successfully (update failed but continuing)"
+        fi
     else
-        git clone --depth=1 $OH_MY_ZSHR_REPO "$OH_MY_ZSH_FOLDER"
+        logInstalling "oh-my-zsh"
+        git clone --depth=1 --quiet $OH_MY_ZSHR_REPO "$OH_MY_ZSH_FOLDER"
         export ZSH=$OH_MY_ZSH_FOLDER;
+        logInstalled "oh-my-zsh"
     fi
+    echo
 }
 
 
 
 configure_zsh_codex() {
-    
-    logProgress "configuring zsh_codex\n"
+    print_section "Zsh Codex Configuration" "$FIRE" "$PURPLE"
+    logConfiguring "zsh_codex"
     cp zsh_codex.ini $HOME/.config/
 
-    read -s -p "Enter your openai api key: "
+    read -s -p "$(printf "${YELLOW}🔑 Enter your OpenAI API key: ${RESET}")"
     OPENAI_API_KEY=$REPLY
+    echo
 
     sed -i "s/TOBEREPLEACED/$OPENAI_API_KEY/g" $HOME/.config/zsh_codex.ini
-    pip3 install openai --break-system-packages
-    pip3 install groq --break-system-packages
+    
+    logInstalling "OpenAI Python package"
+    pip3 install openai --break-system-packages >/dev/null 2>&1
+    logInstalled "OpenAI Python package"
+    
+    logInstalling "Groq Python package"
+    pip3 install groq --break-system-packages >/dev/null 2>&1
+    logInstalled "Groq Python package"
+    
+    logConfigured "zsh_codex"
+    echo
 }
 
 
 install_fzf() {
+    print_section "FZF Installation" "$ROCKET" "$BLUE"
+    
     if [ -d $FZF_INSTALLATION_PATH ]; then
-        logInfo "✅ FZF is already installed, updating...\n"
-        git -C $FZF_INSTALLATION_PATH pull
-        $FZF_INSTALLATION_PATH/install --all --key-bindings --completion --no-update-rc
+        logAlreadyInstalled "FZF"
+        logUpdating "FZF"
+        if git -C $FZF_INSTALLATION_PATH pull --quiet 2>/dev/null; then
+            logUpdated "FZF"
+        else
+            logWarning "Failed to update FZF, but continuing..."
+        fi
+        $FZF_INSTALLATION_PATH/install --all --key-bindings --completion --no-update-rc >/dev/null 2>&1
     else
-        logProgress "Installing FZF...\n"
-        git clone --depth 1 $FZF_REPO $FZF_INSTALLATION_PATH
-        "$FZF_INSTALLATION_PATH"/install --all --key-bindings --completion --no-update-rc
-        logInfo "✅ FZF installed successfully\n"
+        logInstalling "FZF"
+        git clone --depth 1 --quiet $FZF_REPO $FZF_INSTALLATION_PATH
+        "$FZF_INSTALLATION_PATH"/install --all --key-bindings --completion --no-update-rc >/dev/null 2>&1
+        logInstalled "FZF"
     fi
-
+    echo
 }
 
 install_powerlevel10k() {
+    print_section "Powerlevel10k Theme" "$SPARKLES" "$PURPLE"
+    
     if [ -d "$POWERLEVEL_10K_PATH" ]; then
-        git -C "$POWERLEVEL_10K_PATH" pull
+        logAlreadyInstalled "Powerlevel10k"
+        logUpdating "Powerlevel10k"
+        if git -C "$POWERLEVEL_10K_PATH" pull --quiet 2>/dev/null; then
+            logUpdated "Powerlevel10k"
+        else
+            logWarning "Failed to update Powerlevel10k, but continuing..."
+        fi
     else
-        git clone --depth=1 $POWERLEVEL10K_REPO "$POWERLEVEL_10K_PATH"
+        logInstalling "Powerlevel10k"
+        git clone --depth=1 --quiet $POWERLEVEL10K_REPO "$POWERLEVEL_10K_PATH"
+        logInstalled "Powerlevel10k"
     fi
+    echo
 }
 
 install_lazydocker() {
+    print_section "Lazydocker Installation" "$GEAR" "$CYAN"
+    
     if [ -d "$LAZYDOCKER_INSTALLATION_PATH" ]; then
-        git -C $LAZYDOCKER_INSTALLATION_PATH pull
-        "$LAZYDOCKER_INSTALLATION_PATH"/scripts/install_update_linux.sh
+        logAlreadyInstalled "Lazydocker"
+        logUpdating "Lazydocker"
+        if git -C $LAZYDOCKER_INSTALLATION_PATH pull --quiet 2>/dev/null; then
+            logUpdated "Lazydocker"
+        else
+            logWarning "Failed to update Lazydocker, but continuing..."
+        fi
+        "$LAZYDOCKER_INSTALLATION_PATH"/scripts/install_update_linux.sh >/dev/null 2>&1
     else
-        git clone --depth 1 $LAZYDOCKER_REPO "$LAZYDOCKER_INSTALLATION_PATH"
-        "$LAZYDOCKER_INSTALLATION_PATH"/scripts/install_update_linux.sh
+        logInstalling "Lazydocker"
+        git clone --depth 1 --quiet $LAZYDOCKER_REPO "$LAZYDOCKER_INSTALLATION_PATH"
+        "$LAZYDOCKER_INSTALLATION_PATH"/scripts/install_update_linux.sh >/dev/null 2>&1
+        logInstalled "Lazydocker"
     fi
-    sleep 3
-
+    echo
 }
 
 
 
 
 install_todo() {
+    print_section "Todo.sh Installation" "$CHECKMARK" "$GREEN"
+    
     if [ ! -L $HOME/.config/czsh/todo/bin/todo.sh ]; then
-        logInfo "Installing todo.sh in $HOME/.config/czsh/todo\n"
+        logInstalling "todo.sh in $HOME/.config/czsh/todo"
         mkdir -p $HOME/.config/czsh/bin
         mkdir -p $HOME/.config/czsh/todo
-        wget -q --show-progress "https://github.com/todotxt/todo.txt-cli/releases/download/v2.12.0/todo.txt_cli-2.12.0.tar.gz" -P $HOME/.config/czsh/
-        tar xvf $HOME/.config/czsh/todo.txt_cli-2.12.0.tar.gz -C $HOME/.config/czsh/todo --strip 1 && rm $HOME/.config/czsh/todo.txt_cli-2.12.0.tar.gz
+        
+        logProgress "Downloading todo.sh v2.12.0..."
+        wget -q --show-progress "https://github.com/todotxt/todo.txt-cli/releases/download/v2.12.0/todo.txt_cli-2.12.0.tar.gz" -P $HOME/.config/czsh/ 2>/dev/null
+        
+        logProgress "Extracting and setting up todo.sh..."
+        tar xf $HOME/.config/czsh/todo.txt_cli-2.12.0.tar.gz -C $HOME/.config/czsh/todo --strip 1 2>/dev/null && rm $HOME/.config/czsh/todo.txt_cli-2.12.0.tar.gz
         ln -s -f $HOME/.config/czsh/todo/todo.sh $HOME/.config/czsh/bin/todo.sh # so only .../bin is included in $PATH
         ln -s -f $HOME/.config/czsh/todo/todo.cfg $HOME/.todo.cfg               # it expects it there or $HOME/todo.cfg or $HOME/.todo/config
+        
+        logInstalled "todo.sh"
     else
-        echo -e "todo.sh is already instlled in $HOME/.config/czsh/todo/bin/\n"
+        logAlreadyInstalled "todo.sh in $HOME/.config/czsh/todo/bin/"
     fi
+    echo
 }
 
 copy_history() {
-
+    print_section "Bash History Migration" "$FOLDER" "$YELLOW"
+    
     if [ "$cp_hist_flag" = true ]; then
-        echo -e "\nCopying bash_history to zsh_history\n"
+        logProgress "Copying bash_history to zsh_history..."
         if command -v python &>/dev/null; then
-            wget -q --show-progress https://gist.githubusercontent.com/muendelezaji/c14722ab66b505a49861b8a74e52b274/raw/49f0fb7f661bdf794742257f58950d209dd6cb62/bash-to-zsh-hist.py
-            python bash-to-zsh-hist.py < $HOME/.bash_history >> $HOME/.zsh_history
+            wget -q --show-progress https://gist.githubusercontent.com/muendelezaji/c14722ab66b505a49861b8a74e52b274/raw/49f0fb7f661bdf794742257f58950d209dd6cb62/bash-to-zsh-hist.py 2>/dev/null
+            python bash-to-zsh-hist.py < $HOME/.bash_history >> $HOME/.zsh_history 2>/dev/null
+            logSuccess "bash_history copied to zsh_history"
         else
             if command -v python3 &>/dev/null; then
-                wget -q --show-progress https://gist.githubusercontent.com/muendelezaji/c14722ab66b505a49861b8a74e52b274/raw/49f0fb7f661bdf794742257f58950d209dd6cb62/bash-to-zsh-hist.py
-                python3 bash-to-zsh-hist.py < $HOME/.bash_history >> $HOME/.zsh_history
+                wget -q --show-progress https://gist.githubusercontent.com/muendelezaji/c14722ab66b505a49861b8a74e52b274/raw/49f0fb7f661bdf794742257f58950d209dd6cb62/bash-to-zsh-hist.py 2>/dev/null
+                python3 bash-to-zsh-hist.py < $HOME/.bash_history >> $HOME/.zsh_history 2>/dev/null
+                logSuccess "bash_history copied to zsh_history"
             else
-                ech "Python is not installed, can't copy bash_history to zsh_history\n"
+                logError "Python is not installed, can't copy bash_history to zsh_history"
             fi
         fi
     else
-        logWarning "\nNot copying bash_history to zsh_history, as --cp-hist or -c is not supplied\n"
+        logWarning "Not copying bash_history to zsh_history (use --cp-hist or -c to enable)"
     fi
+    echo
 }
 
 finish_installation() {
-    logInfo "Installation complete\n"
+    local end_time=$(date +%s)
+    
+    print_header "Installation Complete!" "$GREEN" "$BG_GREEN"
+    logSuccess "CZSH installation completed successfully! $SPARKLES"
+    
+    print_installation_summary "$INSTALL_START_TIME" "$end_time"
+    
     if [ "$noninteractive_flag" = true ]; then
-        logInfo "Installation complete, exit terminal and enter a new zsh session\n"
-        logWarning "Make sure to change zsh to default shell by running: chsh -s $(which zsh)"
-        logInfo "In a new zsh session manually run: build-fzf-tab-module"
+        echo
+        printf "${GREEN}${BOLD}🎉 Enjoy your enhanced zsh experience! 🎉${RESET}\n"
     else
-        logWarning "\nSudo access is needed to change default shell\n"
+        logWarning "Sudo access is needed to change default shell"
 
         if chsh -s "$(which zsh)" && /bin/zsh -i -c 'omz update'; then
-            logInfo "Installation complete, exit terminal and enter a new zsh session"
-            logWarning "In a new zsh session manually run: build-fzf-tab-module"
+            logSuccess "Installation complete, exit terminal and enter a new zsh session"
+            logTip "In a new zsh session manually run: build-fzf-tab-module"
         else
-            logError "Something is wrong, the password you entered might be wrong\n"
-
+            logError "Something went wrong, the password you entered might be incorrect"
         fi
     fi
 }
 
 
 install_nvim() {
+    print_section "Neovim Installation" "$FIRE" "$BLUE"
+    
     if ! command -v nvim &>/dev/null; then
-        curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
+        logInstalling "Neovim"
+        curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz 2>/dev/null
         sudo rm -rf /opt/nvim
         sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
         sudo ln -sf /opt/nvim-linux64/bin/nvim /usr/local/bin/nvim
         rm nvim-linux-x86_64.tar.gz
-        git clone https://github.com/NvChad/starter ~/.config/nvim && nvim
-        logInfo "Neovim installed successfully"
+        
+        logProgress "Setting up NvChad configuration..."
+        git clone --quiet https://github.com/NvChad/starter ~/.config/nvim 2>/dev/null && nvim --headless +qall 2>/dev/null
+        logInstalled "Neovim with NvChad"
     else
-        logInfo "✅ Neovim is already installed"
+        logAlreadyInstalled "Neovim"
     fi
+    echo
 }
 
 configure_gemini_cli() {
-    logProgress "configuring Gemini CLI\n"
+    print_section "Gemini CLI Configuration" "$STAR" "$CYAN"
+    logConfiguring "Gemini CLI"
     
     # Source nvm to ensure npm is available
     export NVM_DIR="$HOME/.nvm"
@@ -332,23 +464,26 @@ configure_gemini_cli() {
     fi
     
     # Install Gemini CLI globally
-    if npm install -g @google/gemini-cli; then
-        logInfo "✅ Gemini CLI installed successfully\n"
+    logInstalling "Gemini CLI globally"
+    if npm install -g @google/gemini-cli >/dev/null 2>&1; then
+        logInstalled "Gemini CLI"
         
         # Create configuration directory
         mkdir -p $HOME/.config/czsh/gemini
         
         # Ask user for authentication preference
-        echo "Choose authentication method for Gemini CLI:"
-        echo "1. API Key (requires Google AI Studio key)"
-        echo "2. OAuth (will authenticate later with 'gemini auth')"
-        echo "3. Skip configuration"
-        read -p "Enter your choice (1-3): " auth_choice
+        echo
+        printf "${CYAN}${BOLD}Choose authentication method for Gemini CLI:${RESET}\n"
+        printf "${WHITE}1.${RESET} API Key (requires Google AI Studio key)\n"
+        printf "${WHITE}2.${RESET} OAuth (will authenticate later with 'gemini auth')\n"
+        printf "${WHITE}3.${RESET} Skip configuration\n"
+        read -p "$(printf "${YELLOW}Enter your choice (1-3): ${RESET}")" auth_choice
         
         case $auth_choice in
             1)
-                echo "Get your API key from: https://aistudio.google.com/apikey"
-                read -s -p "Enter your Gemini API key: "
+                echo
+                logInfo "Get your API key from: https://aistudio.google.com/apikey"
+                read -s -p "$(printf "${YELLOW}🔑 Enter your Gemini API key: ${RESET}")"
                 GEMINI_API_KEY=$REPLY
                 echo
                 
@@ -359,9 +494,9 @@ configure_gemini_cli() {
 # Gemini CLI Configuration
 export GEMINI_API_KEY="$GEMINI_API_KEY"
 EOF
-                    logInfo "✅ API key saved to ~/.config/czsh/gemini/config.sh\n"
+                    logConfigured "API key saved to ~/.config/czsh/gemini/config.sh"
                 else
-                    logWarning "No API key provided. You can set it later in ~/.config/czsh/gemini/config.sh\n"
+                    logWarning "No API key provided. You can set it later in ~/.config/czsh/gemini/config.sh"
                 fi
                 ;;
             2)
@@ -376,7 +511,7 @@ EOF
 # Uncomment the line above and replace with your actual API key
 # Or authenticate with: gemini auth
 EOF
-                logInfo "✅ Configuration file created. Run 'gemini auth' after installation to authenticate\n"
+                logConfigured "Configuration file created. Run 'gemini auth' after installation to authenticate"
                 ;;
             3)
                 # Create minimal config file
@@ -384,10 +519,10 @@ EOF
 #!/bin/bash
 # Gemini CLI Configuration - Run 'gemini auth' to authenticate
 EOF
-                logInfo "✅ Minimal configuration created\n"
+                logConfigured "Minimal configuration created"
                 ;;
             *)
-                logWarning "Invalid choice. Creating minimal configuration\n"
+                logWarning "Invalid choice. Creating minimal configuration"
                 cat > $HOME/.config/czsh/gemini/config.sh << 'EOF'
 #!/bin/bash
 # Gemini CLI Configuration - Run 'gemini auth' to authenticate
@@ -395,13 +530,15 @@ EOF
                 ;;
         esac
     else
-        logError "❌ Failed to install Gemini CLI\n"
+        logError "Failed to install Gemini CLI"
         return 1
     fi
+    echo
 }
 
 configure_claude_cli() {
-    logProgress "configuring Claude CLI\n"
+    print_section "Claude CLI Configuration" "$FIRE" "$PURPLE"
+    logConfiguring "Claude CLI"
     
     # Source nvm to ensure npm is available
     export NVM_DIR="$HOME/.nvm"
@@ -414,22 +551,25 @@ configure_claude_cli() {
     fi
     
     # Install Claude CLI globally
-    if npm install -g @anthropic-ai/claude-code; then
-        logInfo "✅ Claude CLI installed successfully\n"
+    logInstalling "Claude CLI globally"
+    if npm install -g @anthropic-ai/claude-code >/dev/null 2>&1; then
+        logInstalled "Claude CLI"
         
         # Create configuration directory
         mkdir -p $HOME/.config/czsh/claude
         
         # Ask user for authentication preference
-        echo "Choose authentication method for Claude CLI:"
-        echo "1. API Key (requires Anthropic API key)"
-        echo "2. Skip configuration (authenticate later with Claude)"
-        read -p "Enter your choice (1-2): " auth_choice
+        echo
+        printf "${PURPLE}${BOLD}Choose authentication method for Claude CLI:${RESET}\n"
+        printf "${WHITE}1.${RESET} API Key (requires Anthropic API key)\n"
+        printf "${WHITE}2.${RESET} Skip configuration (authenticate later with Claude)\n"
+        read -p "$(printf "${YELLOW}Enter your choice (1-2): ${RESET}")" auth_choice
         
         case $auth_choice in
             1)
-                echo "Get your API key from: https://console.anthropic.com/settings/keys"
-                read -s -p "Enter your Anthropic API key: "
+                echo
+                logInfo "Get your API key from: https://console.anthropic.com/settings/keys"
+                read -s -p "$(printf "${YELLOW}🔑 Enter your Anthropic API key: ${RESET}")"
                 ANTHROPIC_API_KEY=$REPLY
                 echo
                 
@@ -440,9 +580,9 @@ configure_claude_cli() {
 # Claude CLI Configuration
 export ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY"
 EOF
-                    logInfo "✅ API key saved to ~/.config/czsh/claude/config.sh\n"
+                    logConfigured "API key saved to ~/.config/czsh/claude/config.sh"
                 else
-                    logWarning "No API key provided. You can set it later in ~/.config/czsh/claude/config.sh\n"
+                    logWarning "No API key provided. You can set it later in ~/.config/czsh/claude/config.sh"
                 fi
                 ;;
             2)
@@ -457,10 +597,10 @@ EOF
 # Uncomment the line above and replace with your actual API key
 # Or authenticate directly when running claude for the first time
 EOF
-                logInfo "✅ Configuration file created. You can authenticate when running claude for the first time\n"
+                logConfigured "Configuration file created. You can authenticate when running claude for the first time"
                 ;;
             *)
-                logWarning "Invalid choice. Creating minimal configuration\n"
+                logWarning "Invalid choice. Creating minimal configuration"
                 cat > $HOME/.config/czsh/claude/config.sh << 'EOF'
 #!/bin/bash
 # Claude CLI Configuration - Set your API key or authenticate when running claude
@@ -468,35 +608,38 @@ EOF
                 ;;
         esac
         
-        logInfo "ℹ️  Usage: Navigate to your project directory and run 'claude' to start\n"
-        logInfo "ℹ️  Use '/bug' command within Claude CLI to report issues\n"
+        logTip "Usage: Navigate to your project directory and run 'claude' to start"
+        logTip "Use '/bug' command within Claude CLI to report issues"
     else
-        logError "❌ Failed to install Claude CLI\n"
+        logError "Failed to install Claude CLI"
         return 1
     fi
+    echo
 }
 
 install_nodejs() {
-    logProgress "Checking Node.js installation...\n"
+    print_section "Node.js Installation" "$ZAPP" "$GREEN"
+    logProgress "Checking Node.js installation..."
     
     # Check if node is already available
     if command -v node &>/dev/null; then
         local node_version=$(node -v)
-        logInfo "✅ Node.js is already installed: $node_version\n"
+        logAlreadyInstalled "Node.js $node_version"
         return 0
     fi
     
-    logProgress "Node.js not found. Installing via nvm...\n"
+    logProgress "Node.js not found. Installing via nvm..."
     
     # Download and install nvm
     if ! command -v nvm &>/dev/null && [ ! -f "$HOME/.nvm/nvm.sh" ]; then
-        logProgress "Installing nvm...\n"
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+        logInstalling "nvm (Node Version Manager)"
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh 2>/dev/null | bash
         
         if [ $? -ne 0 ]; then
-            logError "❌ Failed to install nvm\n"
+            logError "Failed to install nvm"
             return 1
         fi
+        logInstalled "nvm"
     fi
     
     # Source nvm to make it available in current session
@@ -505,21 +648,21 @@ install_nodejs() {
     [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
     
     # Install Node.js version 22
-    logProgress "Installing Node.js v22...\n"
-    if nvm install 22; then
-        nvm use 22
-        nvm alias default 22
+    logInstalling "Node.js v22"
+    if nvm install 22 >/dev/null 2>&1; then
+        nvm use 22 >/dev/null 2>&1
+        nvm alias default 22 >/dev/null 2>&1
         
         # Verify installation
         local node_version=$(node -v)
         local npm_version=$(npm -v)
         
-        logInfo "✅ Node.js installed successfully: $node_version\n"
-        logInfo "✅ npm version: $npm_version\n"
-        
+        logInstalled "Node.js $node_version"
+        logSuccess "npm version: $npm_version"
+        echo
         return 0
     else
-        logError "❌ Failed to install Node.js\n"
+        logError "Failed to install Node.js"
         return 1
     fi
 }
@@ -527,7 +670,16 @@ install_nodejs() {
 ####################################### MAIN SCRIPT #########################################
 #############################################################################################
 
+print_section "Prerequisites Check" "$CHECKMARK" "$YELLOW"
+logProgress "Detecting missing packages..."
 detect_missing_packages
+
+if [ ${#missing_packages[@]} -gt 0 ]; then
+    logWarning "Missing packages found: ${missing_packages[*]}"
+else
+    logSuccess "All prerequisites are satisfied!"
+fi
+echo
 
 install_missing_packages
 
@@ -535,17 +687,19 @@ install_nodejs
 
 backup_existing_zshrc_config
 
-logInfo "The setup will be installed in '$HOME/.config/czsh'\n"
-
-logWarning "Place your personal zshrc config files under '$HOME/.config/czsh/zshrc/'\n"
+print_section "Directory Setup" "$FOLDER" "$CYAN"
+logInfo "The setup will be installed in '$HOME/.config/czsh'"
+logNote "Place your personal zshrc config files under '$HOME/.config/czsh/zshrc/'"
 
 mkdir -p $HOME/.config/czsh/zshrc
-
-logInfo "Installing oh-my-zsh\n"
+logSuccess "Created configuration directories"
+echo
 
 configure_ohmzsh
 
-
+# Copy configuration files
+print_section "Configuration Files" "$GEAR" "$BLUE"
+logProgress "Copying configuration files..."
 cp -f ./.zshrc $HOME/
 cp -f ./czshrc.zsh $HOME/.config/czsh/
 
@@ -554,10 +708,15 @@ mkdir -p $HOME/.cache/zsh/        # this will be used to store .zcompdump zsh co
 mkdir -p $HOME/.fonts             # Create .fonts if doesn't exist
 
 if [ -f $HOME/.zcompdump ]; then
+    logProgress "Moving zsh completion cache files..."
     mv $HOME/.zcompdump* $HOME/.cache/zsh/
+    logSuccess "Moved completion cache files to ~/.cache/zsh/"
 fi
 
+logSuccess "Configuration files copied successfully"
+echo
 
+# Optional configurations based on flags
 if [ "$zsh_codex_flag" = true ]; then
     configure_zsh_codex 
 fi
@@ -570,25 +729,45 @@ if [ "$claude_cli_flag" = true ]; then
     configure_claude_cli
 fi
 
-
 install_powerlevel10k
 
+print_section "Nerd Fonts Installation" "$SPARKLES" "$PURPLE"
+logProgress "Installing Nerd Fonts (Hack, Roboto Mono, DejaVu Sans Mono)..."
 
-logProgress "Installing Nerd Fonts version of Hack, Roboto Mono, DejaVu Sans Mono\n"
+font_count=0
+total_fonts=3
 
 if [ ! -f $HOME/.fonts/HackNerdFont-Regular.ttf ]; then
-    wget -q --show-progress -N https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Hack/Regular/HackNerdFont-Regular.ttf -P $HOME/.fonts/
+    ((font_count++))
+    logStepProgress "$font_count" "$total_fonts" "Downloading HackNerdFont-Regular.ttf"
+    wget -q --show-progress -N https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/Hack/Regular/HackNerdFont-Regular.ttf -P $HOME/.fonts/ 2>/dev/null
+    logInstalled "HackNerdFont-Regular.ttf"
+else
+    logAlreadyInstalled "HackNerdFont-Regular.ttf"
 fi
 
 if [ ! -f $HOME/.fonts/RobotoMonoNerdFont-Regular.ttf ]; then
-    wget -q --show-progress -N https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/RobotoMono/Regular/RobotoMonoNerdFont-Regular.ttf -P $HOME/.fonts/
+    ((font_count++))
+    logStepProgress "$font_count" "$total_fonts" "Downloading RobotoMonoNerdFont-Regular.ttf"
+    wget -q --show-progress -N https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/RobotoMono/Regular/RobotoMonoNerdFont-Regular.ttf -P $HOME/.fonts/ 2>/dev/null
+    logInstalled "RobotoMonoNerdFont-Regular.ttf"
+else
+    logAlreadyInstalled "RobotoMonoNerdFont-Regular.ttf"
 fi
 
 if [ ! -f $HOME/.fonts/DejaVuSansMNerdFont-Regular.ttf ]; then
-    wget -q --show-progress -N https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/DejaVuSansMono/Regular/DejaVuSansMNerdFont-Regular.ttf -P $HOME/.fonts/
+    ((font_count++))
+    logStepProgress "$font_count" "$total_fonts" "Downloading DejaVuSansMNerdFont-Regular.ttf"
+    wget -q --show-progress -N https://github.com/ryanoasis/nerd-fonts/raw/master/patched-fonts/DejaVuSansMono/Regular/DejaVuSansMNerdFont-Regular.ttf -P $HOME/.fonts/ 2>/dev/null
+    logInstalled "DejaVuSansMNerdFont-Regular.ttf"
+else
+    logAlreadyInstalled "DejaVuSansMNerdFont-Regular.ttf"
 fi
 
-fc-cache -fv $HOME/.fonts
+logProgress "Refreshing font cache..."
+fc-cache -fv $HOME/.fonts >/dev/null 2>&1
+logSuccess "Font cache updated successfully"
+echo
 
 install_fzf
 
