@@ -12,6 +12,7 @@ cp_hist_flag=false
 noninteractive_flag=true
 zsh_codex_flag=false
 gemini_cli_flag=false
+claude_cli_flag=false
 
 
 OH_MY_ZSH_FOLDER="$HOME/.config/czsh/oh-my-zsh"
@@ -38,17 +39,16 @@ LAZYDOCKER_INSTALLATION_PATH=$HOME/.config/czsh/lazydocker
 
 
 
-declare -A PLUGINS_MAP
+# Plugin definitions - name:repo_url pairs
+PLUGIN_FZF_TAB="fzf-tab:https://github.com/Aloxaf/fzf-tab.git"
+PLUGIN_SYNTAX_HIGHLIGHTING="zsh-syntax-highlighting:https://github.com/zsh-users/zsh-syntax-highlighting.git"
+PLUGIN_AUTOSUGGESTIONS="zsh-autosuggestions:https://github.com/zsh-users/zsh-autosuggestions.git"
+PLUGIN_ZSH_CODEX="zsh_codex:https://github.com/samastek/zsh_codex.git"
+PLUGIN_COMPLETIONS="zsh-completions:https://github.com/zsh-users/zsh-completions.git"
+PLUGIN_HISTORY_SEARCH="history-substring-search:https://github.com/zsh-users/zsh-history-substring-search.git"
+PLUGIN_FORGIT="forgit:https://github.com/wfxr/forgit.git"
 
-export PLUGINS_MAP=(
-    ["fzf-tab"]="https://github.com/Aloxaf/fzf-tab.git"
-    ["zsh-syntax-highlighting"]="https://github.com/zsh-users/zsh-syntax-highlighting.git"
-    ["zsh-autosuggestions"]="https://github.com/zsh-users/zsh-autosuggestions.git"
-    ["zsh_codex"]="https://github.com/samastek/zsh_codex.git"
-    ["zsh-completions"]="https://github.com/zsh-users/zsh-completions.git"
-    ["history-substring-search"]="https://github.com/zsh-users/zsh-history-substring-search.git"
-    ["forgit"]="https://github.com/wfxr/forgit.git"
-)
+PLUGINS_LIST="$PLUGIN_FZF_TAB $PLUGIN_SYNTAX_HIGHLIGHTING $PLUGIN_AUTOSUGGESTIONS $PLUGIN_ZSH_CODEX $PLUGIN_COMPLETIONS $PLUGIN_HISTORY_SEARCH $PLUGIN_FORGIT"
 
 
 
@@ -69,6 +69,9 @@ for arg in "$@"; do
     --gemini | -g)
         gemini_cli_flag=true
         ;;
+    --claude | -cl)
+        claude_cli_flag=true
+        ;;
     *)
         # Handle any other arguments or provide an error message
         ;;
@@ -81,7 +84,7 @@ done
 ####################################### FUNCTIONS #########################################
 #############################################################################################
 
-prerequists=("zsh" "git" "wget" "bat" "curl" "python3-pip" "fontconfig")
+prerequists=("zsh" "git" "wget" "bat" "curl" "fontconfig")
 missing_packages=()
 
 detect_missing_packages() {
@@ -90,27 +93,58 @@ detect_missing_packages() {
             missing_packages+=("$package")
         fi
     done
+    
+    # Check for python3 and pip3 separately on macOS
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # On macOS, check for python3 and pip3
+        if ! command -v python3 &>/dev/null; then
+            missing_packages+=("python3")
+        fi
+        if ! command -v pip3 &>/dev/null; then
+            # pip3 is usually included with python3 on macOS
+            if ! python3 -m pip --version &>/dev/null 2>&1; then
+                missing_packages+=("python3")
+            fi
+        fi
+    else
+        # On Linux, check for python3-pip
+        if ! command -v pip3 &>/dev/null; then
+            missing_packages+=("python3-pip")
+        fi
+    fi
 }
 
 perform_update() {
-    if sudo apt update || sudo pacman -Sy || sudo dnf check-update || sudo yum check-update || brew update || pkg update; then
-        logInfo "System updated\n"
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS - use Homebrew without sudo
+        if brew update; then
+            logInfo "System updated\n"
+        else
+            logError "System update failed\n"
+        fi
     else
-        logError "System update failed\n"
+        # Linux - try different package managers
+        if sudo apt update || sudo pacman -Sy || sudo dnf check-update || sudo yum check-update || pkg update; then
+            logInfo "System updated\n"
+        else
+            logError "System update failed\n"
+        fi
     fi
 }
 
 setup_plugins(){
-    for PLUGIN_NAME in "${!PLUGINS_MAP[@]}"; do
-         PLUGIN_PATH="$OHMYZSH_CUSTOM_PLUGIN_PATH/$PLUGIN_NAME"
-         if [ -d "$PLUGIN_PATH" ]; then
-              logInfo "✅ $PLUGIN_NAME plugin is already installed"
-              git -C "$PLUGIN_PATH" pull
-         else
-              PLUGIN_REPO_LINK="${PLUGINS_MAP[$PLUGIN_NAME]}"
-              git clone --depth=1 "$PLUGIN_REPO_LINK" "$PLUGIN_PATH"
-              logInfo "✅ $PLUGIN_NAME plugin installed"
-         fi
+    for PLUGIN_ENTRY in $PLUGINS_LIST; do
+        PLUGIN_NAME="${PLUGIN_ENTRY%%:*}"
+        PLUGIN_REPO_LINK="${PLUGIN_ENTRY##*:}"
+        PLUGIN_PATH="$OHMYZSH_CUSTOM_PLUGIN_PATH/$PLUGIN_NAME"
+        
+        if [ -d "$PLUGIN_PATH" ]; then
+            logInfo "✅ $PLUGIN_NAME plugin is already installed"
+            git -C "$PLUGIN_PATH" pull
+        else
+            git clone --depth=1 "$PLUGIN_REPO_LINK" "$PLUGIN_PATH"
+            logInfo "✅ $PLUGIN_NAME plugin installed"
+        fi
     done
 }
 
@@ -118,10 +152,20 @@ setup_plugins(){
 install_missing_packages() {
     perform_update
     for package in "${missing_packages[@]}"; do
-        if sudo apt install -y "$package" || sudo pacman -S "$package" || sudo dnf install -y "$package" || sudo yum install -y "$package" || sudo brew install "$package" || pkg install "$package"; then
-            logInfo "$package Installed\n"
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            # macOS - use Homebrew without sudo
+            if brew install "$package"; then
+                logInfo "$package Installed\n"
+            else
+                logWarning "🚨 Please install the following packages first, then try again: $package 🚨" && exit
+            fi
         else
-            logWarning "🚨 Please install the following packages first, then try again: $package 🚨" && exit
+            # Linux - try different package managers
+            if sudo apt install -y "$package" || sudo pacman -S "$package" || sudo dnf install -y "$package" || sudo yum install -y "$package" || pkg install "$package"; then
+                logInfo "$package Installed\n"
+            else
+                logWarning "🚨 Please install the following packages first, then try again: $package 🚨" && exit
+            fi
         fi
     done
 }
@@ -356,6 +400,82 @@ EOF
     fi
 }
 
+configure_claude_cli() {
+    logProgress "configuring Claude CLI\n"
+    
+    # Source nvm to ensure npm is available
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    
+    # Check if npm is available
+    if ! command -v npm &>/dev/null; then
+        logError "npm is not available. Node.js installation may have failed."
+        return 1
+    fi
+    
+    # Install Claude CLI globally
+    if npm install -g @anthropic-ai/claude-code; then
+        logInfo "✅ Claude CLI installed successfully\n"
+        
+        # Create configuration directory
+        mkdir -p $HOME/.config/czsh/claude
+        
+        # Ask user for authentication preference
+        echo "Choose authentication method for Claude CLI:"
+        echo "1. API Key (requires Anthropic API key)"
+        echo "2. Skip configuration (authenticate later with Claude)"
+        read -p "Enter your choice (1-2): " auth_choice
+        
+        case $auth_choice in
+            1)
+                echo "Get your API key from: https://console.anthropic.com/settings/keys"
+                read -s -p "Enter your Anthropic API key: "
+                ANTHROPIC_API_KEY=$REPLY
+                echo
+                
+                if [[ -n "$ANTHROPIC_API_KEY" ]]; then
+                    # Create config file with API key
+                    cat > $HOME/.config/czsh/claude/config.sh << EOF
+#!/bin/bash
+# Claude CLI Configuration
+export ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY"
+EOF
+                    logInfo "✅ API key saved to ~/.config/czsh/claude/config.sh\n"
+                else
+                    logWarning "No API key provided. You can set it later in ~/.config/czsh/claude/config.sh\n"
+                fi
+                ;;
+            2)
+                # Create minimal config file
+                cat > $HOME/.config/czsh/claude/config.sh << 'EOF'
+#!/bin/bash
+# Claude CLI Configuration
+
+# Set your Anthropic API key here (get it from https://console.anthropic.com/settings/keys)
+# export ANTHROPIC_API_KEY="your_api_key_here"
+
+# Uncomment the line above and replace with your actual API key
+# Or authenticate directly when running claude for the first time
+EOF
+                logInfo "✅ Configuration file created. You can authenticate when running claude for the first time\n"
+                ;;
+            *)
+                logWarning "Invalid choice. Creating minimal configuration\n"
+                cat > $HOME/.config/czsh/claude/config.sh << 'EOF'
+#!/bin/bash
+# Claude CLI Configuration - Set your API key or authenticate when running claude
+EOF
+                ;;
+        esac
+        
+        logInfo "ℹ️  Usage: Navigate to your project directory and run 'claude' to start\n"
+        logInfo "ℹ️  Use '/bug' command within Claude CLI to report issues\n"
+    else
+        logError "❌ Failed to install Claude CLI\n"
+        return 1
+    fi
+}
+
 install_nodejs() {
     logProgress "Checking Node.js installation...\n"
     
@@ -444,6 +564,10 @@ fi
 
 if [ "$gemini_cli_flag" = true ]; then
     configure_gemini_cli
+fi
+
+if [ "$claude_cli_flag" = true ]; then
+    configure_claude_cli
 fi
 
 
