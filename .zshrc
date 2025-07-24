@@ -30,7 +30,22 @@ source $ZSH/oh-my-zsh.sh
 # Configs that can only work after "source $ZSH/oh-my-zsh.sh", such as Aliases that depend oh-my-zsh plugins
 
 # Now source fzf.zsh , otherwise Ctr+r is overwritten by ohmyzsh
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+# Try multiple FZF source locations
+if [ -f ~/.fzf.zsh ]; then
+    source ~/.fzf.zsh
+elif [ -f "$HOME/.config/czsh/fzf/shell/completion.zsh" ]; then
+    source "$HOME/.config/czsh/fzf/shell/completion.zsh"
+fi
+
+if [ -f "$HOME/.config/czsh/fzf/shell/key-bindings.zsh" ]; then
+    source "$HOME/.config/czsh/fzf/shell/key-bindings.zsh"
+fi
+
+# Add FZF to PATH if it exists
+if [ -d "$HOME/.config/czsh/fzf/bin" ]; then
+    export PATH="$PATH:$HOME/.config/czsh/fzf/bin"
+fi
+
 export FZF_DEFAULT_OPS="--extended"
 
 

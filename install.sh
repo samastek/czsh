@@ -297,20 +297,44 @@ configure_zsh_codex() {
 install_fzf() {
     print_section "FZF Installation" "$ROCKET" "$BLUE"
     
-    if [ -d $FZF_INSTALLATION_PATH ]; then
+    if [ -d "$FZF_INSTALLATION_PATH" ]; then
         logAlreadyInstalled "FZF"
         logUpdating "FZF"
-        if git -C $FZF_INSTALLATION_PATH pull --quiet 2>/dev/null; then
+        if git -C "$FZF_INSTALLATION_PATH" pull --quiet 2>/dev/null; then
             logUpdated "FZF"
         else
             logWarning "Failed to update FZF, but continuing..."
         fi
-        $FZF_INSTALLATION_PATH/install --all --key-bindings --completion --no-update-rc >/dev/null 2>&1
+        logProgress "Running FZF install script..."
+        if "$FZF_INSTALLATION_PATH/install" --all --key-bindings --completion --no-update-rc --no-bash --no-fish >/dev/null 2>&1; then
+            logSuccess "FZF installation completed"
+        else
+            logWarning "FZF install script failed, but continuing..."
+        fi
     else
         logInstalling "FZF"
-        git clone --depth 1 --quiet $FZF_REPO $FZF_INSTALLATION_PATH
-        "$FZF_INSTALLATION_PATH"/install --all --key-bindings --completion --no-update-rc >/dev/null 2>&1
-        logInstalled "FZF"
+        if git clone --depth 1 --quiet "$FZF_REPO" "$FZF_INSTALLATION_PATH" 2>/dev/null; then
+            logProgress "Running FZF install script..."
+            if "$FZF_INSTALLATION_PATH/install" --all --key-bindings --completion --no-update-rc --no-bash --no-fish >/dev/null 2>&1; then
+                logInstalled "FZF"
+                
+                # Ensure FZF binary is properly linked
+                if [ -f "$FZF_INSTALLATION_PATH/bin/fzf" ]; then
+                    logSuccess "FZF binary available at $FZF_INSTALLATION_PATH/bin/fzf"
+                else
+                    logWarning "FZF binary not found, trying to build..."
+                    if command -v go >/dev/null 2>&1; then
+                        cd "$FZF_INSTALLATION_PATH" && make install >/dev/null 2>&1 && cd - >/dev/null
+                    fi
+                fi
+            else
+                logError "FZF install script failed"
+                return 1
+            fi
+        else
+            logError "Failed to clone FZF repository"
+            return 1
+        fi
     fi
     echo
 }
