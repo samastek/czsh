@@ -81,8 +81,14 @@ The installer supports several flags for customization:
 # Include Gemini CLI for AI assistance
 ./install.sh --gemini
 
+# Include Claude CLI for AI assistance
+./install.sh --claude
+
+# Enable vim mode for command line editing
+./install.sh --vim-mode
+
 # Combine multiple options
-./install.sh --cp-hist --codex --gemini
+./install.sh --cp-hist --codex --gemini --vim-mode
 ```
 
 #### Flag Details
@@ -90,6 +96,8 @@ The installer supports several flags for customization:
 - `--interactive` or `-n`: Runs in interactive mode, asking for user input during installation
 - `--codex` or `-x`: Installs and configures zsh_codex for AI-powered command completion
 - `--gemini` or `-g`: Installs and configures Gemini CLI for AI-powered coding assistance
+- `--claude` or `-cl`: Installs and configures Claude CLI for AI-powered development assistance
+- `--vim-mode` or `-v`: Enables vim keybindings and navigation in the command line
 
 ## ⚙️ Configuration
 
@@ -152,6 +160,54 @@ gdoc src/main.py
 # Analyze project
 ganalyze ./my-project
 ```
+
+### Vim Mode (Optional)
+
+When using the `--vim-mode` flag, the shell enables vim-style command line editing with enhanced features:
+
+#### Features
+- **Modal editing**: Switch between insert and normal modes with ESC
+- **Vi navigation**: Use `h`, `j`, `k`, `l` for cursor movement in normal mode  
+- **Visual cursor indicators**: Cursor shape changes to indicate current mode
+  - Beam cursor (|) for insert mode
+  - Block cursor (█) for normal mode
+- **Enhanced history navigation**: Use `j`/`k` in normal mode for history search
+- **Preserved shortcuts**: Common shortcuts like Ctrl+R, Ctrl+A, Ctrl+E still work
+- **Fast mode switching**: Reduced timeout for quicker ESC response
+
+#### Key Bindings
+```bash
+# Mode switching
+ESC              # Enter normal mode
+i, a, I, A       # Enter insert mode (standard vi keys)
+
+# Navigation (normal mode)
+h, j, k, l       # Move cursor left, down, up, right
+w, b             # Move by words
+0, $             # Beginning/end of line
+
+# History (normal mode)  
+j, k             # Navigate through command history
+/                # Search history
+
+# Editing (normal mode)
+x                # Delete character
+dd               # Delete line
+yy               # Yank (copy) line
+p                # Paste
+
+# Always available
+Ctrl+R           # Reverse history search
+Ctrl+A           # Beginning of line
+Ctrl+E           # End of line
+Ctrl+U           # Clear line
+```
+
+#### Usage Tips
+- Press ESC to enter normal mode for vi-style navigation
+- Use Ctrl+R for fuzzy history search (works in both modes)
+- The cursor shape will help you identify which mode you're in
+- All standard zsh features still work alongside vim mode
 
 ### Theme Customization
 
