@@ -14,13 +14,20 @@ source "$HOME/.config/czsh/czshrc.zsh"
 # Place all of your personal configurations over there
 ZSH_CONFIGS_DIR="$HOME/.config/czsh/zshrc"
 
-if [ "$(ls -A $ZSH_CONFIGS_DIR)" ]; then
+# Create the directory if it doesn't exist
+mkdir -p "$ZSH_CONFIGS_DIR"
+
+if [ "$(ls -A $ZSH_CONFIGS_DIR 2>/dev/null)" ]; then
+    # Set nullglob to handle empty glob patterns gracefully
+    setopt nullglob
     for file in "$ZSH_CONFIGS_DIR"/* "$ZSH_CONFIGS_DIR"/.*; do
         # Exclude '.' and '..' from being sourced
-        if [ -f "$file" ]; then
+        if [ -f "$file" ] && [[ "$(basename "$file")" != "." ]] && [[ "$(basename "$file")" != ".." ]]; then
             source "$file"
         fi
     done
+    # Restore default glob behavior
+    unsetopt nullglob
 fi
 
 # Now source oh-my-zsh.sh so that any plugins added in ~/.config/czsh/zshrc/* files also get loaded

@@ -21,6 +21,7 @@ noninteractive_flag=true
 zsh_codex_flag=false
 gemini_cli_flag=false
 claude_cli_flag=false
+vim_mode_flag=false
 
 OH_MY_ZSH_FOLDER="$HOME/.config/czsh/oh-my-zsh"
 OHMYZSH_CUSTOM_PLUGIN_PATH="$OH_MY_ZSH_FOLDER/custom/plugins"
@@ -69,6 +70,9 @@ for arg in "$@"; do
 		;;
 	--claude | -cl)
 		claude_cli_flag=true
+		;;
+	--vim-mode | -v)
+		vim_mode_flag=true
 		;;
 	*)
 		# Handle any other arguments or provide an error message
@@ -619,6 +623,63 @@ EOF
 	echo
 }
 
+configure_vim_mode() {
+	print_section "Vim Mode Configuration" "$FIRE" "$GREEN"
+	logConfiguring "Vim mode for zsh"
+
+	# Create vim mode configuration file
+	mkdir -p $HOME/.config/czsh/zshrc
+	cat >$HOME/.config/czsh/zshrc/vim-mode.zsh <<'EOF'
+# Vim mode configuration for zsh
+# Enable vi mode
+set -o vi
+
+# Better vim mode indicator
+function zle-keymap-select {
+    if [[ ${KEYMAP} == vicmd ]] || [[ $1 = 'block' ]]; then
+        echo -ne '\e[1 q'  # Block cursor for normal mode
+    elif [[ ${KEYMAP} == main ]] || [[ ${KEYMAP} == viins ]] || [[ ${KEYMAP} = '' ]] || [[ $1 = 'beam' ]]; then
+        echo -ne '\e[5 q'  # Beam cursor for insert mode
+    fi
+}
+zle -N zle-keymap-select
+
+# Initialize cursor shape
+zle-line-init() {
+    echo -ne "\e[5 q"  # Beam cursor for insert mode
+}
+zle -N zle-line-init
+
+# Fix backspace and other keys in vi mode
+bindkey "^?" backward-delete-char
+bindkey "^H" backward-delete-char
+bindkey "^U" backward-kill-line
+bindkey "^A" beginning-of-line
+bindkey "^E" end-of-line
+
+# Better history search in vi mode
+bindkey -M vicmd 'k' history-substring-search-up
+bindkey -M vicmd 'j' history-substring-search-down
+bindkey '^R' history-incremental-search-backward
+
+# Reduce key timeout for faster mode switching
+export KEYTIMEOUT=1
+
+# Optional: Add mode indicator to prompt (requires powerlevel10k or custom prompt)
+# You can uncomment and customize this if you want a visual mode indicator
+# RPS1='${${KEYMAP/vicmd/[NORMAL]}/(main|viins)/[INSERT]}'
+EOF
+
+	logConfigured "Vim mode enabled with enhanced key bindings"
+	logInfo "Vim mode features:"
+	echo "  ${CYAN}•${RESET} Press ESC to enter normal mode"
+	echo "  ${CYAN}•${RESET} Use vi navigation keys (h,j,k,l) in normal mode"
+	echo "  ${CYAN}•${RESET} Cursor changes shape to indicate mode"
+	echo "  ${CYAN}•${RESET} Enhanced history search with j/k in normal mode"
+	echo "  ${CYAN}•${RESET} Ctrl+R for reverse history search"
+	echo
+}
+
 install_nodejs() {
 	print_section "Node.js Installation" "$ZAPP" "$GREEN"
 	logProgress "Checking Node.js installation..."
@@ -729,6 +790,10 @@ fi
 
 if [ "$claude_cli_flag" = true ]; then
 	configure_claude_cli
+fi
+
+if [ "$vim_mode_flag" = true ]; then
+	configure_vim_mode
 fi
 
 install_powerlevel10k
