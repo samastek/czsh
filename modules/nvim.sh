@@ -24,12 +24,28 @@ czsh_install_nvim() {
     
     logInfo "Installing Neovim for $arch architecture"
     curl -LO "https://github.com/neovim/neovim/releases/latest/download/$nvim_file" 2>/dev/null || { logError "nvim download failed"; return; }
-    sudo rm -rf /opt/nvim
+    sudo rm -rf /opt/nvim /opt/nvim-linux64
     sudo tar -C /opt -xzf "$nvim_file"
-    sudo ln -sf "/opt/$nvim_dir/bin/nvim" /usr/local/bin/nvim
+    
+    # Find the actual extracted directory
+    local extracted_dir=$(find /opt -maxdepth 1 -name "nvim*" -type d | head -1)
+    if [[ -z "$extracted_dir" ]]; then
+      logError "Could not find extracted Neovim directory"
+      rm "$nvim_file"
+      return
+    fi
+    
+    # Create symlink from the actual directory
+    sudo ln -sf "$extracted_dir/bin/nvim" /usr/local/bin/nvim
     rm "$nvim_file"
-    git clone --quiet https://github.com/NvChad/starter ~/.config/nvim 2>/dev/null && nvim --headless +qall 2>/dev/null
-    logInstalled "Neovim"
+    
+    # Verify installation
+    if command -v nvim >/dev/null 2>&1; then
+      git clone --quiet https://github.com/NvChad/starter ~/.config/nvim 2>/dev/null && nvim --headless +qall 2>/dev/null
+      logInstalled "Neovim"
+    else
+      logError "Neovim installation verification failed"
+    fi
   else
     logInfo "Skipping Neovim binary install (macOS use brew)."
   fi
