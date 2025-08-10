@@ -18,7 +18,9 @@ czsh_install_missing_packages() {
   fi
   logWarning "Missing packages: ${MISSING_PACKAGES[*]}"
   if [[ $OSTYPE == darwin* ]]; then
-    for pkg in "${MISSING_PACKAGES[@]}"; do brew install "$pkg" >/dev/null 2>&1 || logError "Failed: $pkg"; done
+    for pkg in "${MISSING_PACKAGES[@]}"; do 
+      brew install "$pkg" >/dev/null 2>&1 || logError "Failed: $pkg"
+    done
   else
     local installer
     for installer in 'sudo apt install -y' 'sudo pacman -S --noconfirm' 'sudo dnf install -y' 'sudo yum install -y' 'pkg install -y'; do
@@ -28,6 +30,7 @@ czsh_install_missing_packages() {
       done
     done
   fi
+  return 0
 }
 
 czsh_packages_main() { czsh_detect_missing_packages; czsh_install_missing_packages; }
