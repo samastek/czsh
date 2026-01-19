@@ -54,6 +54,7 @@ if [[ -f $ZSH_CUSTOM/plugins/zsh_codex/zsh_codex.plugin.zsh ]]; then
 fi
 
 
+export PATH="$HOME/.config/czsh/fzf/bin:$PATH"
 export PATH=$PATH:~/.local/bin
 
 export PATH=$PATH:~/.config/czsh/bin
