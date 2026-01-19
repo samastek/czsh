@@ -48,6 +48,9 @@ plugins=(
     forgit
 )
 
+# behave like bash when it comes to glob pattern
+setopt no_nomatch
+
 if [[ -f $ZSH_CUSTOM/plugins/zsh_codex/zsh_codex.plugin.zsh ]]; then
     source $ZSH_CUSTOM/plugins/zsh_codex/zsh_codex.plugin.zsh
     bindkey '^X' create_completion
