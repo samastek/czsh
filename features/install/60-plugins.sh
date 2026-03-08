@@ -17,12 +17,10 @@ sync_managed_plugin_repo() {
 	fi
 
 	git -C "$plugin_path" remote set-url origin "$plugin_repo" >/dev/null 2>&1 || return 1
-	git -C "$plugin_path" remote set-head origin -a >/dev/null 2>&1 || true
-	git -C "$plugin_path" fetch --depth=1 origin "refs/heads/${default_branch}:refs/remotes/origin/${default_branch}" >/dev/null 2>&1 || return 1
-	git -C "$plugin_path" checkout -B "$default_branch" "origin/$default_branch" >/dev/null 2>&1 || return 1
+	git -C "$plugin_path" fetch --depth=1 origin "$default_branch" >/dev/null 2>&1 || return 1
+	git -C "$plugin_path" checkout -B "$default_branch" FETCH_HEAD >/dev/null 2>&1 || return 1
 	git -C "$plugin_path" config "branch.$default_branch.remote" origin || return 1
 	git -C "$plugin_path" config "branch.$default_branch.merge" "refs/heads/$default_branch" || return 1
-	git -C "$plugin_path" reset --hard "origin/$default_branch" >/dev/null 2>&1 || return 1
 }
 
 install_feature_plugins() {
