@@ -242,7 +242,7 @@ Ctrl+U           # Clear line
 ### Theme Customization
 
 The Powerlevel10k theme is pre-configured with:
-- Left prompt: context, directory, git status
+- Left prompt: directory, git status
 - Right prompt: status, execution time, background jobs, RAM, load
 - Nerd font icons for beautiful display
 - Optimized colors and layout
