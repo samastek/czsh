@@ -11,6 +11,7 @@ A comprehensive Zsh setup with a modular installer and runtime feature system. I
 - **AI-powered command completion** with zsh_codex
 - **Gemini CLI integration** for AI assistance
 - **Modern tools** like lazydocker, bat, and more
+- **Latest release installers** for Neovim, Lazygit, and Lazydocker with architecture-aware asset selection
 - **Nerd Fonts** for beautiful icons
 - **Smart aliases** and custom functions
 - **Platform-aware installs** for macOS and Linux
@@ -32,7 +33,9 @@ This keeps install behavior, runtime behavior, and platform-specific branching s
 - **Oh My Zsh**: Feature-rich framework for Zsh
 - **Powerlevel10k**: Fast and customizable theme
 - **FZF**: Command-line fuzzy finder
+- **Lazygit**: Terminal UI for Git workflows
 - **Lazydocker**: Terminal UI for Docker management
+- **Neovim + NvChad**: Bootstrapped editor config with GitHub Copilot enabled
 
 ### Plugins
 - `zsh-completions` - Additional completion definitions
@@ -45,6 +48,7 @@ This keeps install behavior, runtime behavior, and platform-specific branching s
 
 ### Tools & Utilities
 - **bat** - Better cat with syntax highlighting
+- **Lazygit** - Terminal UI for Git
 - **Gemini CLI** - AI-powered coding assistant and workflow tool
 - **Nerd Fonts** - Beautiful icon fonts
 - **Custom aliases** and functions
@@ -191,6 +195,12 @@ gdoc src/main.py
 ganalyze ./my-project
 ```
 
+### Neovim
+
+The installer fetches the latest architecture-matched release assets for Neovim, Lazygit, and Lazydocker directly from GitHub releases. The Neovim installer also bootstraps the NvChad starter config into `~/.config/nvim` when no config exists yet, and it adds `github/copilot.vim` as a managed plugin.
+
+After the first launch, run `:Copilot setup` inside Neovim to authenticate GitHub Copilot.
+
 ### Vim Mode (Optional)
 
 When using the `--vim-mode` flag, the shell enables vim-style command line editing with enhanced features:
@@ -296,7 +306,6 @@ After installation, your configuration will be organized as:
 ~/.config/czsh/
 ├── oh-my-zsh/           # Oh My Zsh framework
 ├── fzf/                 # FZF fuzzy finder
-├── lazydocker/          # Docker TUI
 ├── gemini/              # Gemini CLI configuration
 │   └── config.sh        # Gemini API key configuration
 └── bin/                 # Additional binaries

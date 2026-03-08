@@ -1,5 +1,30 @@
 #!/bin/bash
 
+detect_architecture() {
+	case "$(uname -m)" in
+	x86_64|amd64)
+		CZSH_ARCH="x86_64"
+		;;
+	arm64|aarch64)
+		CZSH_ARCH="arm64"
+		;;
+	armv7l|armv7)
+		CZSH_ARCH="armv7"
+		;;
+	armv6l|armv6)
+		CZSH_ARCH="armv6"
+		;;
+	i386|i686|x86)
+		CZSH_ARCH="x86"
+		;;
+	*)
+		CZSH_ARCH="$(uname -m)"
+		;;
+	esac
+
+	export CZSH_ARCH
+}
+
 detect_package_manager() {
 	if command -v brew >/dev/null 2>&1; then
 		CZSH_PACKAGE_MANAGER="brew"
@@ -34,6 +59,7 @@ detect_platform() {
 		;;
 	esac
 
+	detect_architecture
 	detect_package_manager
 
 	export CZSH_PLATFORM
