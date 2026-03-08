@@ -22,6 +22,7 @@ fi
 
 print_section "Platform Detection" "$GEAR" "$CYAN"
 logInfo "Platform: $CZSH_PLATFORM"
+logInfo "Architecture: $CZSH_ARCH"
 if [[ -n "$CZSH_PACKAGE_MANAGER" ]]; then
 	logInfo "Package manager: $CZSH_PACKAGE_MANAGER"
 else

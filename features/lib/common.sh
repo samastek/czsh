@@ -14,7 +14,6 @@ ENABLE_VIM_MODE=false
 OH_MY_ZSH_REPO="https://github.com/ohmyzsh/ohmyzsh.git"
 POWERLEVEL10K_REPO="https://github.com/romkatv/powerlevel10k.git"
 FZF_REPO="https://github.com/junegunn/fzf.git"
-LAZYDOCKER_REPO="https://github.com/jesseduffield/lazydocker.git"
 
 PLUGIN_DEFINITIONS=(
 	"fzf-tab:https://github.com/Aloxaf/fzf-tab.git"
@@ -51,7 +50,6 @@ configure_install_paths() {
 	OHMYZSH_CUSTOM_THEME_PATH="$OH_MY_ZSH_FOLDER/custom/themes"
 	POWERLEVEL_10K_PATH="$OHMYZSH_CUSTOM_THEME_PATH/powerlevel10k"
 	FZF_INSTALLATION_PATH="$CZSH_HOME/fzf"
-	LAZYDOCKER_INSTALLATION_PATH="$CZSH_HOME/lazydocker"
 
 	export CZSH_HOME
 	export CZSH_USER_ZSHRC_DIR
@@ -64,7 +62,6 @@ configure_install_paths() {
 	export OHMYZSH_CUSTOM_THEME_PATH
 	export POWERLEVEL_10K_PATH
 	export FZF_INSTALLATION_PATH
-	export LAZYDOCKER_INSTALLATION_PATH
 }
 
 parse_args() {
@@ -119,6 +116,88 @@ ensure_directories() {
 	for path in "$@"; do
 		mkdir -p "$path"
 	done
+}
+
+install_binary() {
+	local source_path="$1"
+	local target_path="$2"
+	local target_dir
+
+	target_dir="$(dirname "$target_path")"
+	if [ -w "$target_dir" ]; then
+		install -m 0755 "$source_path" "$target_path"
+	else
+		sudo install -m 0755 "$source_path" "$target_path"
+	fi
+}
+
+github_latest_release_tag() {
+	local repo="$1"
+	local api_url="https://api.github.com/repos/$repo/releases/latest"
+	local response=""
+
+	response="$(curl -fsSL "$api_url" 2>/dev/null)" || return 1
+	printf '%s\n' "$response" | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1
+}
+
+version_without_v() {
+	printf '%s\n' "${1#v}"
+}
+
+download_github_release_asset() {
+	local repo="$1"
+	local asset_name="$2"
+	local destination_path="$3"
+	local tag_name="${4:-}"
+	local download_url=""
+
+	if [[ -z "$tag_name" ]]; then
+		tag_name="$(github_latest_release_tag "$repo")" || return 1
+	fi
+
+	download_url="https://github.com/$repo/releases/download/$tag_name/$asset_name"
+	curl -fsSL "$download_url" -o "$destination_path" 2>/dev/null
+}
+
+install_github_tarball_binary() {
+	local repo="$1"
+	local asset_name="$2"
+	local binary_name="$3"
+	local target_path="$4"
+	local tag_name="${5:-}"
+	local archive_path="$HOME/.cache/$asset_name"
+	local extract_dir=""
+	local source_path=""
+	local status=0
+
+	ensure_directories "$HOME/.cache"
+	extract_dir="$(mktemp -d "${TMPDIR:-/tmp}/czsh.XXXXXX")" || return 1
+
+	if ! download_github_release_asset "$repo" "$asset_name" "$archive_path" "$tag_name"; then
+		rm -rf "$extract_dir"
+		return 1
+	fi
+
+	if ! tar -xzf "$archive_path" -C "$extract_dir" >/dev/null 2>&1; then
+		rm -f "$archive_path"
+		rm -rf "$extract_dir"
+		return 1
+	fi
+
+	source_path="$(find "$extract_dir" -type f -name "$binary_name" | head -n 1)"
+	if [[ -z "$source_path" ]]; then
+		rm -f "$archive_path"
+		rm -rf "$extract_dir"
+		return 1
+	fi
+
+	if ! install_binary "$source_path" "$target_path"; then
+		status=1
+	fi
+
+	rm -f "$archive_path"
+	rm -rf "$extract_dir"
+	return "$status"
 }
 
 append_unique_package() {
