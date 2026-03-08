@@ -1,10 +1,10 @@
 # CZsh - Complete Zsh Configuration
 
-A comprehensive and feature-rich Zsh configuration setup that transforms your terminal experience with modern tools, beautiful themes, and powerful plugins.
+A comprehensive Zsh setup with a modular installer and runtime feature system. Install-time modules live under the repository's features directory, and runtime modules are installed into ~/.config/czsh/features so new functionality can be added as isolated feature scripts.
 
 ## 🚀 Features
 
-- **Oh My Zsh** with custom configuration
+- **Oh My Zsh** with modular configuration loading
 - **Powerlevel10k** theme with beautiful prompts
 - **Advanced plugins** for enhanced productivity
 - **FZF integration** for fuzzy finding
@@ -13,6 +13,18 @@ A comprehensive and feature-rich Zsh configuration setup that transforms your te
 - **Modern tools** like lazydocker, bat, and more
 - **Nerd Fonts** for beautiful icons
 - **Smart aliases** and custom functions
+- **Platform-aware installs** for macOS and Linux
+
+## Architecture
+
+The project is organized around feature scripts:
+
+- features/install/*.sh: install-time modules sourced by install.sh in filename order.
+- features/runtime/*.zsh: shell configuration sourced before Oh My Zsh during shell startup.
+- features/post/*.zsh: shell configuration sourced after Oh My Zsh for features that depend on plugin initialization.
+- features/lib/*.sh: shared helpers for platform detection, path setup, and installer utilities.
+
+This keeps install behavior, runtime behavior, and platform-specific branching separate.
 
 ## 📦 What's Included
 
@@ -53,7 +65,7 @@ The installer will check for these packages and install them if missing:
 
 ## 📥 Installation
 
-### Quick Install (Recommended)
+### Quick Install
 ```bash
 git clone https://github.com/yourusername/czsh.git
 cd czsh
@@ -100,6 +112,24 @@ The installer supports several flags for customization:
 - `--vim-mode` or `-v`: Enables vim keybindings and navigation in the command line
 
 ## ⚙️ Configuration
+
+### Runtime Feature Loading
+
+During installation, the runtime feature scripts are copied into:
+
+- ~/.config/czsh/features/runtime
+- ~/.config/czsh/features/post
+
+At shell startup:
+
+1. ~/.config/czsh/czshrc.zsh sources all runtime features.
+2. ~/.config/czsh/zshrc/* user overrides are sourced.
+3. Oh My Zsh is loaded.
+4. Post-runtime features are sourced.
+
+To add a new runtime capability, add a new .zsh feature file under features/runtime or features/post and re-run the installer.
+
+To add a new installer capability, add a new script under features/install and register it with register_install_feature.
 
 ### AI Command Completion (Optional)
 

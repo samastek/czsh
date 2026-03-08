@@ -33,27 +33,13 @@ fi
 # Now source oh-my-zsh.sh so that any plugins added in ~/.config/czsh/zshrc/* files also get loaded
 source $ZSH/oh-my-zsh.sh
 
+CZSH_POST_FEATURES_DIR="$HOME/.config/czsh/features/post"
+mkdir -p "$CZSH_POST_FEATURES_DIR"
 
-# Configs that can only work after "source $ZSH/oh-my-zsh.sh", such as Aliases that depend oh-my-zsh plugins
+setopt nullglob
+for feature_file in "$CZSH_POST_FEATURES_DIR"/*.zsh; do
+    [ -f "$feature_file" ] && source "$feature_file"
+done
+unsetopt nullglob
 
-# Now source fzf.zsh , otherwise Ctr+r is overwritten by ohmyzsh
-# Try multiple FZF source locations
-if [ -f ~/.fzf.zsh ]; then
-    source ~/.fzf.zsh
-elif [ -f "$HOME/.config/czsh/fzf/shell/completion.zsh" ]; then
-    source "$HOME/.config/czsh/fzf/shell/completion.zsh"
-fi
-
-if [ -f "$HOME/.config/czsh/fzf/shell/key-bindings.zsh" ]; then
-    source "$HOME/.config/czsh/fzf/shell/key-bindings.zsh"
-fi
-
-# Add FZF to PATH if it exists
-if [ -d "$HOME/.config/czsh/fzf/bin" ]; then
-    export PATH="$PATH:$HOME/.config/czsh/fzf/bin"
-fi
-
-export FZF_DEFAULT_OPS="--extended"
-
-
-[ -f "/home/user/.ghcup/env" ] && . "/home/user/.ghcup/env" # ghcup-env
+[ -f "/home/user/.ghcup/env" ] && . "/home/user/.ghcup/env"
