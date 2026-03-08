@@ -9,7 +9,6 @@ A comprehensive Zsh setup with a modular installer and runtime feature system. I
 - **Advanced plugins** for enhanced productivity
 - **FZF integration** for fuzzy finding
 - **AI-powered command completion** with zsh_codex
-- **Gemini CLI integration** for AI assistance
 - **Modern tools** like lazydocker, bat, and more
 - **Latest release installers** for Neovim, Lazygit, Lazydocker, and Linux-only Lazyjournal with architecture-aware asset selection
 - **Nerd Fonts** for beautiful icons
@@ -51,7 +50,6 @@ This keeps install behavior, runtime behavior, and platform-specific branching s
 - **bat** - Better cat with syntax highlighting
 - **Lazygit** - Terminal UI for Git
 - **Lazyjournal** - Linux-only terminal UI for logs and journals
-- **Gemini CLI** - AI-powered coding assistant and workflow tool
 - **Nerd Fonts** - Beautiful icon fonts
 - **Custom aliases** and functions
 - **Enhanced history** configuration
@@ -67,7 +65,7 @@ The installer will check for these packages and install them if missing:
 - `python3-pip` - Python package manager
 - `fontconfig` - Font configuration
 
-**Node.js** is automatically installed via nvm (Node Version Manager) if not present, ensuring you have the latest stable version for Gemini CLI.
+**Node.js** is automatically installed via nvm (Node Version Manager) if not present, ensuring the required npm-based CLI tools can be installed.
 
 ## 📥 Installation
 
@@ -99,17 +97,11 @@ The installer supports several flags for customization:
 # Include AI-powered command completion
 ./install.sh --codex
 
-# Include Gemini CLI for AI assistance
-./install.sh --gemini
-
-# Include Claude CLI for AI assistance
-./install.sh --claude
-
 # Enable vim mode for command line editing
 ./install.sh --vim-mode
 
 # Combine multiple options
-./install.sh --cp-hist --codex --gemini --vim-mode
+./install.sh --cp-hist --codex --vim-mode
 ```
 
 #### Flag Details
@@ -117,8 +109,6 @@ The installer supports several flags for customization:
 - `--help` or `-h`: Prints installer usage and exits
 - `--interactive` or `-n`: Runs in interactive mode, asking for user input during installation
 - `--codex` or `-x`: Installs and configures zsh_codex for AI-powered command completion
-- `--gemini` or `-g`: Installs and configures Gemini CLI for AI-powered coding assistance
-- `--claude` or `-cl`: Installs and configures Claude CLI for AI-powered development assistance
 - `--vim-mode` or `-v`: Enables vim keybindings and navigation in the command line
 
 ## ⚙️ Configuration
@@ -151,55 +141,6 @@ If you use the `--codex` flag, you'll need to provide an API key for AI-powered 
 Configuration files:
 - `~/.config/zsh_codex.ini` - Main configuration
 - `~/.config/openaiapirc` - Alternative OpenAI configuration
-
-### Gemini CLI Integration
-
-The setup includes Google's Gemini CLI for AI-powered coding assistance when using the `--gemini` flag:
-
-#### Setup
-1. Install with Gemini CLI: `./install.sh --gemini`
-2. During installation, choose your authentication method:
-   - **API Key**: Enter your key from https://aistudio.google.com/apikey
-   - **OAuth**: Authenticate later with `gemini auth`
-   - **Skip**: Configure manually later
-
-#### Built-in Aliases & Functions
-```bash
-# Quick access
-g                    # Start Gemini CLI
-gai                  # Alternative alias for Gemini
-
-# Specialized functions
-gask "your question" # Ask Gemini a quick question
-greview             # Review git changes with AI
-gcommit             # Generate commit messages
-gexplain "error"    # Explain error messages
-gdoc filename       # Generate documentation
-ganalyze            # Analyze project structure
-```
-
-#### Usage Examples
-```bash
-# Get code help
-gask "How to implement a binary search in Python?"
-
-# Review your changes
-git add .
-greview
-
-# Generate a commit message
-git add .
-gcommit
-
-# Explain an error
-gexplain "segmentation fault core dumped"
-
-# Document your code
-gdoc src/main.py
-
-# Analyze project
-ganalyze ./my-project
-```
 
 ### Neovim
 
@@ -272,10 +213,6 @@ alias l="ls --hyperlink=auto -lAhrtF"  # Enhanced ls
 alias e="exit"                         # Quick exit
 alias myip="wget -qO- https://wtfismyip.com/text"  # Show external IP
 
-# AI Assistance
-alias g="gemini"                       # Quick Gemini CLI access
-alias gai="gemini"                     # Alternative Gemini alias
-
 # Git
 alias git-update-all='find . -type d -name .git -execdir git pull --rebase --autostash \;'
 
@@ -288,12 +225,21 @@ Custom functions:
 - `speedtest()` - Run internet speed test
 - `s()` - Search files with ripgrep and FZF
 - `f()` - Find and preview files with FZF
-- `gask()` - Ask Gemini AI quick questions
-- `greview()` - AI-powered git diff review
-- `gcommit()` - Generate commit messages with AI
-- `gexplain()` - Explain error messages
-- `gdoc()` - Generate code documentation
-- `ganalyze()` - Analyze project structure
+- `glclone()` - Clone a GitLab group and its subgroups recursively via the GitLab API
+
+`glclone()` usage:
+```bash
+# Clone a public GitLab group
+glclone https://gitlab.com/my-group
+
+# Clone a private group with a token
+glclone https://gitlab.com/my-group --token glpat-xxxxxxxxxxxxxxxxxxxx
+
+# Use a custom target directory and HTTPS clone URLs
+glclone https://gitlab.example.com/group/subgroup --clone-dir ~/src/gitlab --https
+```
+
+The function uses `curl`, `jq`, and `git`. You can also set `GITLAB_TOKEN` or `GITLAB_PRIVATE_TOKEN` instead of passing `--token`.
 
 ## 🎨 Font Setup
 
@@ -312,8 +258,6 @@ After installation, your configuration will be organized as:
 ~/.config/czsh/
 ├── oh-my-zsh/           # Oh My Zsh framework
 ├── fzf/                 # FZF fuzzy finder
-├── gemini/              # Gemini CLI configuration
-│   └── config.sh        # Gemini API key configuration
 └── bin/                 # Additional binaries
 
 ~/.zshrc                 # Main Zsh configuration (sourced from czsh/)
