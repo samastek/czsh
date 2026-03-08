@@ -281,7 +281,7 @@ copy_base_configuration_files() {
 
 	if compgen -G "$HOME/.zcompdump*" >/dev/null 2>&1; then
 		logProgress "Moving zsh completion cache files..."
-		mv "$HOME/.zcompdump"* "$CZSH_CACHE_DIR/"
+		command mv -f "$HOME/.zcompdump"* "$CZSH_CACHE_DIR/"
 		logSuccess "Moved completion cache files to $CZSH_CACHE_DIR"
 	fi
 
