@@ -64,9 +64,33 @@ configure_install_paths() {
 	export FZF_INSTALLATION_PATH
 }
 
+show_install_help() {
+	cat <<'EOF'
+Usage: ./install.sh [options]
+
+Options:
+  -h, --help         Show this help message and exit
+  -c, --cp-hist      Copy existing shell history into CZSH
+  -n, --interactive  Run installer in interactive mode
+  -x, --codex        Enable zsh_codex setup
+  -g, --gemini       Enable Gemini CLI setup
+  -cl, --claude      Enable Claude CLI setup
+  -v, --vim-mode     Enable vim mode for shell editing
+
+Examples:
+  ./install.sh
+  ./install.sh --cp-hist --vim-mode
+  ./install.sh --interactive --gemini --claude
+EOF
+}
+
 parse_args() {
 	for arg in "$@"; do
 		case "$arg" in
+		--help|-h)
+			show_install_help
+			exit 0
+			;;
 		--cp-hist|-c)
 			COPY_HISTORY_FLAG=true
 			;;
@@ -84,6 +108,11 @@ parse_args() {
 			;;
 		--vim-mode|-v)
 			ENABLE_VIM_MODE=true
+			;;
+		*)
+			echo "Unknown option: $arg" >&2
+			show_install_help >&2
+			exit 1
 			;;
 		esac
 	done
@@ -157,6 +186,28 @@ download_github_release_asset() {
 
 	download_url="https://github.com/$repo/releases/download/$tag_name/$asset_name"
 	curl -fsSL "$download_url" -o "$destination_path" 2>/dev/null
+}
+
+install_github_release_binary() {
+	local repo="$1"
+	local asset_name="$2"
+	local target_path="$3"
+	local tag_name="${4:-}"
+	local archive_path="$HOME/.cache/$asset_name"
+	local status=0
+
+	ensure_directories "$HOME/.cache"
+
+	if ! download_github_release_asset "$repo" "$asset_name" "$archive_path" "$tag_name"; then
+		return 1
+	fi
+
+	if ! install_binary "$archive_path" "$target_path"; then
+		status=1
+	fi
+
+	rm -f "$archive_path"
+	return "$status"
 }
 
 install_github_tarball_binary() {

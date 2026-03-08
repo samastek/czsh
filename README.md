@@ -11,7 +11,7 @@ A comprehensive Zsh setup with a modular installer and runtime feature system. I
 - **AI-powered command completion** with zsh_codex
 - **Gemini CLI integration** for AI assistance
 - **Modern tools** like lazydocker, bat, and more
-- **Latest release installers** for Neovim, Lazygit, and Lazydocker with architecture-aware asset selection
+- **Latest release installers** for Neovim, Lazygit, Lazydocker, and Linux-only Lazyjournal with architecture-aware asset selection
 - **Nerd Fonts** for beautiful icons
 - **Smart aliases** and custom functions
 - **Platform-aware installs** for macOS and Linux
@@ -35,6 +35,7 @@ This keeps install behavior, runtime behavior, and platform-specific branching s
 - **FZF**: Command-line fuzzy finder
 - **Lazygit**: Terminal UI for Git workflows
 - **Lazydocker**: Terminal UI for Docker management
+- **Lazyjournal**: Linux-only terminal UI for system and container log exploration
 - **Neovim + NvChad**: Bootstrapped editor config with GitHub Copilot enabled
 
 ### Plugins
@@ -49,6 +50,7 @@ This keeps install behavior, runtime behavior, and platform-specific branching s
 ### Tools & Utilities
 - **bat** - Better cat with syntax highlighting
 - **Lazygit** - Terminal UI for Git
+- **Lazyjournal** - Linux-only terminal UI for logs and journals
 - **Gemini CLI** - AI-powered coding assistant and workflow tool
 - **Nerd Fonts** - Beautiful icon fonts
 - **Custom aliases** and functions
@@ -85,6 +87,9 @@ The installer supports several flags for customization:
 # Basic installation
 ./install.sh
 
+# Show help
+./install.sh --help
+
 # Copy existing bash/zsh history
 ./install.sh --cp-hist
 
@@ -109,6 +114,7 @@ The installer supports several flags for customization:
 
 #### Flag Details
 - `--cp-hist` or `-c`: Copies your existing shell history to the new Zsh configuration
+- `--help` or `-h`: Prints installer usage and exits
 - `--interactive` or `-n`: Runs in interactive mode, asking for user input during installation
 - `--codex` or `-x`: Installs and configures zsh_codex for AI-powered command completion
 - `--gemini` or `-g`: Installs and configures Gemini CLI for AI-powered coding assistance
@@ -197,7 +203,7 @@ ganalyze ./my-project
 
 ### Neovim
 
-The installer fetches the latest architecture-matched release assets for Neovim, Lazygit, and Lazydocker directly from GitHub releases. The Neovim installer also bootstraps the NvChad starter config into `~/.config/nvim` when no config exists yet, and it adds `github/copilot.vim` as a managed plugin.
+The installer fetches the latest architecture-matched release assets for Neovim, Lazygit, and Lazydocker directly from GitHub releases. Lazyjournal is installed only on Linux systems where `journalctl` is available. The Neovim installer also bootstraps the NvChad starter config into `~/.config/nvim` when no config exists yet, and it adds `github/copilot.vim` as a managed plugin.
 
 After the first launch, run `:Copilot setup` inside Neovim to authenticate GitHub Copilot.
 
