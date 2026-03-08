@@ -7,8 +7,6 @@ INSTALL_START_TIME=$(date +%s)
 COPY_HISTORY_FLAG=false
 INTERACTIVE_FLAG=false
 ENABLE_CODEX=false
-ENABLE_GEMINI=false
-ENABLE_CLAUDE=false
 ENABLE_VIM_MODE=false
 
 OH_MY_ZSH_REPO="https://github.com/ohmyzsh/ohmyzsh.git"
@@ -31,6 +29,7 @@ PREREQUISITE_SPECS=(
 	"wget:wget"
 	"bat|batcat:bat"
 	"curl:curl"
+	"jq:jq"
 	"fc-cache:fontconfig"
 	"python3:python3"
 )
@@ -73,14 +72,12 @@ Options:
   -c, --cp-hist      Copy existing shell history into CZSH
   -n, --interactive  Run installer in interactive mode
   -x, --codex        Enable zsh_codex setup
-  -g, --gemini       Enable Gemini CLI setup
-  -cl, --claude      Enable Claude CLI setup
   -v, --vim-mode     Enable vim mode for shell editing
 
 Examples:
   ./install.sh
   ./install.sh --cp-hist --vim-mode
-  ./install.sh --interactive --gemini --claude
+	./install.sh --interactive
 EOF
 }
 
@@ -99,12 +96,6 @@ parse_args() {
 			;;
 		--codex|-x)
 			ENABLE_CODEX=true
-			;;
-		--gemini|-g)
-			ENABLE_GEMINI=true
-			;;
-		--claude|-cl)
-			ENABLE_CLAUDE=true
 			;;
 		--vim-mode|-v)
 			ENABLE_VIM_MODE=true

@@ -4,5 +4,3 @@ if [[ -f "$ZSH_CUSTOM/plugins/zsh_codex/zsh_codex.plugin.zsh" ]]; then
 fi
 
 [[ -s "$HOME/.config/czsh/marker/marker.sh" ]] && source "$HOME/.config/czsh/marker/marker.sh"
-[[ -f "$HOME/.config/czsh/gemini/config.sh" ]] && source "$HOME/.config/czsh/gemini/config.sh"
-[[ -f "$HOME/.config/czsh/claude/config.sh" ]] && source "$HOME/.config/czsh/claude/config.sh"
