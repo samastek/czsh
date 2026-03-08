@@ -243,7 +243,7 @@ Ctrl+U           # Clear line
 
 The Powerlevel10k theme is pre-configured with:
 - Left prompt: directory, git status
-- Right prompt: status, execution time, background jobs, RAM, load
+- Right prompt: status, execution time, background jobs, RAM
 - Nerd font icons for beautiful display
 - Optimized colors and layout
 
