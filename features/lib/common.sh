@@ -447,7 +447,7 @@ finish_installation() {
 	end_time=$(date +%s)
 
 	print_header "Installation Complete!" "$GREEN" "$BG_GREEN"
-	logSuccess "CZSH installation completed successfully! $SPARKLES"
+	logSuccess "CZSH installation completed successfully."
 	print_installation_summary "$INSTALL_START_TIME" "$end_time"
 
 	if [ "$INTERACTIVE_FLAG" = true ]; then

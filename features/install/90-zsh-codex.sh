@@ -14,7 +14,7 @@ install_feature_zsh_codex() {
 	cp "$SCRIPT_DIR/zsh_codex.ini" "$config_path"
 
 	if [ "$INTERACTIVE_FLAG" = true ]; then
-		api_key=$(prompt_secret "${YELLOW}🔑 Enter your OpenAI API key: ${RESET}")
+		api_key=$(prompt_secret "${YELLOW}Enter your OpenAI API key: ${RESET}")
 		if [[ -n "$api_key" ]]; then
 			sed -i.bak "s/TOBEREPLEACED/${api_key}/g" "$config_path"
 			rm -f "$config_path.bak"
