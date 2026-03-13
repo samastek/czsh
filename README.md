@@ -1,18 +1,30 @@
 # CZsh - Complete Zsh Configuration
 
-A comprehensive and feature-rich Zsh configuration setup that transforms your terminal experience with modern tools, beautiful themes, and powerful plugins.
+A comprehensive Zsh setup with a modular installer and runtime feature system. Install-time modules live under the repository's features directory, and runtime modules are installed into ~/.config/czsh/features so new functionality can be added as isolated feature scripts.
 
 ## 🚀 Features
 
-- **Oh My Zsh** with custom configuration
+- **Oh My Zsh** with modular configuration loading
 - **Powerlevel10k** theme with beautiful prompts
 - **Advanced plugins** for enhanced productivity
 - **FZF integration** for fuzzy finding
 - **AI-powered command completion** with zsh_codex
-- **Gemini CLI integration** for AI assistance
 - **Modern tools** like lazydocker, bat, and more
+- **Latest release installers** for Neovim, Lazygit, Lazydocker, and Linux-only Lazyjournal with architecture-aware asset selection
 - **Nerd Fonts** for beautiful icons
 - **Smart aliases** and custom functions
+- **Platform-aware installs** for macOS and Linux
+
+## Architecture
+
+The project is organized around feature scripts:
+
+- features/install/*.sh: install-time modules sourced by install.sh in filename order.
+- features/runtime/*.zsh: shell configuration sourced before Oh My Zsh during shell startup.
+- features/post/*.zsh: shell configuration sourced after Oh My Zsh for features that depend on plugin initialization.
+- features/lib/*.sh: shared helpers for platform detection, path setup, and installer utilities.
+
+This keeps install behavior, runtime behavior, and platform-specific branching separate.
 
 ## 📦 What's Included
 
@@ -20,7 +32,10 @@ A comprehensive and feature-rich Zsh configuration setup that transforms your te
 - **Oh My Zsh**: Feature-rich framework for Zsh
 - **Powerlevel10k**: Fast and customizable theme
 - **FZF**: Command-line fuzzy finder
+- **Lazygit**: Terminal UI for Git workflows
 - **Lazydocker**: Terminal UI for Docker management
+- **Lazyjournal**: Linux-only terminal UI for system and container log exploration
+- **Neovim + NvChad**: Bootstrapped editor config with GitHub Copilot enabled
 
 ### Plugins
 - `zsh-completions` - Additional completion definitions
@@ -33,7 +48,8 @@ A comprehensive and feature-rich Zsh configuration setup that transforms your te
 
 ### Tools & Utilities
 - **bat** - Better cat with syntax highlighting
-- **Gemini CLI** - AI-powered coding assistant and workflow tool
+- **Lazygit** - Terminal UI for Git
+- **Lazyjournal** - Linux-only terminal UI for logs and journals
 - **Nerd Fonts** - Beautiful icon fonts
 - **Custom aliases** and functions
 - **Enhanced history** configuration
@@ -49,11 +65,11 @@ The installer will check for these packages and install them if missing:
 - `python3-pip` - Python package manager
 - `fontconfig` - Font configuration
 
-**Node.js** is automatically installed via nvm (Node Version Manager) if not present, ensuring you have the latest stable version for Gemini CLI.
+**Node.js** is automatically installed via nvm (Node Version Manager) if not present, ensuring the required npm-based CLI tools can be installed.
 
 ## 📥 Installation
 
-### Quick Install (Recommended)
+### Quick Install
 ```bash
 git clone https://github.com/yourusername/czsh.git
 cd czsh
@@ -69,6 +85,9 @@ The installer supports several flags for customization:
 # Basic installation
 ./install.sh
 
+# Show help
+./install.sh --help
+
 # Copy existing bash/zsh history
 ./install.sh --cp-hist
 
@@ -78,28 +97,39 @@ The installer supports several flags for customization:
 # Include AI-powered command completion
 ./install.sh --codex
 
-# Include Gemini CLI for AI assistance
-./install.sh --gemini
-
-# Include Claude CLI for AI assistance
-./install.sh --claude
-
 # Enable vim mode for command line editing
 ./install.sh --vim-mode
 
 # Combine multiple options
-./install.sh --cp-hist --codex --gemini --vim-mode
+./install.sh --cp-hist --codex --vim-mode
 ```
 
 #### Flag Details
 - `--cp-hist` or `-c`: Copies your existing shell history to the new Zsh configuration
+- `--help` or `-h`: Prints installer usage and exits
 - `--interactive` or `-n`: Runs in interactive mode, asking for user input during installation
 - `--codex` or `-x`: Installs and configures zsh_codex for AI-powered command completion
-- `--gemini` or `-g`: Installs and configures Gemini CLI for AI-powered coding assistance
-- `--claude` or `-cl`: Installs and configures Claude CLI for AI-powered development assistance
 - `--vim-mode` or `-v`: Enables vim keybindings and navigation in the command line
 
 ## ⚙️ Configuration
+
+### Runtime Feature Loading
+
+During installation, the runtime feature scripts are copied into:
+
+- ~/.config/czsh/features/runtime
+- ~/.config/czsh/features/post
+
+At shell startup:
+
+1. ~/.config/czsh/czshrc.zsh sources all runtime features.
+2. ~/.config/czsh/zshrc/* user overrides are sourced.
+3. Oh My Zsh is loaded.
+4. Post-runtime features are sourced.
+
+To add a new runtime capability, add a new .zsh feature file under features/runtime or features/post and re-run the installer.
+
+To add a new installer capability, add a new script under features/install and register it with register_install_feature.
 
 ### AI Command Completion (Optional)
 
@@ -112,54 +142,11 @@ Configuration files:
 - `~/.config/zsh_codex.ini` - Main configuration
 - `~/.config/openaiapirc` - Alternative OpenAI configuration
 
-### Gemini CLI Integration
+### Neovim
 
-The setup includes Google's Gemini CLI for AI-powered coding assistance when using the `--gemini` flag:
+The installer fetches the latest architecture-matched release assets for Neovim, Lazygit, and Lazydocker directly from GitHub releases. Lazyjournal is installed only on Linux systems where `journalctl` is available. The Neovim installer also bootstraps the NvChad starter config into `~/.config/nvim` when no config exists yet, and it adds `github/copilot.vim` as a managed plugin.
 
-#### Setup
-1. Install with Gemini CLI: `./install.sh --gemini`
-2. During installation, choose your authentication method:
-   - **API Key**: Enter your key from https://aistudio.google.com/apikey
-   - **OAuth**: Authenticate later with `gemini auth`
-   - **Skip**: Configure manually later
-
-#### Built-in Aliases & Functions
-```bash
-# Quick access
-g                    # Start Gemini CLI
-gai                  # Alternative alias for Gemini
-
-# Specialized functions
-gask "your question" # Ask Gemini a quick question
-greview             # Review git changes with AI
-gcommit             # Generate commit messages
-gexplain "error"    # Explain error messages
-gdoc filename       # Generate documentation
-ganalyze            # Analyze project structure
-```
-
-#### Usage Examples
-```bash
-# Get code help
-gask "How to implement a binary search in Python?"
-
-# Review your changes
-git add .
-greview
-
-# Generate a commit message
-git add .
-gcommit
-
-# Explain an error
-gexplain "segmentation fault core dumped"
-
-# Document your code
-gdoc src/main.py
-
-# Analyze project
-ganalyze ./my-project
-```
+After the first launch, run `:Copilot setup` inside Neovim to authenticate GitHub Copilot.
 
 ### Vim Mode (Optional)
 
@@ -212,8 +199,8 @@ Ctrl+U           # Clear line
 ### Theme Customization
 
 The Powerlevel10k theme is pre-configured with:
-- Left prompt: context, directory, git status
-- Right prompt: status, execution time, background jobs, RAM, load
+- Left prompt: directory, git status
+- Right prompt: status, execution time, background jobs, RAM
 - Nerd font icons for beautiful display
 - Optimized colors and layout
 
@@ -225,10 +212,6 @@ The configuration includes useful aliases:
 alias l="ls --hyperlink=auto -lAhrtF"  # Enhanced ls
 alias e="exit"                         # Quick exit
 alias myip="wget -qO- https://wtfismyip.com/text"  # Show external IP
-
-# AI Assistance
-alias g="gemini"                       # Quick Gemini CLI access
-alias gai="gemini"                     # Alternative Gemini alias
 
 # Git
 alias git-update-all='find . -type d -name .git -execdir git pull --rebase --autostash \;'
@@ -242,12 +225,21 @@ Custom functions:
 - `speedtest()` - Run internet speed test
 - `s()` - Search files with ripgrep and FZF
 - `f()` - Find and preview files with FZF
-- `gask()` - Ask Gemini AI quick questions
-- `greview()` - AI-powered git diff review
-- `gcommit()` - Generate commit messages with AI
-- `gexplain()` - Explain error messages
-- `gdoc()` - Generate code documentation
-- `ganalyze()` - Analyze project structure
+- `glclone()` - Clone a GitLab group and its subgroups recursively via the GitLab API
+
+`glclone()` usage:
+```bash
+# Clone a public GitLab group
+glclone https://gitlab.com/my-group
+
+# Clone a private group with a token
+glclone https://gitlab.com/my-group --token glpat-xxxxxxxxxxxxxxxxxxxx
+
+# Use a custom target directory and HTTPS clone URLs
+glclone https://gitlab.example.com/group/subgroup --clone-dir ~/src/gitlab --https
+```
+
+The function uses `curl`, `jq`, and `git`. You can also set `GITLAB_TOKEN` or `GITLAB_PRIVATE_TOKEN` instead of passing `--token`.
 
 ## 🎨 Font Setup
 
@@ -266,9 +258,6 @@ After installation, your configuration will be organized as:
 ~/.config/czsh/
 ├── oh-my-zsh/           # Oh My Zsh framework
 ├── fzf/                 # FZF fuzzy finder
-├── lazydocker/          # Docker TUI
-├── gemini/              # Gemini CLI configuration
-│   └── config.sh        # Gemini API key configuration
 └── bin/                 # Additional binaries
 
 ~/.zshrc                 # Main Zsh configuration (sourced from czsh/)
