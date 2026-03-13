@@ -61,7 +61,7 @@ install_feature_lazydocker() {
 		return 0
 	fi
 
-	if install_github_tarball_binary "jesseduffield/lazydocker" "$asset_name" "lazydocker" "/usr/local/bin/lazydocker" "$tag_name"; then
+	if install_github_tarball_binary "jesseduffield/lazydocker" "$asset_name" "lazydocker" "$HOME/.local/bin/lazydocker" "$tag_name"; then
 		if $had_lazydocker; then
 			logUpdated "Lazydocker"
 		else
