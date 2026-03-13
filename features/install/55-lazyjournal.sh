@@ -63,7 +63,7 @@ install_feature_lazyjournal() {
 		return 0
 	fi
 
-	if install_github_release_binary "Lifailon/lazyjournal" "$asset_name" "/usr/local/bin/lazyjournal" "$tag_name"; then
+	if install_github_release_binary "Lifailon/lazyjournal" "$asset_name" "$HOME/.local/bin/lazyjournal" "$tag_name"; then
 		if $had_lazyjournal; then
 			logUpdated "Lazyjournal"
 		else

@@ -70,7 +70,7 @@ install_neovim_release() {
 	local repo="neovim/neovim"
 	local asset_name=""
 	local archive_path=""
-	local extract_root="/opt"
+	local extract_root="$HOME/.local/share"
 	local extract_dir=""
 	local tag_name=""
 
@@ -99,21 +99,20 @@ install_neovim_release() {
 		xattr -c "$archive_path" 2>/dev/null || true
 	fi
 
-	if ! sudo rm -rf "$extract_dir"; then
-		rm -f "$archive_path"
-		return 1
-	fi
+	ensure_directories "$extract_root"
+	rm -rf "$extract_dir"
 
-	if ! sudo tar -C "$extract_root" -xzf "$archive_path"; then
+	if ! tar -C "$extract_root" -xzf "$archive_path"; then
 		rm -f "$archive_path"
 		return 1
 	fi
 
 	if is_macos && command -v xattr >/dev/null 2>&1; then
-		sudo xattr -cr "$extract_dir" 2>/dev/null || true
+		xattr -cr "$extract_dir" 2>/dev/null || true
 	fi
 
-	if ! sudo ln -sf "$extract_dir/bin/nvim" /usr/local/bin/nvim; then
+	ensure_directories "$HOME/.local/bin"
+	if ! ln -sf "$extract_dir/bin/nvim" "$HOME/.local/bin/nvim"; then
 		rm -f "$archive_path"
 		return 1
 	fi

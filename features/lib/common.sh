@@ -144,11 +144,8 @@ install_binary() {
 	local target_dir
 
 	target_dir="$(dirname "$target_path")"
-	if [ -w "$target_dir" ]; then
-		install -m 0755 "$source_path" "$target_path"
-	else
-		sudo install -m 0755 "$source_path" "$target_path"
-	fi
+	ensure_directories "$target_dir"
+	install -m 0755 "$source_path" "$target_path"
 }
 
 github_latest_release_tag() {

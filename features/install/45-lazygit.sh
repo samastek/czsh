@@ -58,7 +58,7 @@ install_feature_lazygit() {
 		return 0
 	fi
 
-	if install_github_tarball_binary "jesseduffield/lazygit" "$asset_name" "lazygit" "/usr/local/bin/lazygit" "$tag_name"; then
+	if install_github_tarball_binary "jesseduffield/lazygit" "$asset_name" "lazygit" "$HOME/.local/bin/lazygit" "$tag_name"; then
 		if $had_lazygit; then
 			logUpdated "Lazygit"
 		else
