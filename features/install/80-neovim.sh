@@ -38,7 +38,7 @@ ensure_neovim_copilot_enabled() {
 	logProgress "Enabling GitHub Copilot for Neovim..."
 	cat >"$copilot_plugin_file" <<'EOF'
 return {
-  { import = "lazyvim.plugins.extras.coding.copilot" },
+  { "github/copilot.vim" },
 }
 EOF
 	logInstalled "GitHub Copilot Neovim plugin"
