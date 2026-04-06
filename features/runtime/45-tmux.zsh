@@ -8,13 +8,13 @@ fi
 
 # ── tmux-help ────────────────────────────────
 tmux-help() {
-    local C='\033[0;36m'    # cyan
-    local B='\033[1;34m'    # bold blue
-    local Y='\033[0;33m'    # yellow
-    local G='\033[0;32m'    # green
-    local D='\033[0;90m'    # dim
-    local W='\033[1;37m'    # white bold
-    local R='\033[0m'       # reset
+    local C=$'\033[0;36m'    # cyan
+    local B=$'\033[1;34m'    # bold blue
+    local Y=$'\033[0;33m'    # yellow
+    local G=$'\033[0;32m'    # green
+    local D=$'\033[0;90m'    # dim
+    local W=$'\033[1;37m'    # white bold
+    local R=$'\033[0m'       # reset
 
     cat <<EOF
 
