@@ -20,51 +20,6 @@ neovim_asset_name() {
 	esac
 }
 
-ensure_neovim_copilot_enabled() {
-	local nvim_config_dir="$HOME/.config/nvim"
-	local plugin_dir="$nvim_config_dir/lua/plugins"
-	local copilot_plugin_file="$plugin_dir/copilot.lua"
-
-	if [ ! -d "$plugin_dir" ]; then
-		logProgress "Skipping GitHub Copilot plugin bootstrap for non-LazyVim Neovim config"
-		return 0
-	fi
-
-	if [ -f "$copilot_plugin_file" ]; then
-		logAlreadyInstalled "GitHub Copilot Neovim plugin"
-		return 0
-	fi
-
-	logProgress "Enabling GitHub Copilot for Neovim..."
-	cat >"$copilot_plugin_file" <<'EOF'
-return {
-  { "github/copilot.vim" },
-}
-EOF
-	logInstalled "GitHub Copilot Neovim plugin"
-}
-
-setup_neovim_config() {
-	local nvim_config_dir="$HOME/.config/nvim"
-
-	if [ -f "$nvim_config_dir/lua/config/lazy.lua" ]; then
-		logAlreadyInstalled "LazyVim configuration"
-	else
-		rm -rf "$nvim_config_dir" "$HOME/.local/share/nvim" "$HOME/.local/state/nvim" "$HOME/.cache/nvim"
-		logProgress "Setting up LazyVim configuration..."
-		if ! git clone --quiet https://github.com/LazyVim/starter "$nvim_config_dir" 2>/dev/null; then
-			logWarning "Failed to clone LazyVim starter configuration"
-			return 0
-		fi
-		rm -rf "$nvim_config_dir/.git"
-	fi
-
-	ensure_neovim_copilot_enabled
-
-	if command -v nvim >/dev/null 2>&1; then
-		nvim --headless +qall 2>/dev/null
-	fi
-}
 
 install_neovim_release() {
 	local repo="neovim/neovim"
@@ -123,7 +78,6 @@ install_neovim_release() {
 
 install_feature_neovim() {
 	local had_neovim=false
-	local neovim_ready=false
 
 	print_section "Neovim Installation" "$FIRE" "$BLUE"
 
@@ -140,18 +94,12 @@ install_feature_neovim() {
 		else
 			logInstalled "Neovim"
 		fi
-		neovim_ready=true
 	elif command -v nvim >/dev/null 2>&1; then
 		logWarning "Failed to update Neovim, using existing installation"
-		neovim_ready=true
 	else
 		logWarning "Failed to install Neovim"
 		echo
 		return 0
-	fi
-
-	if $neovim_ready; then
-		setup_neovim_config
 	fi
 
 	echo
