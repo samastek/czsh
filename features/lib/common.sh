@@ -157,6 +157,60 @@ github_latest_release_tag() {
 	printf '%s\n' "$response" | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1
 }
 
+github_latest_release_tag_matching() {
+	local repo="$1"
+	local tag_prefix="$2"
+	local api_url="https://api.github.com/repos/$repo/releases?per_page=50"
+	local response=""
+
+	response="$(curl -fsSL "$api_url" 2>/dev/null)" || return 1
+	printf '%s\n' "$response" \
+		| sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+		| grep "^${tag_prefix}" \
+		| head -n 1
+}
+
+install_github_zip_binary() {
+	local repo="$1"
+	local asset_name="$2"
+	local binary_name="$3"
+	local target_path="$4"
+	local tag_name="${5:-}"
+	local archive_path="$HOME/.cache/$asset_name"
+	local extract_dir=""
+	local source_path=""
+	local status=0
+
+	ensure_directories "$HOME/.cache"
+	extract_dir="$(mktemp -d "${TMPDIR:-/tmp}/czsh.XXXXXX")" || return 1
+
+	if ! download_github_release_asset "$repo" "$asset_name" "$archive_path" "$tag_name"; then
+		rm -rf "$extract_dir"
+		return 1
+	fi
+
+	if ! unzip -q "$archive_path" -d "$extract_dir" 2>/dev/null; then
+		rm -f "$archive_path"
+		rm -rf "$extract_dir"
+		return 1
+	fi
+
+	source_path="$(find "$extract_dir" -type f -name "$binary_name" | head -n 1)"
+	if [[ -z "$source_path" ]]; then
+		rm -f "$archive_path"
+		rm -rf "$extract_dir"
+		return 1
+	fi
+
+	if ! install_binary "$source_path" "$target_path"; then
+		status=1
+	fi
+
+	rm -f "$archive_path"
+	rm -rf "$extract_dir"
+	return "$status"
+}
+
 version_without_v() {
 	printf '%s\n' "${1#v}"
 }
