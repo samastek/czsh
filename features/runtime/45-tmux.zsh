@@ -64,6 +64,7 @@ ${B}── Plugins ────────────────────�
 
 ${B}── General ────────────────────────────────────────────────${R}
   ${Y}prefix + r${R}           ${D}│${R} Reload tmux config
+  ${Y}prefix + e${R}           ${D}│${R} Show this cheatsheet
   ${Y}prefix + ?${R}           ${D}│${R} Show all keybindings
   ${Y}prefix + t${R}           ${D}│${R} Show clock
   ${D}Mouse scroll, click, drag, and resize are all enabled.${R}
