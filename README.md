@@ -1,8 +1,12 @@
 # CZSH
 
+[![CI](https://github.com/samastek/czsh/actions/workflows/ci.yml/badge.svg)](https://github.com/samastek/czsh/actions/workflows/ci.yml)
+![Platforms](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-7aa2f7)
+![Shell](https://img.shields.io/badge/shell-Zsh-bb9af7?logo=zsh)
+
 CZSH is an opinionated Zsh and terminal-environment bootstrapper for macOS and
 Linux. It installs a managed Oh My Zsh setup, configures fuzzy completion and a
-Powerlevel10k prompt, provisions a practical set of terminal tools, and keeps
+fast native Zsh prompt, provisions a practical set of terminal tools, and keeps
 personal shell overrides separate from generated configuration.
 
 The project is intended for users who want one reproducible setup rather than a
@@ -14,8 +18,21 @@ the configuration needs to be synchronized or managed tools need to be updated.
 > backup. It also manages both standard tmux configuration paths. Review the
 > [files changed by the installer](#files-and-directories) before running it.
 
+## Quick start
+
+```bash
+git clone https://github.com/samastek/czsh.git
+cd czsh
+./install.sh
+```
+
+Open a new terminal after installation, or run `exec zsh`. The default install
+does not change the login shell and does not install Neovim; both remain
+explicit user choices.
+
 ## Contents
 
+- [Quick start](#quick-start)
 - [Capabilities](#capabilities)
 - [Installed components](#installed-components)
 - [Platform support](#platform-support)
@@ -28,12 +45,13 @@ the configuration needs to be synchronized or managed tools need to be updated.
 - [Updating](#updating)
 - [Troubleshooting](#troubleshooting)
 - [Project structure](#project-structure)
+- [Development and community](#development-and-community)
 
 ## Capabilities
 
 CZSH provides the following as one managed setup:
 
-- Oh My Zsh with Powerlevel10k and a curated plugin set.
+- Oh My Zsh with the native CZSH prompt and a curated plugin set.
 - FZF-backed Zsh completion with multi-selection, fuzzy history search, and
   standard FZF shell key bindings.
 - Syntax highlighting, inline autosuggestions, additional completion
@@ -60,11 +78,11 @@ CZSH provides the following as one managed setup:
 | Component | Configuration |
 | --- | --- |
 | [Oh My Zsh](https://ohmyz.sh/) | Installed under `~/.config/czsh/oh-my-zsh` and updated on subsequent runs. |
-| [Powerlevel10k](https://github.com/romkatv/powerlevel10k) | Displays host context, current directory, and VCS state on the left; command status, execution time, background jobs, and memory on the right. |
+| CZSH prompt | A two-line native prompt with the home-relative path above a quiet input line; the previous exit code is right-aligned. Git and time context live in tmux. |
 | [FZF](https://github.com/junegunn/fzf) | Installed under `~/.config/czsh/fzf` with Zsh completion and key bindings enabled. |
 | Nerd Fonts | Installs Hack, Roboto Mono, and DejaVu Sans Mono. |
 
-The runtime exports `TERM=xterm-256color`, enables `no_nomatch`, sets
+The runtime preserves the terminal's advertised `TERM`, enables `no_nomatch`, sets
 `SAVEHIST=50000`, and adds the following locations to `PATH`:
 
 ```text
@@ -73,9 +91,13 @@ The runtime exports `TERM=xterm-256color`, enables `no_nomatch`, sets
 ~/.config/czsh/bin
 ```
 
-It also installs a prompt hook that discards stale terminal cursor-position
-responses. This prevents fragments such as `;1R` from appearing as shell input
-after an interrupted terminal program.
+The prompt uses Zsh built-ins only and never reads from standard input. For more
+Bash-like interactive command handling, unmatched glob characters, `!`, and
+`=command` are passed through literally, interactive comments are accepted, and
+pipeline redirection uses Bash semantics instead of Zsh `MULTIOS` behavior.
+These settings make pasted commands and text pipelines less surprising without
+changing Zsh into a Bash-compatible script interpreter; Bash scripts should
+still be run with their shebang or explicitly with `bash`.
 
 ### Zsh plugins
 
@@ -307,7 +329,29 @@ glclone https://gitlab.example.com/group/subgroup --clone-dir ~/src --https
 
 CZSH uses `Ctrl+A` as the tmux prefix and starts window and pane numbering at 1.
 Mouse support, focus events, automatic window renumbering, a 50,000-line history,
-and system-clipboard integration are enabled.
+and system-clipboard integration are enabled. Window names follow the active
+pane's current folder rather than its foreground process, which keeps multiple
+editors and shells distinguishable.
+
+The status bar shares the prompt's Tokyo Night palette. It shows folder-named
+windows, Git state, synchronized-pane state, date, and time. Git is collected
+asynchronously on tmux's refresh interval and includes the branch, upstream
+ahead/behind counts, staged, modified, untracked, conflicted, and stashed item
+counts. Everything else uses native tmux formats. Holding the prefix highlights
+a `PREFIX` indicator.
+
+| Git marker | Meaning |
+| --- | --- |
+| ` main` | Current branch, or the short commit when detached. |
+| `⇡N` / `⇣N` | Commits ahead of / behind the configured upstream. |
+| `+N` | Staged changes. |
+| `~N` | Modified tracked files. |
+| `?N` | Untracked files. |
+| `!N` | Conflicted files. |
+| `≡N` | Stashed entries. |
+
+Ahead/behind counts use the locally known tracking ref. Run `git fetch` when
+the status bar must reflect the newest remote state.
 
 ### Core bindings
 
@@ -346,7 +390,7 @@ Personal configuration belongs in:
 
 Every regular file in this directory, including dotfiles, is sourced after the
 CZSH runtime modules and before Oh My Zsh. This makes it possible to modify the
-`plugins` array, override theme variables, add aliases and functions, or set
+`plugins` array, override prompt variables, add aliases and functions, or set
 environment variables without editing generated files.
 
 For example:
@@ -356,6 +400,15 @@ For example:
 plugins+=(kubectl)
 export EDITOR=nvim
 alias g='git'
+```
+
+The prompt colours are regular variables and can be overridden in the same file
+before the prompt is initialized:
+
+```zsh
+CZSH_PROMPT_BLUE='#89b4fa'
+CZSH_PROMPT_GREEN='#a6e3a1'
+CZSH_PROMPT_RED='#f38ba8'
 ```
 
 Post-runtime features are loaded after Oh My Zsh. Repository contributors can
@@ -385,7 +438,7 @@ The main managed layout is:
 │   ├── runtime/                      Loaded before Oh My Zsh
 │   └── post/                         Loaded after Oh My Zsh
 ├── fzf/                              FZF checkout and shell integration
-├── oh-my-zsh/                        Framework, plugins, and Powerlevel10k
+├── oh-my-zsh/                        Framework and plugins
 ├── tmux/
 │   ├── tmux.conf                     Managed tmux configuration
 │   └── plugins/                      TPM and tmux plugins
@@ -408,11 +461,11 @@ git pull
 ./install.sh
 ```
 
-A subsequent run updates Oh My Zsh, Powerlevel10k, FZF, managed Zsh plugins,
-TPM, The Ultimate vimrc, and the default release-installed tools where
-supported. Neovim is updated only when `--neovim` is supplied. The installer
-also copies the repository's current runtime and post-runtime modules into the
-managed configuration.
+A subsequent run updates Oh My Zsh, FZF, managed Zsh plugins, TPM, The Ultimate
+vimrc, and the default release-installed tools where supported. Neovim is
+updated only when `--neovim` is supplied. The installer also copies the
+repository's current runtime and post-runtime modules into the managed
+configuration.
 
 Each run backs up the currently installed `~/.zshrc` before replacing it. Files
 inside `~/.config/czsh/zshrc` are retained.
@@ -462,10 +515,15 @@ mv ~/.zshrc-backup-YYYY-MM-DD-HHMMSS ~/.zshrc
 
 ```text
 .
+├── .github/                         CI, ownership, and contribution templates
+├── bin/                             Managed helper commands
+├── scripts/                         Development and validation commands
 ├── install.sh                        Installer entry point
 ├── utils.sh                          Installer output and progress helpers
 ├── .zshrc                            Managed shell loader template
 ├── czshrc.zsh                        Runtime-module loader template
+├── CONTRIBUTING.md                   Contribution workflow and standards
+├── SECURITY.md                       Private vulnerability-reporting policy
 ├── dotfiles/
 │   ├── tmux.conf                     Managed tmux configuration
 │   └── libinput-gestures.conf        Reference libinput gesture configuration
@@ -485,12 +543,16 @@ The repository also contains `get-docker.sh`, a standalone Docker Engine
 installation script derived from `docker/docker-install`. The main CZSH
 installer does not execute it.
 
-## Contributing
+## Development and community
 
-Keep installation logic, shell runtime behavior, and post-plugin configuration
-in their respective feature directories. Before submitting a change, validate
-the shell syntax and test both a clean installation and a repeat installation on
-a supported platform.
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing code changes.
+- Run `./scripts/validate.sh` locally; the same checks run in GitHub Actions.
+- Use the structured GitHub issue forms for reproducible bugs and focused
+  feature requests.
+- Report sensitive problems according to [SECURITY.md](SECURITY.md), never in a
+  public issue.
+- Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-Bug reports should include the operating system, architecture, package manager,
-the installer command used, and the relevant installer output.
+CZSH does not currently declare an open-source license. Until one is selected,
+copyright remains with the repository owner and reuse rights are not granted
+beyond what applicable law permits.

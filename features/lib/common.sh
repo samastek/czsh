@@ -322,7 +322,8 @@ install_missing_packages() {
 backup_existing_zshrc_config() {
 	print_section "Configuration Backup" "$FOLDER" "$YELLOW"
 	if [ -f "$HOME/.zshrc" ]; then
-		local backup_file="$HOME/.zshrc-backup-$(date +"%Y-%m-%d-%H%M%S")"
+		local backup_file
+		backup_file="$HOME/.zshrc-backup-$(date +"%Y-%m-%d-%H%M%S")"
 		if mv "$HOME/.zshrc" "$backup_file"; then
 			logSuccess "Backed up existing .zshrc to $(basename "$backup_file")"
 		else
