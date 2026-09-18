@@ -80,7 +80,7 @@ CZSH provides the following as one managed setup:
 | [Oh My Zsh](https://ohmyz.sh/) | Installed under `~/.config/czsh/oh-my-zsh` and updated on subsequent runs. |
 | CZSH prompt | A two-line native prompt with the home-relative path above a quiet input line; the previous exit code is right-aligned. Git and time context live in tmux. |
 | [FZF](https://github.com/junegunn/fzf) | Installed under `~/.config/czsh/fzf` with Zsh completion and key bindings enabled. |
-| Nerd Fonts | Installs Hack, Roboto Mono, and DejaVu Sans Mono. |
+| Nerd Fonts | Installs Hack, Roboto Mono, and DejaVu Sans Mono from official release archives. |
 
 The runtime preserves the terminal's advertised `TERM`, enables `no_nomatch`, sets
 `SAVEHIST=50000`, and adds the following locations to `PATH`:
