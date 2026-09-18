@@ -79,6 +79,10 @@ install_neovim_release() {
 install_feature_neovim() {
 	local had_neovim=false
 
+	if [ "$ENABLE_NEOVIM" != true ]; then
+		return 0
+	fi
+
 	print_section "Neovim Installation" "$FIRE" "$BLUE"
 
 	if command -v nvim >/dev/null 2>&1; then

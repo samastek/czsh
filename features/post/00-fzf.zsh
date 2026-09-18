@@ -13,3 +13,9 @@ if [ -d "$HOME/.config/czsh/fzf/bin" ]; then
 fi
 
 export FZF_DEFAULT_OPTS="--extended"
+
+# Keep Tab as the completion trigger, then use it to mark multiple results in
+# fzf-tab. Enter accepts every marked completion.
+zstyle ':fzf-tab:*' fzf-bindings \
+    'tab:toggle+down' \
+    'btab:toggle+up'

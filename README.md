@@ -1,349 +1,496 @@
-# CZsh - Complete Zsh Configuration
+# CZSH
 
-A comprehensive Zsh setup with a modular installer and runtime feature system. Install-time modules live under the repository's features directory, and runtime modules are installed into ~/.config/czsh/features so new functionality can be added as isolated feature scripts.
+CZSH is an opinionated Zsh and terminal-environment bootstrapper for macOS and
+Linux. It installs a managed Oh My Zsh setup, configures fuzzy completion and a
+Powerlevel10k prompt, provisions a practical set of terminal tools, and keeps
+personal shell overrides separate from generated configuration.
 
-## 🚀 Features
+The project is intended for users who want one reproducible setup rather than a
+collection of unrelated dotfiles. The installer is designed to run again when
+the configuration needs to be synchronized or managed tools need to be updated.
 
-- **Oh My Zsh** with modular configuration loading
-- **Powerlevel10k** theme with beautiful prompts
-- **Advanced plugins** for enhanced productivity
-- **FZF integration** for fuzzy finding
-- **AI-powered command completion** with zsh_codex
-- **Modern tools** like lazydocker, bat, and more
-- **Latest release installers** for Neovim, Lazygit, Lazydocker, and Linux-only Lazyjournal with architecture-aware asset selection
-- **Nerd Fonts** for beautiful icons
-- **Smart aliases** and custom functions
-- **Platform-aware installs** for macOS and Linux
+> [!IMPORTANT]
+> CZSH replaces `~/.zshrc` after moving the existing file to a timestamped
+> backup. It also manages both standard tmux configuration paths. Review the
+> [files changed by the installer](#files-and-directories) before running it.
 
-## Architecture
+## Contents
 
-The project is organized around feature scripts:
+- [Capabilities](#capabilities)
+- [Installed components](#installed-components)
+- [Platform support](#platform-support)
+- [Installation](#installation)
+- [Installer options](#installer-options)
+- [Using the shell](#using-the-shell)
+- [Tmux configuration](#tmux-configuration)
+- [Customization](#customization)
+- [Files and directories](#files-and-directories)
+- [Updating](#updating)
+- [Troubleshooting](#troubleshooting)
+- [Project structure](#project-structure)
 
-- features/install/*.sh: install-time modules sourced by install.sh in filename order.
-- features/runtime/*.zsh: shell configuration sourced before Oh My Zsh during shell startup.
-- features/post/*.zsh: shell configuration sourced after Oh My Zsh for features that depend on plugin initialization.
-- features/lib/*.sh: shared helpers for platform detection, path setup, and installer utilities.
+## Capabilities
 
-This keeps install behavior, runtime behavior, and platform-specific branching separate.
+CZSH provides the following as one managed setup:
 
-## 📦 What's Included
+- Oh My Zsh with Powerlevel10k and a curated plugin set.
+- FZF-backed Zsh completion with multi-selection, fuzzy history search, and
+  standard FZF shell key bindings.
+- Syntax highlighting, inline autosuggestions, additional completion
+  definitions, substring history search, directory jumping, and interactive
+  Git helpers.
+- A configured tmux environment with a `Ctrl+A` prefix, Vim-style navigation,
+  mouse support, clipboard integration, session persistence, and an in-shell
+  keybinding reference.
+- Architecture-aware installation of Lazygit, Lazydocker, and Lazyjournal from
+  their latest GitHub releases.
+- Three Nerd Fonts, FZF, and a managed Vim configuration when Vim is already
+  available.
+- Optional Neovim installation, Vim-style Zsh editing, and Bash-history
+  migration.
+- Custom aliases and functions for file search, process selection, GitLab group
+  cloning, command reference lookup, and network testing.
+- A modular feature system for extending installation and shell startup without
+  turning `.zshrc` into a single large file.
 
-### Core Components
-- **Oh My Zsh**: Feature-rich framework for Zsh
-- **Powerlevel10k**: Fast and customizable theme
-- **FZF**: Command-line fuzzy finder
-- **Lazygit**: Terminal UI for Git workflows
-- **Lazydocker**: Terminal UI for Docker management
-- **Lazyjournal**: Linux-only terminal UI for system and container log exploration
-- **Neovim + NvChad**: Bootstrapped editor config with GitHub Copilot enabled
+## Installed components
 
-### Plugins
-- `zsh-completions` - Additional completion definitions
-- `zsh-autosuggestions` - Fish-like autosuggestions
-- `zsh-syntax-highlighting` - Syntax highlighting for commands
-- `history-substring-search` - Better history search
-- `fzf-tab` - Replace tab completion with FZF
-- `forgit` - Interactive git commands using FZF
-- `zsh_codex` - AI-powered command completion (optional)
+### Shell framework and prompt
 
-### Tools & Utilities
-- **bat** - Better cat with syntax highlighting
-- **Lazygit** - Terminal UI for Git
-- **Lazyjournal** - Linux-only terminal UI for logs and journals
-- **Nerd Fonts** - Beautiful icon fonts
-- **Custom aliases** and functions
-- **Enhanced history** configuration
+| Component | Configuration |
+| --- | --- |
+| [Oh My Zsh](https://ohmyz.sh/) | Installed under `~/.config/czsh/oh-my-zsh` and updated on subsequent runs. |
+| [Powerlevel10k](https://github.com/romkatv/powerlevel10k) | Displays host context, current directory, and VCS state on the left; command status, execution time, background jobs, and memory on the right. |
+| [FZF](https://github.com/junegunn/fzf) | Installed under `~/.config/czsh/fzf` with Zsh completion and key bindings enabled. |
+| Nerd Fonts | Installs Hack, Roboto Mono, and DejaVu Sans Mono. |
 
-## 🛠️ Prerequisites
+The runtime exports `TERM=xterm-256color`, enables `no_nomatch`, sets
+`SAVEHIST=50000`, and adds the following locations to `PATH`:
 
-The installer will check for these packages and install them if missing:
-- `zsh` - The Z shell
-- `git` - Version control
-- `wget` - File downloader
-- `bat` - Better cat command
-- `curl` - URL transfer tool
-- `python3-pip` - Python package manager
-- `fontconfig` - Font configuration
+```text
+~/.config/czsh/fzf/bin
+~/.local/bin
+~/.config/czsh/bin
+```
 
-**Node.js** is automatically installed via nvm (Node Version Manager) if not present, ensuring the required npm-based CLI tools can be installed.
+It also installs a prompt hook that discards stale terminal cursor-position
+responses. This prevents fragments such as `;1R` from appearing as shell input
+after an interrupted terminal program.
 
-## 📥 Installation
+### Zsh plugins
 
-### Quick Install
+CZSH enables these plugins at startup:
+
+| Plugin | Purpose |
+| --- | --- |
+| `zsh-completions` | Additional completion definitions. |
+| `zsh-autosuggestions` | Suggestions based on command history. |
+| `zsh-syntax-highlighting` | Command-line syntax highlighting. |
+| `history-substring-search` | History navigation filtered by current input. |
+| `fzf-tab` | Replaces the completion menu with an FZF picker. |
+| `forgit` | FZF-powered Git workflows. |
+| `screen` | GNU Screen aliases and helpers. |
+| `web-search` | Search-engine shortcuts. |
+| `extract` | Archive extraction helper. |
+| `z` | Directory jumping based on usage. |
+| `sudo` | Adds `sudo` to the current command with `Esc` twice. |
+| `docker` | Docker aliases and completions. |
+| `systemd` | systemd aliases; enabled on Linux only. |
+
+### Command-line tools
+
+The following tools are installed or configured by the default `./install.sh`
+run:
+
+- **Lazygit.** Installs the latest supported release to
+  `~/.local/bin/lazygit`.
+- **Lazydocker.** Installs the latest supported release to
+  `~/.local/bin/lazydocker`. Docker Engine is not installed by the main
+  installer.
+- **Lazyjournal.** Installs the latest release on supported Linux systems
+  only when `journalctl` is available.
+- **tmux.** Installs through the detected package manager when missing, then
+  deploys the CZSH configuration and TPM plugins.
+- **The Ultimate vimrc.** Installs or updates
+  [amix/vimrc](https://github.com/amix/vimrc) when `vim` is already installed.
+  CZSH does not install Vim itself.
+
+Neovim is opt-in. It is installed only when `--neovim` is present. That option
+installs the latest release under `~/.local/share` and links `nvim` into
+`~/.local/bin`; it does not install a Neovim configuration or plugins.
+
+The prerequisite stage checks for and installs `zsh`, `git`, `wget`, `bat`,
+`curl`, `jq`, `fontconfig`, and `python3` when they are missing.
+
+## Platform support
+
+The main installer supports macOS and Linux. It recognizes Homebrew, APT,
+Pacman, DNF, YUM, and `pkg` for prerequisite and tmux installation.
+
+Prebuilt release support varies by tool:
+
+| Tool | macOS | Linux |
+| --- | --- | --- |
+| Neovim (opt-in) | x86_64, arm64 | x86_64, arm64 |
+| Lazygit | x86_64, arm64 | x86_64, x86, arm64, armv6 |
+| Lazydocker | x86_64, arm64 | x86_64, x86, arm64, armv7, armv6 |
+| Lazyjournal | Not installed | x86_64, arm64; requires `journalctl` |
+
+Unsupported release combinations are skipped without stopping the rest of the
+installation.
+
+### Additional requirements
+
+- A network connection for package installation, Git clones, and release
+  downloads.
+- `sudo` access when the detected system package manager requires it.
+- `tar` for downloaded release archives.
+- A terminal configured to use one of the installed Nerd Fonts.
+- `xclip` on Linux for the configured tmux system-clipboard binding. It is not
+  installed automatically.
+- `ripgrep` for the custom `s` search function. It is not installed
+  automatically.
+
+## Installation
+
+Clone the repository and run the installer:
+
 ```bash
-git clone https://github.com/yourusername/czsh.git
+git clone https://github.com/samastek/czsh.git
 cd czsh
-chmod +x install.sh
 ./install.sh
 ```
 
-### Installation Options
+The default command does not install Neovim. Use `./install.sh --neovim` when
+Neovim should be installed or updated.
 
-The installer supports several flags for customization:
+Open a new terminal after installation. To make Zsh the login shell, run:
 
 ```bash
-# Basic installation
-./install.sh
-
-# Show help
-./install.sh --help
-
-# Copy existing bash/zsh history
-./install.sh --cp-hist
-
-# Interactive mode (asks questions during install)
-./install.sh --interactive
-
-# Include AI-powered command completion
-./install.sh --codex
-
-# Enable vim mode for command line editing
-./install.sh --vim-mode
-
-# Combine multiple options
-./install.sh --cp-hist --codex --vim-mode
+chsh -s "$(command -v zsh)"
 ```
 
-#### Flag Details
-- `--cp-hist` or `-c`: Copies your existing shell history to the new Zsh configuration
-- `--help` or `-h`: Prints installer usage and exits
-- `--interactive` or `-n`: Runs in interactive mode, asking for user input during installation
-- `--codex` or `-x`: Installs and configures zsh_codex for AI-powered command completion
-- `--vim-mode` or `-v`: Enables vim keybindings and navigation in the command line
+The installer does not change the login shell automatically.
 
-## ⚙️ Configuration
+### Existing configuration
 
-### Runtime Feature Loading
+Before deploying CZSH, the installer moves an existing `~/.zshrc` to:
 
-During installation, the runtime feature scripts are copied into:
+```text
+~/.zshrc-backup-YYYY-MM-DD-HHMMSS
+```
 
-- ~/.config/czsh/features/runtime
-- ~/.config/czsh/features/post
+An existing `~/.oh-my-zsh` directory is moved into the managed CZSH directory.
+Existing tmux configuration files are backed up as `~/.tmux.conf.bak` and
+`~/.config/tmux/tmux.conf.bak` before managed symlinks are created.
 
-At shell startup:
+Managed plugin directories are synchronized to each plugin's upstream default
+branch. Do not keep local changes inside
+`~/.config/czsh/oh-my-zsh/custom/plugins`.
 
-1. ~/.config/czsh/czshrc.zsh sources all runtime features.
-2. ~/.config/czsh/zshrc/* user overrides are sourced.
-3. Oh My Zsh is loaded.
-4. Post-runtime features are sourced.
+## Installer options
 
-To add a new runtime capability, add a new .zsh feature file under features/runtime or features/post and re-run the installer.
+```text
+Usage: ./install.sh [options]
 
-To add a new installer capability, add a new script under features/install and register it with register_install_feature.
+  -h, --help         Show installer help
+  -c, --cp-hist      Import ~/.bash_history into ~/.zsh_history
+  -v, --vim-mode     Enable Vim-style Zsh line editing
+      --neovim       Install or update Neovim
+```
 
-### AI Command Completion (Optional)
+Options may be combined:
 
-If you use the `--codex` flag, you'll need to provide an API key for AI-powered command completion. The configuration supports:
+```bash
+./install.sh --neovim --cp-hist --vim-mode
+```
 
-- **Groq API** (default): Fast and free inference
-- **OpenAI API**: Official OpenAI models
+### Bash-history migration
 
-Configuration files:
-- `~/.config/zsh_codex.ini` - Main configuration
-- `~/.config/openaiapirc` - Alternative OpenAI configuration
+`--cp-hist` downloads a conversion script, reads `~/.bash_history`, and appends
+the converted entries to `~/.zsh_history`. It does not import an existing Zsh
+history file, remove duplicate entries, or replace the source Bash history.
 
 ### Neovim
 
-The installer fetches the latest architecture-matched release assets for Neovim, Lazygit, and Lazydocker directly from GitHub releases. Lazyjournal is installed only on Linux systems where `journalctl` is available. The Neovim installer also bootstraps the NvChad starter config into `~/.config/nvim` when no config exists yet, and it adds `github/copilot.vim` as a managed plugin.
+Neovim is not part of the default installation. Install or update it explicitly:
 
-After the first launch, run `:Copilot setup` inside Neovim to authenticate GitHub Copilot.
-
-### Vim Mode (Optional)
-
-When using the `--vim-mode` flag, the shell enables vim-style command line editing with enhanced features:
-
-#### Features
-- **Modal editing**: Switch between insert and normal modes with ESC
-- **Vi navigation**: Use `h`, `j`, `k`, `l` for cursor movement in normal mode  
-- **Visual cursor indicators**: Cursor shape changes to indicate current mode
-  - Beam cursor (|) for insert mode
-  - Block cursor (█) for normal mode
-- **Enhanced history navigation**: Use `j`/`k` in normal mode for history search
-- **Preserved shortcuts**: Common shortcuts like Ctrl+R, Ctrl+A, Ctrl+E still work
-- **Fast mode switching**: Reduced timeout for quicker ESC response
-
-#### Key Bindings
 ```bash
-# Mode switching
-ESC              # Enter normal mode
-i, a, I, A       # Enter insert mode (standard vi keys)
-
-# Navigation (normal mode)
-h, j, k, l       # Move cursor left, down, up, right
-w, b             # Move by words
-0, $             # Beginning/end of line
-
-# History (normal mode)  
-j, k             # Navigate through command history
-/                # Search history
-
-# Editing (normal mode)
-x                # Delete character
-dd               # Delete line
-yy               # Yank (copy) line
-p                # Paste
-
-# Always available
-Ctrl+R           # Reverse history search
-Ctrl+A           # Beginning of line
-Ctrl+E           # End of line
-Ctrl+U           # Clear line
+./install.sh --neovim
 ```
 
-#### Usage Tips
-- Press ESC to enter normal mode for vi-style navigation
-- Use Ctrl+R for fuzzy history search (works in both modes)
-- The cursor shape will help you identify which mode you're in
-- All standard zsh features still work alongside vim mode
+The installer downloads the latest architecture-matched release, extracts it
+under `~/.local/share`, and links the executable into `~/.local/bin`. It does
+not install a Neovim configuration or plugins.
 
-### Theme Customization
+### Vim-style shell editing
 
-The Powerlevel10k theme is pre-configured with:
-- Left prompt: directory, git status
-- Right prompt: status, execution time, background jobs, RAM
-- Nerd font icons for beautiful display
-- Optimized colors and layout
+`--vim-mode` creates `~/.config/czsh/zshrc/vim-mode.zsh`. It enables Zsh's Vi
+line editor, uses a beam cursor in insert mode and a block cursor in command
+mode, sets `KEYTIMEOUT=1`, and adds these bindings:
 
-### Custom Aliases & Functions
+| Key | Action |
+| --- | --- |
+| `Esc` | Enter Vi command mode. |
+| `j` / `k` in command mode | Search through matching history. |
+| `Ctrl+R` | Incremental reverse-history search. |
+| `Ctrl+A` / `Ctrl+E` | Move to the beginning or end of the line. |
+| `Ctrl+U` | Delete backward to the beginning of the line. |
+| `Backspace` / `Ctrl+H` | Delete the previous character. |
 
-The configuration includes useful aliases:
+## Using the shell
+
+### Fuzzy completion
+
+Press `Tab` to open completion. Inside the FZF picker:
+
+| Key | Action |
+| --- | --- |
+| `Tab` | Toggle the current item and move down. |
+| `Shift+Tab` | Toggle the current item and move up. |
+| `Enter` | Insert all marked items. |
+| `F1` / `F2` | Move between completion groups. |
+| `/` | Accept the current directory and continue completing a deeper path. |
+
+`Ctrl+R` opens FZF history search. The standard FZF file and directory widgets
+are also loaded from the installed FZF shell integration.
+
+### Aliases
+
+- **`l`** runs `ls --hyperlink=auto -lAhrtF` for a detailed, time-sorted
+  listing. The hyperlink option requires a compatible `ls`.
+- **`e`** exits the current shell.
+- **`myip`** retrieves the public IP address from `wtfismyip.com`.
+- **`ip`** enables colored output when the `ip` command exists.
+- **`kp`** uses FZF to select one or more processes, then runs
+  `sudo kill -9`. Review selections carefully.
+- **`git-update-all`** recursively runs `git pull --rebase --autostash` in
+  every Git repository below the current directory.
+- **`ta NAME`**, **`tls`**, **`tns NAME`**, and **`tks NAME`** attach, list,
+  create, and terminate tmux sessions.
+
+### Functions
+
+- **`cheat COMMAND [TOPIC ...]`** queries `cheat.sh` for a command or topic.
+- **`speedtest`** downloads and executes the `sivel/speedtest-cli` Python
+  script.
+- **`s QUERY`** searches the current tree with ripgrep and opens matching
+  lines in FZF with a `bat` preview.
+- **`f`** selects a file below the current directory in FZF and prints its
+  file type.
+- **`glclone`** recursively clones a GitLab group, including nested
+  subgroups, while preserving the group hierarchy.
+- **`tmux-help`** prints the active tmux keybinding reference.
+
+`glclone` supports public and private GitLab instances, paginates API results,
+skips repositories already present, and uses SSH clone URLs by default.
+
+```text
+Usage: glclone <group_url> [options]
+
+  -h, --help              Show help
+  -t, --token TOKEN       GitLab access token
+  -d, --clone-dir DIR     Destination root; default: ./gitlab_projects
+  -g, --gitlab-url URL    Override the detected GitLab base URL
+      --https             Prefer HTTPS clone URLs
+```
+
+The token may also be supplied through `GITLAB_TOKEN` or
+`GITLAB_PRIVATE_TOKEN`:
+
 ```bash
-# System
-alias l="ls --hyperlink=auto -lAhrtF"  # Enhanced ls
-alias e="exit"                         # Quick exit
-alias myip="wget -qO- https://wtfismyip.com/text"  # Show external IP
-
-# Git
-alias git-update-all='find . -type d -name .git -execdir git pull --rebase --autostash \;'
-
-# Process management
-alias kp='ps -ef | fzf --multi | awk '\''{print $2}'\'' | xargs sudo kill -9'
+GITLAB_TOKEN=glpat-example glclone https://gitlab.com/example/team
+glclone https://gitlab.example.com/group/subgroup --clone-dir ~/src --https
 ```
 
-Custom functions:
-- `cheat()` - Access cheat.sh for command help
-- `speedtest()` - Run internet speed test
-- `s()` - Search files with ripgrep and FZF
-- `f()` - Find and preview files with FZF
-- `glclone()` - Clone a GitLab group and its subgroups recursively via the GitLab API
+## Tmux configuration
 
-`glclone()` usage:
-```bash
-# Clone a public GitLab group
-glclone https://gitlab.com/my-group
+CZSH uses `Ctrl+A` as the tmux prefix and starts window and pane numbering at 1.
+Mouse support, focus events, automatic window renumbering, a 50,000-line history,
+and system-clipboard integration are enabled.
 
-# Clone a private group with a token
-glclone https://gitlab.com/my-group --token glpat-xxxxxxxxxxxxxxxxxxxx
+### Core bindings
 
-# Use a custom target directory and HTTPS clone URLs
-glclone https://gitlab.example.com/group/subgroup --clone-dir ~/src/gitlab --https
+| Binding | Action |
+| --- | --- |
+| `prefix` + `\|` | Vertical split in the current directory. |
+| `prefix` + `-` | Horizontal split in the current directory. |
+| `prefix` + `c` | Open a window in the current pane directory. |
+| `prefix` + `h/j/k/l` | Move between panes. |
+| `prefix` + `H/J/K/L` | Resize panes in five-cell increments. |
+| `Shift+Left` / `Shift+Right` | Change windows without the prefix. |
+| `prefix` + `<` / `>` | Move the current window. |
+| `prefix` + `Enter` | Enter Vi copy mode. |
+| `v`, `Ctrl+V`, `y` in copy mode | Select, toggle rectangle, and copy. |
+| `prefix` + `r` | Reload the configuration. |
+| `prefix` + `e` | Open the CZSH tmux help in a popup. |
+
+### Tmux plugins
+
+The installer provisions TPM and installs:
+
+- `tmux-sensible`
+- `tmux-resurrect`, including pane-content capture
+- `tmux-yank`
+
+With `tmux-resurrect`, use `prefix` + `Ctrl+S` to save a session and `prefix` +
+`Ctrl+R` to restore it.
+
+## Customization
+
+Personal configuration belongs in:
+
+```text
+~/.config/czsh/zshrc/
 ```
 
-The function uses `curl`, `jq`, and `git`. You can also set `GITLAB_TOKEN` or `GITLAB_PRIVATE_TOKEN` instead of passing `--token`.
+Every regular file in this directory, including dotfiles, is sourced after the
+CZSH runtime modules and before Oh My Zsh. This makes it possible to modify the
+`plugins` array, override theme variables, add aliases and functions, or set
+environment variables without editing generated files.
 
-## 🎨 Font Setup
+For example:
 
-The installer automatically downloads and installs Nerd Fonts:
-- Hack Nerd Font
-- Roboto Mono Nerd Font  
-- DejaVu Sans Mono Nerd Font
-
-Configure your terminal to use one of these fonts for the best experience with icons and symbols.
-
-## 📁 Directory Structure
-
-After installation, your configuration will be organized as:
-
+```zsh
+# ~/.config/czsh/zshrc/local.zsh
+plugins+=(kubectl)
+export EDITOR=nvim
+alias g='git'
 ```
+
+Post-runtime features are loaded after Oh My Zsh. Repository contributors can
+place plugin-dependent configuration in `features/post`; personal users should
+normally keep local changes in `~/.config/czsh/zshrc`.
+
+The runtime also sources `~/.config/czsh/marker/marker.sh` when that file already
+exists. Marker is not installed by CZSH.
+
+## Files and directories
+
+The main managed layout is:
+
+```text
+~/.zshrc                              Main loader installed by CZSH
+~/.zshrc-backup-*                     Timestamped pre-install backups
+~/.tmux.conf                          Link to the managed tmux configuration
+~/.config/tmux/tmux.conf              Second managed tmux link
+~/.cache/zsh/                         Zsh completion cache
+~/.local/bin/                         Release-installed command-line tools
+~/.local/share/nvim-*                 Optional extracted Neovim release
+
 ~/.config/czsh/
-├── oh-my-zsh/           # Oh My Zsh framework
-├── fzf/                 # FZF fuzzy finder
-└── bin/                 # Additional binaries
-
-~/.zshrc                 # Main Zsh configuration (sourced from czsh/)
-~/.config/zsh_codex.ini  # AI completion config (if enabled)
+├── bin/                              Managed helper commands
+├── czshrc.zsh                        Runtime feature loader
+├── features/
+│   ├── runtime/                      Loaded before Oh My Zsh
+│   └── post/                         Loaded after Oh My Zsh
+├── fzf/                              FZF checkout and shell integration
+├── oh-my-zsh/                        Framework, plugins, and Powerlevel10k
+├── tmux/
+│   ├── tmux.conf                     Managed tmux configuration
+│   └── plugins/                      TPM and tmux plugins
+└── zshrc/                            Personal configuration files
 ```
 
-## 🔧 Customization
+At startup, files are loaded in this order:
 
-### Adding More Plugins
+1. `~/.config/czsh/features/runtime/*.zsh`
+2. `~/.config/czsh/zshrc/*`
+3. Oh My Zsh and the configured plugins
+4. `~/.config/czsh/features/post/*.zsh`
 
-To add additional Oh My Zsh plugins, edit the `plugins` array in `czshrc.zsh`:
+## Updating
+
+Run the installer again from an updated repository checkout:
 
 ```bash
-plugins=(
-    # ... existing plugins ...
-    your-new-plugin
-)
+git pull
+./install.sh
 ```
 
-### Modifying the Theme
+A subsequent run updates Oh My Zsh, Powerlevel10k, FZF, managed Zsh plugins,
+TPM, The Ultimate vimrc, and the default release-installed tools where
+supported. Neovim is updated only when `--neovim` is supplied. The installer
+also copies the repository's current runtime and post-runtime modules into the
+managed configuration.
 
-The Powerlevel10k configuration can be customized by running:
+Each run backs up the currently installed `~/.zshrc` before replacing it. Files
+inside `~/.config/czsh/zshrc` are retained.
+
+Some opt-in actions are intentionally not idempotent: `--vim-mode` replaces
+`vim-mode.zsh`, and `--cp-hist` appends the Bash history again. Back up local
+changes before repeating those options.
+
+After changing shell configuration, start a new shell:
+
 ```bash
-p10k configure
+exec zsh
 ```
 
-Or manually edit the theme settings in `czshrc.zsh`.
+## Troubleshooting
 
-### Custom Functions
+### Completion does not open
 
-Add your own functions to `czshrc.zsh` or create separate files in `~/.config/czsh/`.
+Confirm that FZF and `fzf-tab` exist under `~/.config/czsh`, then rerun the
+installer. The plugin also provides an optional native module:
 
-## 🚨 Troubleshooting
-
-### Common Issues
-
-1. **Fonts not displaying correctly**: Make sure your terminal uses a Nerd Font
-2. **Slow startup**: Some plugins may slow down shell startup; disable unused ones
-3. **Git integration issues**: Ensure git is properly configured with your credentials
-4. **AI completion not working**: Check your API key configuration in `~/.config/zsh_codex.ini`
-
-### Backup Recovery
-
-The installer automatically backs up your existing `.zshrc` to `.zshrc-backup-YYYY-MM-DD`.
-
-To restore:
 ```bash
-mv ~/.zshrc-backup-YYYY-MM-DD ~/.zshrc
+build-fzf-tab-module
+exec zsh
 ```
 
-### Reset Installation
+### Icons are missing or misaligned
 
-To completely reset and reinstall:
+Select Hack Nerd Font, Roboto Mono Nerd Font, or DejaVu Sans Mono Nerd Font in
+the terminal application's font settings. Installing a font does not make the
+terminal select it automatically.
+
+### Tmux copy mode does not reach the Linux clipboard
+
+Install `xclip`. The macOS binding uses `pbcopy`, while the Linux binding invokes
+`xclip -in -selection clipboard`.
+
+### Restore the previous Zsh configuration
+
+Choose the appropriate timestamped backup and move it back into place:
+
 ```bash
-rm -rf ~/.config/czsh
-rm ~/.zshrc
-# Run installer again
+mv ~/.zshrc-backup-YYYY-MM-DD-HHMMSS ~/.zshrc
 ```
 
-## 🤝 Contributing
+## Project structure
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test the installation process
-5. Submit a pull request
+```text
+.
+├── install.sh                        Installer entry point
+├── utils.sh                          Installer output and progress helpers
+├── .zshrc                            Managed shell loader template
+├── czshrc.zsh                        Runtime-module loader template
+├── dotfiles/
+│   ├── tmux.conf                     Managed tmux configuration
+│   └── libinput-gestures.conf        Reference libinput gesture configuration
+└── features/
+    ├── install/                      Installer features
+    ├── lib/                          Shared installer and platform helpers
+    ├── runtime/                      Pre-Oh-My-Zsh shell features
+    └── post/                         Post-Oh-My-Zsh shell features
+```
 
-## 📄 License
+Installer feature files register themselves with `register_install_feature` and
+are sourced by filename order. Runtime and post-runtime files are copied into the
+managed configuration during installation and sourced by filename order when a
+new shell starts.
 
-This project is open source and available under the [MIT License](LICENSE).
+The repository also contains `get-docker.sh`, a standalone Docker Engine
+installation script derived from `docker/docker-install`. The main CZSH
+installer does not execute it.
 
-## 🙏 Acknowledgments
+## Contributing
 
-- [Oh My Zsh](https://ohmyz.sh/) - Framework for Zsh
-- [Powerlevel10k](https://github.com/romkatv/powerlevel10k) - Theme
-- [FZF](https://github.com/junegunn/fzf) - Fuzzy finder
-- [Zsh Users](https://github.com/zsh-users) - Plugin collection
-- All plugin authors and contributors
+Keep installation logic, shell runtime behavior, and post-plugin configuration
+in their respective feature directories. Before submitting a change, validate
+the shell syntax and test both a clean installation and a repeat installation on
+a supported platform.
 
-## 📧 Support
-
-If you encounter issues or have questions:
-1. Check the troubleshooting section above
-2. Search existing issues in the repository
-3. Create a new issue with detailed information about your problem
-
----
-
-**Happy coding! 🎉**
+Bug reports should include the operating system, architecture, package manager,
+the installer command used, and the relevant installer output.
