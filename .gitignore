@@ -1,0 +1,15 @@
+# Operating-system metadata
+.DS_Store
+Thumbs.db
+
+# Editor state
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+
+# Local test output
+coverage/
+tmp/
+*.log
