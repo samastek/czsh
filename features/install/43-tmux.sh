@@ -37,6 +37,19 @@ install_feature_tmux() {
     logWarning "Existing ~/.tmux.conf backed up to ~/.tmux.conf.bak"
   fi
   ln -s "$tmux_conf_dst" "$HOME/.tmux.conf"
+
+  # tmux >= 3.1 looks for ~/.config/tmux/tmux.conf BEFORE ~/.tmux.conf, and
+  # ignores ~/.tmux.conf entirely if that file exists. Symlink it too so a
+  # stray/older config there can never silently shadow the czsh config.
+  local xdg_tmux_dir="$HOME/.config/tmux"
+  mkdir -p "$xdg_tmux_dir"
+  if [ -L "$xdg_tmux_dir/tmux.conf" ]; then
+    rm "$xdg_tmux_dir/tmux.conf"
+  elif [ -f "$xdg_tmux_dir/tmux.conf" ]; then
+    mv "$xdg_tmux_dir/tmux.conf" "$xdg_tmux_dir/tmux.conf.bak"
+    logWarning "Existing ~/.config/tmux/tmux.conf backed up to ~/.config/tmux/tmux.conf.bak"
+  fi
+  ln -s "$tmux_conf_dst" "$xdg_tmux_dir/tmux.conf"
   logConfigured "tmux config"
 
   # ── Install TPM (Tmux Plugin Manager) ──────

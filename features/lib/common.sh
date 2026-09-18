@@ -5,9 +5,8 @@ SCRIPT_DIR="${SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 INSTALL_START_TIME=$(date +%s)
 
 COPY_HISTORY_FLAG=false
-INTERACTIVE_FLAG=false
-ENABLE_CODEX=false
 ENABLE_VIM_MODE=false
+ENABLE_NEOVIM=false
 
 OH_MY_ZSH_REPO="https://github.com/ohmyzsh/ohmyzsh.git"
 POWERLEVEL10K_REPO="https://github.com/romkatv/powerlevel10k.git"
@@ -17,7 +16,6 @@ PLUGIN_DEFINITIONS=(
 	"fzf-tab:https://github.com/Aloxaf/fzf-tab.git"
 	"zsh-syntax-highlighting:https://github.com/zsh-users/zsh-syntax-highlighting.git"
 	"zsh-autosuggestions:https://github.com/zsh-users/zsh-autosuggestions.git"
-	"zsh_codex:https://github.com/samastek/zsh_codex.git"
 	"zsh-completions:https://github.com/zsh-users/zsh-completions.git"
 	"history-substring-search:https://github.com/zsh-users/zsh-history-substring-search.git"
 	"forgit:https://github.com/wfxr/forgit.git"
@@ -70,14 +68,13 @@ Usage: ./install.sh [options]
 Options:
   -h, --help         Show this help message and exit
   -c, --cp-hist      Copy existing shell history into CZSH
-  -n, --interactive  Run installer in interactive mode
-  -x, --codex        Enable zsh_codex setup
   -v, --vim-mode     Enable vim mode for shell editing
+      --neovim       Install or update Neovim
 
 Examples:
   ./install.sh
   ./install.sh --cp-hist --vim-mode
-	./install.sh --interactive
+  ./install.sh --neovim
 EOF
 }
 
@@ -91,14 +88,11 @@ parse_args() {
 		--cp-hist|-c)
 			COPY_HISTORY_FLAG=true
 			;;
-		--interactive|-n)
-			INTERACTIVE_FLAG=true
-			;;
-		--codex|-x)
-			ENABLE_CODEX=true
-			;;
 		--vim-mode|-v)
 			ENABLE_VIM_MODE=true
+			;;
+		--neovim)
+			ENABLE_NEOVIM=true
 			;;
 		*)
 			echo "Unknown option: $arg" >&2
@@ -155,60 +149,6 @@ github_latest_release_tag() {
 
 	response="$(curl -fsSL "$api_url" 2>/dev/null)" || return 1
 	printf '%s\n' "$response" | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1
-}
-
-github_latest_release_tag_matching() {
-	local repo="$1"
-	local tag_prefix="$2"
-	local api_url="https://api.github.com/repos/$repo/releases?per_page=50"
-	local response=""
-
-	response="$(curl -fsSL "$api_url" 2>/dev/null)" || return 1
-	printf '%s\n' "$response" \
-		| sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
-		| grep "^${tag_prefix}" \
-		| head -n 1
-}
-
-install_github_zip_binary() {
-	local repo="$1"
-	local asset_name="$2"
-	local binary_name="$3"
-	local target_path="$4"
-	local tag_name="${5:-}"
-	local archive_path="$HOME/.cache/$asset_name"
-	local extract_dir=""
-	local source_path=""
-	local status=0
-
-	ensure_directories "$HOME/.cache"
-	extract_dir="$(mktemp -d "${TMPDIR:-/tmp}/czsh.XXXXXX")" || return 1
-
-	if ! download_github_release_asset "$repo" "$asset_name" "$archive_path" "$tag_name"; then
-		rm -rf "$extract_dir"
-		return 1
-	fi
-
-	if ! unzip -q "$archive_path" -d "$extract_dir" 2>/dev/null; then
-		rm -f "$archive_path"
-		rm -rf "$extract_dir"
-		return 1
-	fi
-
-	source_path="$(find "$extract_dir" -type f -name "$binary_name" | head -n 1)"
-	if [[ -z "$source_path" ]]; then
-		rm -f "$archive_path"
-		rm -rf "$extract_dir"
-		return 1
-	fi
-
-	if ! install_binary "$source_path" "$target_path"; then
-		status=1
-	fi
-
-	rm -f "$archive_path"
-	rm -rf "$extract_dir"
-	return "$status"
 }
 
 version_without_v() {
@@ -323,12 +263,6 @@ has_any_command() {
 detect_missing_packages() {
 	local specs=("${PREREQUISITE_SPECS[@]}")
 	local spec command_spec package_name
-
-	if is_linux; then
-		specs+=("pip3:python3-pip")
-	else
-		specs+=("pip3:python3")
-	fi
 
 	MISSING_PACKAGES=()
 
@@ -461,37 +395,6 @@ copy_base_configuration_files() {
 	echo
 }
 
-prompt_secret() {
-	local prompt="$1"
-	local secret_value=""
-
-	if [ "$INTERACTIVE_FLAG" != true ]; then
-		echo ""
-		return 0
-	fi
-
-	read -r -s -p "$(printf "%b" "$prompt")" secret_value
-	echo
-	echo "$secret_value"
-}
-
-prompt_choice() {
-	local prompt="$1"
-	local fallback="$2"
-	local choice=""
-
-	if [ "$INTERACTIVE_FLAG" != true ]; then
-		echo "$fallback"
-		return 0
-	fi
-
-	read -r -p "$(printf "%b" "$prompt")" choice
-	if [[ -z "$choice" ]]; then
-		choice="$fallback"
-	fi
-	echo "$choice"
-}
-
 finish_installation() {
 	local end_time
 
@@ -501,10 +404,5 @@ finish_installation() {
 	logSuccess "CZSH installation completed successfully."
 	print_installation_summary "$INSTALL_START_TIME" "$end_time"
 
-	if [ "$INTERACTIVE_FLAG" = true ]; then
-		logInfo "Interactive mode enabled. Run 'chsh -s $(which zsh)' if you want zsh as the default shell."
-		logTip "Open a new shell and run 'build-fzf-tab-module' if you use the fzf-tab plugin."
-	else
-		printf "${GREEN}${BOLD}Installation finished. Open a new terminal session to start using CZSH.${RESET}\n"
-	fi
+	printf "${GREEN}${BOLD}Installation finished. Open a new terminal session to start using CZSH.${RESET}\n"
 }
