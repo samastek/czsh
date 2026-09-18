@@ -333,8 +333,8 @@ and system-clipboard integration are enabled. Window names follow the active
 pane's current folder rather than its foreground process, which keeps multiple
 editors and shells distinguishable.
 
-The status bar shares the prompt's Tokyo Night palette. It shows folder-named
-windows, Git state, synchronized-pane state, date, and time. Git is collected
+The status bar uses a low-glare Slate & Sage palette with accessible contrast.
+It shows folder-named windows, Git state, synchronized-pane state, date, and time. Git is collected
 asynchronously on tmux's refresh interval and includes the branch, upstream
 ahead/behind counts, staged, modified, untracked, conflicted, and stashed item
 counts. Everything else uses native tmux formats. Holding the prefix highlights

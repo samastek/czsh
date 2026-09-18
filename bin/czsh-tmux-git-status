@@ -39,18 +39,18 @@ local -i has_state=$(( ahead || behind || staged || modified || untracked || con
 
 # Powerlevel10k-style branch capsule. State counts occupy a second, darker
 # segment only when there is something useful to report.
-print -nr -- "#[fg=#bb9af7,bg=#1a1b26]#[fg=#1a1b26,bg=#bb9af7,bold]  $head "
+print -nr -- "#[fg=#78a99f,bg=#161b22]#[fg=#161b22,bg=#78a99f,bold]  $head "
 
 if (( has_state )); then
-    print -nr -- "#[fg=#bb9af7,bg=#24283b,nobold]"
-    (( ahead ))      && print -nr -- " #[fg=#7dcfff,bg=#24283b]⇡$ahead"
-    (( behind ))     && print -nr -- " #[fg=#7dcfff,bg=#24283b]⇣$behind"
-    (( staged ))     && print -nr -- " #[fg=#9ece6a,bg=#24283b]+$staged"
-    (( modified ))   && print -nr -- " #[fg=#e0af68,bg=#24283b]~$modified"
-    (( untracked ))  && print -nr -- " #[fg=#737aa2,bg=#24283b]?$untracked"
-    (( conflicted )) && print -nr -- " #[fg=#f7768e,bg=#24283b]!$conflicted"
-    (( stash ))      && print -nr -- " #[fg=#7aa2f7,bg=#24283b]≡$stash"
-    print -nr -- " #[fg=#24283b,bg=#1a1b26]"
+    print -nr -- "#[fg=#78a99f,bg=#22272e,nobold]"
+    (( ahead ))      && print -nr -- " #[fg=#80a8d8,bg=#22272e]⇡$ahead"
+    (( behind ))     && print -nr -- " #[fg=#80a8d8,bg=#22272e]⇣$behind"
+    (( staged ))     && print -nr -- " #[fg=#87b886,bg=#22272e]+$staged"
+    (( modified ))   && print -nr -- " #[fg=#d6ae68,bg=#22272e]~$modified"
+    (( untracked ))  && print -nr -- " #[fg=#8b949e,bg=#22272e]?$untracked"
+    (( conflicted )) && print -nr -- " #[fg=#d4777f,bg=#22272e]!$conflicted"
+    (( stash ))      && print -nr -- " #[fg=#78a99f,bg=#22272e]≡$stash"
+    print -nr -- " #[fg=#22272e,bg=#161b22]"
 else
-    print -nr -- "#[fg=#bb9af7,bg=#1a1b26,nobold]"
+    print -nr -- "#[fg=#78a99f,bg=#161b22,nobold]"
 fi
