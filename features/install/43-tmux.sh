@@ -50,8 +50,6 @@ install_feature_tmux() {
     logWarning "Existing ~/.config/tmux/tmux.conf backed up to ~/.config/tmux/tmux.conf.bak"
   fi
   ln -s "$tmux_conf_dst" "$xdg_tmux_dir/tmux.conf"
-  logConfigured "tmux config"
-
   # ── Install TPM (Tmux Plugin Manager) ──────
   if [ -d "$tpm_dir/.git" ]; then
     logUpdating "TPM"
@@ -68,6 +66,19 @@ install_feature_tmux() {
   if [ -x "$tpm_dir/bin/install_plugins" ]; then
     "$tpm_dir/bin/install_plugins" >/dev/null 2>&1
     logSuccess "Tmux plugins installed"
+  fi
+
+  # A running tmux server keeps its options in memory. Reload after deployment
+  # so reinstalling CZSH updates existing sessions as well as future ones.
+  if tmux list-sessions >/dev/null 2>&1; then
+    if tmux source-file "$tmux_conf_dst" >/dev/null 2>&1; then
+      tmux refresh-client -S >/dev/null 2>&1 || true
+      logConfigured "tmux config and active server"
+    else
+      logWarning "Tmux config was installed but the active server could not reload it"
+    fi
+  else
+    logConfigured "tmux config"
   fi
 
   echo

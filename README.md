@@ -205,6 +205,8 @@ Before deploying CZSH, the installer moves an existing `~/.zshrc` to:
 An existing `~/.oh-my-zsh` directory is moved into the managed CZSH directory.
 Existing tmux configuration files are backed up as `~/.tmux.conf.bak` and
 `~/.config/tmux/tmux.conf.bak` before managed symlinks are created.
+When a tmux server is already running, the installer reloads it so configuration
+and colour changes take effect in existing sessions.
 
 Managed plugin directories are synchronized to each plugin's upstream default
 branch. Do not keep local changes inside
