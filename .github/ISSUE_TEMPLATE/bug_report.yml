@@ -1,0 +1,62 @@
+name: Bug report
+description: Report a reproducible installation or runtime problem.
+title: "bug: "
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for helping improve CZSH. Remove secrets and tokens from all output.
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Linux
+        - macOS
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Include OS version, architecture, terminal, Zsh version, and tmux version when relevant.
+      placeholder: Ubuntu 24.04, x86_64, Kitty, Zsh 5.9, tmux 3.4
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Run ...
+        2. Open ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      description: Paste the smallest useful log excerpt after removing credentials and personal data.
+      render: shell
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I checked existing issues for duplicates.
+          required: true
+        - label: I removed tokens, credentials, and other sensitive data.
+          required: true
