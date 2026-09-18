@@ -1,5 +1,9 @@
 # CZSH
 
+[![CI](https://github.com/samastek/czsh/actions/workflows/ci.yml/badge.svg)](https://github.com/samastek/czsh/actions/workflows/ci.yml)
+![Platforms](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-7aa2f7)
+![Shell](https://img.shields.io/badge/shell-Zsh-bb9af7?logo=zsh)
+
 CZSH is an opinionated Zsh and terminal-environment bootstrapper for macOS and
 Linux. It installs a managed Oh My Zsh setup, configures fuzzy completion and a
 fast native Zsh prompt, provisions a practical set of terminal tools, and keeps
@@ -14,8 +18,21 @@ the configuration needs to be synchronized or managed tools need to be updated.
 > backup. It also manages both standard tmux configuration paths. Review the
 > [files changed by the installer](#files-and-directories) before running it.
 
+## Quick start
+
+```bash
+git clone https://github.com/samastek/czsh.git
+cd czsh
+./install.sh
+```
+
+Open a new terminal after installation, or run `exec zsh`. The default install
+does not change the login shell and does not install Neovim; both remain
+explicit user choices.
+
 ## Contents
 
+- [Quick start](#quick-start)
 - [Capabilities](#capabilities)
 - [Installed components](#installed-components)
 - [Platform support](#platform-support)
@@ -28,6 +45,7 @@ the configuration needs to be synchronized or managed tools need to be updated.
 - [Updating](#updating)
 - [Troubleshooting](#troubleshooting)
 - [Project structure](#project-structure)
+- [Development and community](#development-and-community)
 
 ## Capabilities
 
@@ -322,6 +340,19 @@ ahead/behind counts, staged, modified, untracked, conflicted, and stashed item
 counts. Everything else uses native tmux formats. Holding the prefix highlights
 a `PREFIX` indicator.
 
+| Git marker | Meaning |
+| --- | --- |
+| ` main` | Current branch, or the short commit when detached. |
+| `⇡N` / `⇣N` | Commits ahead of / behind the configured upstream. |
+| `+N` | Staged changes. |
+| `~N` | Modified tracked files. |
+| `?N` | Untracked files. |
+| `!N` | Conflicted files. |
+| `≡N` | Stashed entries. |
+
+Ahead/behind counts use the locally known tracking ref. Run `git fetch` when
+the status bar must reflect the newest remote state.
+
 ### Core bindings
 
 | Binding | Action |
@@ -484,10 +515,15 @@ mv ~/.zshrc-backup-YYYY-MM-DD-HHMMSS ~/.zshrc
 
 ```text
 .
+├── .github/                         CI, ownership, and contribution templates
+├── bin/                             Managed helper commands
+├── scripts/                         Development and validation commands
 ├── install.sh                        Installer entry point
 ├── utils.sh                          Installer output and progress helpers
 ├── .zshrc                            Managed shell loader template
 ├── czshrc.zsh                        Runtime-module loader template
+├── CONTRIBUTING.md                   Contribution workflow and standards
+├── SECURITY.md                       Private vulnerability-reporting policy
 ├── dotfiles/
 │   ├── tmux.conf                     Managed tmux configuration
 │   └── libinput-gestures.conf        Reference libinput gesture configuration
@@ -507,12 +543,16 @@ The repository also contains `get-docker.sh`, a standalone Docker Engine
 installation script derived from `docker/docker-install`. The main CZSH
 installer does not execute it.
 
-## Contributing
+## Development and community
 
-Keep installation logic, shell runtime behavior, and post-plugin configuration
-in their respective feature directories. Before submitting a change, validate
-the shell syntax and test both a clean installation and a repeat installation on
-a supported platform.
+- Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing code changes.
+- Run `./scripts/validate.sh` locally; the same checks run in GitHub Actions.
+- Use the structured GitHub issue forms for reproducible bugs and focused
+  feature requests.
+- Report sensitive problems according to [SECURITY.md](SECURITY.md), never in a
+  public issue.
+- Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-Bug reports should include the operating system, architecture, package manager,
-the installer command used, and the relevant installer output.
+CZSH does not currently declare an open-source license. Until one is selected,
+copyright remains with the repository owner and reuse rights are not granted
+beyond what applicable law permits.
