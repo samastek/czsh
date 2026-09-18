@@ -9,7 +9,6 @@ ENABLE_VIM_MODE=false
 ENABLE_NEOVIM=false
 
 OH_MY_ZSH_REPO="https://github.com/ohmyzsh/ohmyzsh.git"
-POWERLEVEL10K_REPO="https://github.com/romkatv/powerlevel10k.git"
 FZF_REPO="https://github.com/junegunn/fzf.git"
 
 PLUGIN_DEFINITIONS=(
@@ -45,7 +44,6 @@ configure_install_paths() {
 	OH_MY_ZSH_FOLDER="$CZSH_HOME/oh-my-zsh"
 	OHMYZSH_CUSTOM_PLUGIN_PATH="$OH_MY_ZSH_FOLDER/custom/plugins"
 	OHMYZSH_CUSTOM_THEME_PATH="$OH_MY_ZSH_FOLDER/custom/themes"
-	POWERLEVEL_10K_PATH="$OHMYZSH_CUSTOM_THEME_PATH/powerlevel10k"
 	FZF_INSTALLATION_PATH="$CZSH_HOME/fzf"
 
 	export CZSH_HOME
@@ -57,7 +55,6 @@ configure_install_paths() {
 	export OH_MY_ZSH_FOLDER
 	export OHMYZSH_CUSTOM_PLUGIN_PATH
 	export OHMYZSH_CUSTOM_THEME_PATH
-	export POWERLEVEL_10K_PATH
 	export FZF_INSTALLATION_PATH
 }
 
@@ -382,6 +379,7 @@ copy_base_configuration_files() {
 	cp -f "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc"
 	cp -f "$SCRIPT_DIR/czshrc.zsh" "$CZSH_HOME/czshrc.zsh"
 	sync_runtime_features
+	install_binary "$SCRIPT_DIR/bin/czsh-tmux-git-status" "$CZSH_BIN_DIR/czsh-tmux-git-status"
 
 	ensure_directories "$CZSH_USER_ZSHRC_DIR" "$CZSH_CACHE_DIR" "$CZSH_BIN_DIR" "$CZSH_FONT_DIR"
 

@@ -1,0 +1,56 @@
+#!/usr/bin/env zsh
+
+# Compact Git state for tmux. Tmux runs this asynchronously, so repository
+# size or filesystem latency never blocks terminal input.
+emulate -L zsh
+
+local target=$1 line head='' oid='' ahead=0 behind=0 stash=0
+local -i staged=0 modified=0 untracked=0 conflicted=0
+
+[[ -n $target ]] || exit 0
+builtin cd -q -- "$target" 2>/dev/null || exit 0
+
+while IFS= read -r line; do
+    case $line in
+        '# branch.head '*) head=${line#\# branch.head } ;;
+        '# branch.oid '*)  oid=${line#\# branch.oid } ;;
+        '# branch.ab +'*)
+            ahead=${${line#\# branch.ab +}%% *}
+            behind=${line##* -}
+            ;;
+        '# stash '*) stash=${line#\# stash } ;;
+        '1 '*|'2 '*)
+            local xy=${line[3,4]}
+            [[ ${xy[1]} != '.' ]] && (( staged++ ))
+            [[ ${xy[2]} != '.' ]] && (( modified++ ))
+            ;;
+        'u '*) (( conflicted++ )) ;;
+        '? '*) (( untracked++ )) ;;
+    esac
+done < <(command git status --porcelain=v2 --branch --show-stash 2>/dev/null)
+
+[[ -n $head ]] || exit 0
+[[ $head == '(detached)' ]] && head="@${oid[1,7]}"
+# The helper output is interpreted as a tmux format. Escape a literal # in an
+# unusual branch name so it cannot begin a tmux format sequence.
+head=${head//\#/##}
+
+local -i has_state=$(( ahead || behind || staged || modified || untracked || conflicted || stash ))
+
+# Powerlevel10k-style branch capsule. State counts occupy a second, darker
+# segment only when there is something useful to report.
+print -nr -- "#[fg=#bb9af7,bg=#1a1b26]#[fg=#1a1b26,bg=#bb9af7,bold]  $head "
+
+if (( has_state )); then
+    print -nr -- "#[fg=#bb9af7,bg=#24283b,nobold]"
+    (( ahead ))      && print -nr -- " #[fg=#7dcfff,bg=#24283b]⇡$ahead"
+    (( behind ))     && print -nr -- " #[fg=#7dcfff,bg=#24283b]⇣$behind"
+    (( staged ))     && print -nr -- " #[fg=#9ece6a,bg=#24283b]+$staged"
+    (( modified ))   && print -nr -- " #[fg=#e0af68,bg=#24283b]~$modified"
+    (( untracked ))  && print -nr -- " #[fg=#737aa2,bg=#24283b]?$untracked"
+    (( conflicted )) && print -nr -- " #[fg=#f7768e,bg=#24283b]!$conflicted"
+    (( stash ))      && print -nr -- " #[fg=#7aa2f7,bg=#24283b]≡$stash"
+    print -nr -- " #[fg=#24283b,bg=#1a1b26]"
+else
+    print -nr -- "#[fg=#bb9af7,bg=#1a1b26,nobold]"
+fi

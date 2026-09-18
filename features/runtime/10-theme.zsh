@@ -1,19 +1,9 @@
-export TERM="xterm-256color"
+# Respect the terminal's advertised capabilities (notably tmux-256color).
+: ${TERM:="xterm-256color"}
+export TERM
 export ZSH="$HOME/.config/czsh/oh-my-zsh"
 export ZSH_CUSTOM="$ZSH/custom"
 
-POWERLEVEL9K_MODE='nerdfont-complete'
-ZSH_THEME="powerlevel10k/powerlevel10k"
-
-POWERLEVEL9K_OS_ICON_BACKGROUND="white"
-POWERLEVEL9K_OS_ICON_FOREGROUND="blue"
-POWERLEVEL9K_ALWAYS_SHOW_CONTEXT=true
-POWERLEVEL9K_CONTEXT_TEMPLATE='%m'
-POWERLEVEL9K_CONTEXT_ROOT_TEMPLATE='%m'
-POWERLEVEL9K_CONTEXT_REMOTE_TEMPLATE='%m'
-POWERLEVEL9K_DIR_HOME_FOREGROUND="white"
-POWERLEVEL9K_DIR_HOME_SUBFOLDER_FOREGROUND="white"
-POWERLEVEL9K_DIR_DEFAULT_FOREGROUND="white"
-POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status command_execution_time background_jobs ram)
-POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(context dir vcs)
-POWERLEVEL9K_PROMPT_ON_NEWLINE=true
+# The prompt is initialized after Oh My Zsh by features/post/10-prompt.zsh.
+# Keeping the OMZ theme empty avoids loading a theme only to replace it later.
+ZSH_THEME=""
