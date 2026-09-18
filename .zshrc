@@ -42,4 +42,6 @@ for feature_file in "$CZSH_POST_FEATURES_DIR"/*.zsh; do
 done
 unsetopt nullglob
 
-[ -f "/home/user/.ghcup/env" ] && . "/home/user/.ghcup/env"
+if [[ -f "$HOME/.ghcup/env" ]]; then
+    source "$HOME/.ghcup/env"
+fi
