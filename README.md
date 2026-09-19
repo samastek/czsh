@@ -270,11 +270,18 @@ Press `Tab` to open completion. Inside the FZF picker:
 
 | Key | Action |
 | --- | --- |
-| `Tab` | Toggle the current item and move down. |
-| `Shift+Tab` | Toggle the current item and move up. |
+| `Tab` | Move to the next item. |
+| `Shift+Tab` | Move to the previous item. |
+| `Ctrl+Space` | Toggle the current item and move down. |
 | `Enter` | Insert all marked items. |
 | `F1` / `F2` | Move between completion groups. |
 | `/` | Accept the current directory and continue completing a deeper path. |
+
+Terminals traditionally send the same control code for `Ctrl+Tab` and `Tab`,
+and FZF therefore has no separate `ctrl-tab` key name. To use `Ctrl+Tab` for
+multi-selection, configure the terminal (or terminal multiplexer) to send
+`Ctrl+Space` for `Ctrl+Tab`; FZF will then apply the binding above while plain
+`Tab` continues to move through the choices.
 
 `Ctrl+R` opens FZF history search. The standard FZF file and directory widgets
 are also loaded from the installed FZF shell integration.
