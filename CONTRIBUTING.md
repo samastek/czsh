@@ -41,6 +41,8 @@ package-manager or architecture logic in individual features.
 - Avoid adding commands to prompt or tmux refresh paths unless they are cached
   or asynchronous.
 - Update the README whenever user-visible behavior changes.
+- Add an entry under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md) for any
+  user-visible change.
 - Never include credentials, tokens, machine-specific paths, or personal data.
 
 ## Commits and pull requests

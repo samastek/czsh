@@ -3,6 +3,7 @@
 [![CI](https://github.com/samastek/czsh/actions/workflows/ci.yml/badge.svg)](https://github.com/samastek/czsh/actions/workflows/ci.yml)
 ![Platforms](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-7aa2f7)
 ![Shell](https://img.shields.io/badge/shell-Zsh-bb9af7?logo=zsh)
+[![License: MIT](https://img.shields.io/badge/license-MIT-9ece6a)](LICENSE)
 
 CZSH is an opinionated Zsh and terminal-environment bootstrapper for macOS and
 Linux. It installs a managed Oh My Zsh setup, configures fuzzy completion and a
@@ -588,6 +589,7 @@ installer does not execute it.
 ## Development and community
 
 - Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing code changes.
+- See [CHANGELOG.md](CHANGELOG.md) for release history.
 - Run `./scripts/validate.sh` locally; the same checks run in GitHub Actions.
 - Run `./scripts/bench.sh` to enforce the 150 ms interactive-startup budget.
 - Run `czsh doctor` after installation to check tools, fonts, and managed links.
@@ -597,6 +599,4 @@ installer does not execute it.
   public issue.
 - Participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-CZSH does not currently declare an open-source license. Until one is selected,
-copyright remains with the repository owner and reuse rights are not granted
-beyond what applicable law permits.
+CZSH is licensed under the [MIT License](LICENSE).
