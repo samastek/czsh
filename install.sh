@@ -6,14 +6,20 @@ source "$SCRIPT_DIR/utils.sh"
 source "$SCRIPT_DIR/features/lib/platform.sh"
 source "$SCRIPT_DIR/features/lib/common.sh"
 
+parse_args "$@"
+detect_platform
+configure_install_paths
+
+if [[ "$UNINSTALL_FLAG" == true ]]; then
+	print_header "CZSH - Uninstaller" "$YELLOW" "$BG_YELLOW"
+	uninstall_czsh
+	exit 0
+fi
+
 print_header "CZSH - Enhanced Zsh Configuration Installer" "$CYAN" "$BG_BLUE"
 logInfo "Installing CZSH with modular runtime and install features."
 logNote "Repository feature scripts live under features/, and installed runtime modules are sourced from ~/.config/czsh/features/."
 echo
-
-parse_args "$@"
-detect_platform
-configure_install_paths
 
 if [[ "$CZSH_PLATFORM" == "unknown" ]]; then
 	logErrorWithSuggestion "Unsupported platform detected: $OSTYPE" "Use macOS or Linux."

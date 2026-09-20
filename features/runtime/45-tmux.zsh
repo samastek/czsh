@@ -24,6 +24,7 @@ ${W}║         ${D}prefix = Ctrl+a  ${D}(press first, then key)${W}        ║$
 ${W}╚══════════════════════════════════════════════════════════╝${R}
 
 ${B}── Sessions ───────────────────────────────────────────────${R}
+  ${Y}prefix + f / Ctrl+f${R}  ${D}│${R} Pick project/session with FZF
   ${Y}prefix + d${R}           ${D}│${R} Detach from session
   ${Y}prefix + s${R}           ${D}│${R} List sessions (interactive picker)
   ${Y}prefix + \$${R}           ${D}│${R} Rename current session
@@ -45,6 +46,7 @@ ${B}── Panes ─────────────────────
   ${Y}prefix + |${R}           ${D}│${R} Split vertical   (side by side)
   ${Y}prefix + -${R}           ${D}│${R} Split horizontal (top / bottom)
   ${Y}prefix + h j k l${R}     ${D}│${R} Navigate panes   ${D}(vim-style)${R}
+  ${Y}Ctrl + h j k l${R}       ${D}│${R} Cross tmux panes / Vim splits
   ${Y}prefix + H J K L${R}     ${D}│${R} Resize panes     ${D}(5 cells, repeatable)${R}
   ${Y}prefix + x${R}           ${D}│${R} Close current pane
   ${Y}prefix + z${R}           ${D}│${R} Toggle pane zoom (fullscreen)
@@ -61,6 +63,12 @@ ${B}── Copy mode ───────────────────�
 ${B}── Plugins ────────────────────────────────────────────────${R}
   ${Y}prefix + Ctrl+s${R}      ${D}│${R} Save session    ${D}(tmux-resurrect)${R}
   ${Y}prefix + Ctrl+r${R}      ${D}│${R} Restore session ${D}(tmux-resurrect)${R}
+  ${D}Sessions auto-save every 15 minutes and restore on server start.${R}
+
+${B}── Popups ─────────────────────────────────────────────────${R}
+  ${Y}prefix + g${R}           ${D}│${R} Lazygit in current directory
+  ${Y}prefix + D${R}           ${D}│${R} Lazydocker
+  ${Y}prefix + /${R}           ${D}│${R} Search all windows and panes
 
 ${B}── General ────────────────────────────────────────────────${R}
   ${Y}prefix + r${R}           ${D}│${R} Reload tmux config

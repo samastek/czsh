@@ -1,0 +1,16 @@
+# command-or-alternatives:apt-package
+zsh:zsh
+git:git
+wget:wget
+bat|batcat:bat
+curl:curl
+jq:jq
+fc-cache:fontconfig
+python3:python3
+fd|fdfind:fd-find
+rg:ripgrep
+direnv:direnv
+tmux:tmux
+unzip:unzip
+hyperfine:hyperfine
+shellcheck:shellcheck

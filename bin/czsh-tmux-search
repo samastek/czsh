@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+selection="$(tmux list-panes -a -F $'#{session_name}:#{window_index}.#{pane_index}\t#{session_name} / #{window_name} / #{pane_current_command} — #{pane_current_path}' |
+  fzf --delimiter=$'\t' --with-nth=2 --prompt='window/pane> ' --height=100% --reverse)" || exit 0
+
+target="${selection%%$'\t'*}"
+tmux switch-client -t "$target"
+tmux select-pane -t "$target"
