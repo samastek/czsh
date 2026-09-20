@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NERD_FONTS_RELEASE_BASE_URL="https://github.com/ryanoasis/nerd-fonts/releases/latest/download"
+NERD_FONTS_RELEASE_BASE_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v$NERD_FONTS_VERSION"
 
 extract_font_from_zip() {
 	local archive_path="$1"
@@ -39,7 +39,7 @@ install_nerd_font() {
 	local staged_path="$CZSH_FONT_DIR/.${filename}.tmp.$$"
 	local download_url="$NERD_FONTS_RELEASE_BASE_URL/$family.zip"
 
-	if [[ -f "$target" ]]; then
+	if [[ -f "$target" && "$UPGRADE_TOOLS" != true ]]; then
 		logAlreadyInstalled "$filename"
 		return 0
 	fi

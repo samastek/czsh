@@ -7,6 +7,11 @@ INSTALL_START_TIME=$(date +%s)
 COPY_HISTORY_FLAG=false
 ENABLE_VIM_MODE=false
 ENABLE_NEOVIM=false
+UPGRADE_TOOLS=false
+UNINSTALL_FLAG=false
+
+# shellcheck source=../../config.conf
+source "$SCRIPT_DIR/config.conf"
 
 OH_MY_ZSH_REPO="https://github.com/ohmyzsh/ohmyzsh.git"
 FZF_REPO="https://github.com/junegunn/fzf.git"
@@ -17,19 +22,9 @@ PLUGIN_DEFINITIONS=(
 	"zsh-autosuggestions:https://github.com/zsh-users/zsh-autosuggestions.git"
 	"zsh-completions:https://github.com/zsh-users/zsh-completions.git"
 	"history-substring-search:https://github.com/zsh-users/zsh-history-substring-search.git"
-	"forgit:https://github.com/wfxr/forgit.git"
 )
 
-PREREQUISITE_SPECS=(
-	"zsh:zsh"
-	"git:git"
-	"wget:wget"
-	"bat|batcat:bat"
-	"curl:curl"
-	"jq:jq"
-	"fc-cache:fontconfig"
-	"python3:python3"
-)
+PREREQUISITE_SPECS=()
 
 declare -a MISSING_PACKAGES=()
 declare -a CZSH_INSTALL_FEATURES=()
@@ -41,6 +36,7 @@ configure_install_paths() {
 	CZSH_CACHE_DIR="$HOME/.cache/zsh"
 	CZSH_RUNTIME_FEATURES_TARGET_DIR="$CZSH_HOME/features/runtime"
 	CZSH_POST_FEATURES_TARGET_DIR="$CZSH_HOME/features/post"
+	CZSH_STATE_DIR="$CZSH_HOME/state"
 	OH_MY_ZSH_FOLDER="$CZSH_HOME/oh-my-zsh"
 	OHMYZSH_CUSTOM_PLUGIN_PATH="$OH_MY_ZSH_FOLDER/custom/plugins"
 	OHMYZSH_CUSTOM_THEME_PATH="$OH_MY_ZSH_FOLDER/custom/themes"
@@ -52,6 +48,7 @@ configure_install_paths() {
 	export CZSH_CACHE_DIR
 	export CZSH_RUNTIME_FEATURES_TARGET_DIR
 	export CZSH_POST_FEATURES_TARGET_DIR
+	export CZSH_STATE_DIR
 	export OH_MY_ZSH_FOLDER
 	export OHMYZSH_CUSTOM_PLUGIN_PATH
 	export OHMYZSH_CUSTOM_THEME_PATH
@@ -67,11 +64,15 @@ Options:
   -c, --cp-hist      Copy existing shell history into CZSH
   -v, --vim-mode     Enable vim mode for shell editing
       --neovim       Install or update Neovim
+      --upgrade      Reinstall tools at the versions pinned in config.conf
+      --uninstall    Remove managed loaders/links and restore backups
 
 Examples:
   ./install.sh
   ./install.sh --cp-hist --vim-mode
   ./install.sh --neovim
+  ./install.sh --upgrade
+  ./install.sh --uninstall
 EOF
 }
 
@@ -91,6 +92,12 @@ parse_args() {
 		--neovim)
 			ENABLE_NEOVIM=true
 			;;
+		--upgrade)
+			UPGRADE_TOOLS=true
+			;;
+		--uninstall)
+			UNINSTALL_FLAG=true
+			;;
 		*)
 			echo "Unknown option: $arg" >&2
 			show_install_help >&2
@@ -98,6 +105,52 @@ parse_args() {
 			;;
 		esac
 	done
+}
+
+load_prerequisite_specs() {
+	local manifest=""
+	local line=""
+	PREREQUISITE_SPECS=()
+
+	if [[ "$CZSH_PACKAGE_MANAGER" == "apt" ]]; then
+		manifest="$SCRIPT_DIR/packages/apt.txt"
+	fi
+
+	if [[ -n "$manifest" && -r "$manifest" ]]; then
+		while IFS= read -r line || [[ -n "$line" ]]; do
+			[[ -z "$line" || "$line" == \#* ]] && continue
+			PREREQUISITE_SPECS+=("$line")
+		done <"$manifest"
+		return
+	fi
+
+	PREREQUISITE_SPECS=(
+		"zsh:zsh"
+		"git:git"
+		"wget:wget"
+		"bat|batcat:bat"
+		"curl:curl"
+		"jq:jq"
+		"fc-cache:fontconfig"
+		"python3:python3"
+		"fd|fdfind:fd"
+		"rg:ripgrep"
+		"direnv:direnv"
+		"tmux:tmux"
+		"unzip:unzip"
+		"hyperfine:hyperfine"
+		"shellcheck:shellcheck"
+	)
+
+	if [[ "$CZSH_PACKAGE_MANAGER" == "brew" ]]; then
+		PREREQUISITE_SPECS+=(
+			"eza:eza"
+			"zoxide:zoxide"
+			"delta:git-delta"
+			"atuin:atuin"
+			"yazi:yazi"
+		)
+	fi
 }
 
 register_install_feature() {
@@ -139,19 +192,6 @@ install_binary() {
 	install -m 0755 "$source_path" "$target_path"
 }
 
-github_latest_release_tag() {
-	local repo="$1"
-	local api_url="https://api.github.com/repos/$repo/releases/latest"
-	local response=""
-
-	response="$(curl -fsSL "$api_url" 2>/dev/null)" || return 1
-	printf '%s\n' "$response" | sed -n 's/.*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -n 1
-}
-
-version_without_v() {
-	printf '%s\n' "${1#v}"
-}
-
 download_github_release_asset() {
 	local repo="$1"
 	local asset_name="$2"
@@ -160,7 +200,8 @@ download_github_release_asset() {
 	local download_url=""
 
 	if [[ -z "$tag_name" ]]; then
-		tag_name="$(github_latest_release_tag "$repo")" || return 1
+		logWarning "Refusing an unpinned GitHub release download for $repo"
+		return 1
 	fi
 
 	download_url="https://github.com/$repo/releases/download/$tag_name/$asset_name"
@@ -323,8 +364,14 @@ backup_existing_zshrc_config() {
 	print_section "Configuration Backup" "$FOLDER" "$YELLOW"
 	if [ -f "$HOME/.zshrc" ]; then
 		local backup_file
+		if grep -q '/.config/czsh/czshrc.zsh' "$HOME/.zshrc" 2>/dev/null; then
+			logInfo "Existing .zshrc is already managed by CZSH; no new backup needed"
+			echo
+			return 0
+		fi
 		backup_file="$HOME/.zshrc-backup-$(date +"%Y-%m-%d-%H%M%S")"
 		if mv "$HOME/.zshrc" "$backup_file"; then
+			record_backup_path zshrc "$backup_file"
 			logSuccess "Backed up existing .zshrc to $(basename "$backup_file")"
 		else
 			logWarning "Failed to backup existing .zshrc"
@@ -335,6 +382,37 @@ backup_existing_zshrc_config() {
 	echo
 }
 
+recover_unmerged_checkout() {
+	local repo_path="$1"
+	local checkout_name="$2"
+	local recovery_dir=""
+	local conflicted_path=""
+
+	if [[ -z "$(git -C "$repo_path" diff --name-only --diff-filter=U 2>/dev/null)" ]]; then
+		return 0
+	fi
+
+	recovery_dir="$CZSH_STATE_DIR/recovery/${checkout_name}-$(date +"%Y-%m-%d-%H%M%S")"
+	ensure_directories "$recovery_dir/files"
+	git -C "$repo_path" status --short >"$recovery_dir/status.txt" 2>/dev/null || true
+	git -C "$repo_path" diff >"$recovery_dir/working-tree.diff" 2>/dev/null || true
+	git -C "$repo_path" diff --cached >"$recovery_dir/index.diff" 2>/dev/null || true
+
+	while IFS= read -r conflicted_path; do
+		[[ -n "$conflicted_path" && -f "$repo_path/$conflicted_path" ]] || continue
+		ensure_directories "$recovery_dir/files/$(dirname "$conflicted_path")"
+		cp -p "$repo_path/$conflicted_path" "$recovery_dir/files/$conflicted_path"
+	done < <(git -C "$repo_path" diff --name-only --diff-filter=U)
+
+	if git -C "$repo_path" reset --hard HEAD >/dev/null 2>&1; then
+		logWarning "Recovered an interrupted $checkout_name merge; conflicting files were saved to $recovery_dir"
+		return 0
+	fi
+
+	logWarning "Could not recover the interrupted $checkout_name merge; backup saved to $recovery_dir"
+	return 1
+}
+
 configure_ohmyzsh() {
 	print_section "Oh My Zsh Setup" "$STAR" "$GREEN"
 
@@ -343,17 +421,21 @@ configure_ohmyzsh() {
 		logUpdating "oh-my-zsh"
 		git -C "$OH_MY_ZSH_FOLDER" remote set-url origin "$OH_MY_ZSH_REPO"
 		export ZSH="$OH_MY_ZSH_FOLDER"
-		if git -C "$OH_MY_ZSH_FOLDER" pull --quiet 2>/dev/null; then
+		if ! recover_unmerged_checkout "$OH_MY_ZSH_FOLDER" oh-my-zsh; then
+			logWarning "Skipping Oh My Zsh update until its checkout is repaired"
+		elif git -C "$OH_MY_ZSH_FOLDER" pull --quiet --ff-only 2>/dev/null; then
 			logUpdated "oh-my-zsh"
 		else
-			logWarning "Failed to update oh-my-zsh, but continuing..."
+			logWarning "Oh My Zsh has local or divergent changes; leaving them untouched"
 		fi
 	elif [ -d "$HOME/.oh-my-zsh" ]; then
 		logProgress "Moving existing oh-my-zsh into $OH_MY_ZSH_FOLDER"
 		mv "$HOME/.oh-my-zsh" "$OH_MY_ZSH_FOLDER"
+		ensure_directories "$CZSH_STATE_DIR"
+		printf '%s\n' "$HOME/.oh-my-zsh" >"$CZSH_STATE_DIR/ohmyzsh-moved"
 		git -C "$OH_MY_ZSH_FOLDER" remote set-url origin "$OH_MY_ZSH_REPO"
 		export ZSH="$OH_MY_ZSH_FOLDER"
-		if git -C "$OH_MY_ZSH_FOLDER" pull --quiet 2>/dev/null; then
+		if git -C "$OH_MY_ZSH_FOLDER" pull --quiet --ff-only 2>/dev/null; then
 			logSuccess "oh-my-zsh moved and updated successfully"
 		else
 			logSuccess "oh-my-zsh moved successfully"
@@ -369,20 +451,46 @@ configure_ohmyzsh() {
 
 sync_runtime_features() {
 	ensure_directories "$CZSH_RUNTIME_FEATURES_TARGET_DIR" "$CZSH_POST_FEATURES_TARGET_DIR"
+
+	# These directories contain only installer-managed modules. Prune retired
+	# modules before copying so a renamed or removed loader cannot remain active
+	# forever and source stale plugins from an earlier CZSH layout.
+	find "$CZSH_RUNTIME_FEATURES_TARGET_DIR" -mindepth 1 -maxdepth 1 \
+		-type f -name '*.zsh' -delete
+	find "$CZSH_POST_FEATURES_TARGET_DIR" -mindepth 1 -maxdepth 1 \
+		-type f -name '*.zsh' -delete
+
 	cp -R "$SCRIPT_DIR/features/runtime/." "$CZSH_RUNTIME_FEATURES_TARGET_DIR/"
 	cp -R "$SCRIPT_DIR/features/post/." "$CZSH_POST_FEATURES_TARGET_DIR/"
 }
 
+record_backup_path() {
+	local name="$1"
+	local path="$2"
+
+	ensure_directories "$CZSH_STATE_DIR"
+	printf '%s\n' "$path" >"$CZSH_STATE_DIR/${name}.backup"
+}
+
 copy_base_configuration_files() {
+	local helper=""
+
 	print_section "Configuration Files" "$GEAR" "$BLUE"
 	logProgress "Copying configuration files and feature modules..."
 
 	cp -f "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc"
 	cp -f "$SCRIPT_DIR/czshrc.zsh" "$CZSH_HOME/czshrc.zsh"
 	sync_runtime_features
-	install_binary "$SCRIPT_DIR/bin/czsh-tmux-git-status" "$CZSH_BIN_DIR/czsh-tmux-git-status"
+	for helper in "$SCRIPT_DIR"/bin/*; do
+		[[ -f "$helper" ]] || continue
+		install_binary "$helper" "$CZSH_BIN_DIR/$(basename "$helper")"
+	done
 
-	ensure_directories "$CZSH_USER_ZSHRC_DIR" "$CZSH_CACHE_DIR" "$CZSH_BIN_DIR" "$CZSH_FONT_DIR"
+	ensure_directories "$CZSH_USER_ZSHRC_DIR" "$CZSH_CACHE_DIR" "$CZSH_BIN_DIR" "$CZSH_FONT_DIR" "$CZSH_STATE_DIR"
+
+	if ! "$CZSH_BIN_DIR/czsh-sync-theme"; then
+		logWarning "Failed to generate one or more themed application configs"
+	fi
 
 	if compgen -G "$HOME/.zcompdump*" >/dev/null 2>&1; then
 		logProgress "Moving zsh completion cache files..."
@@ -392,6 +500,93 @@ copy_base_configuration_files() {
 
 	logSuccess "Configuration files copied successfully"
 	echo
+}
+
+restore_backup_path() {
+	local target="$1"
+	local state_name="$2"
+	local fallback="$3"
+	local backup=""
+
+	if [[ -r "$CZSH_STATE_DIR/${state_name}.backup" ]]; then
+		backup="$(<"$CZSH_STATE_DIR/${state_name}.backup")"
+	elif [[ -e "$fallback" ]]; then
+		backup="$fallback"
+	fi
+
+	if [[ -n "$backup" && -e "$backup" && ! -e "$target" ]]; then
+		mv "$backup" "$target"
+		logSuccess "Restored $target from $backup"
+	fi
+}
+
+uninstall_czsh() {
+	local managed_tmux="$CZSH_HOME/tmux/tmux.conf"
+	local editor_bridge="$CZSH_HOME/editor/czsh-tmux-navigator.vim"
+	local latest_zshrc_backup=""
+	local original_ohmyzsh=""
+	local target=""
+
+	print_section "Uninstall CZSH" "$FOLDER" "$YELLOW"
+
+	if [[ -f "$HOME/.zshrc" ]] && grep -q '/.config/czsh/czshrc.zsh' "$HOME/.zshrc" 2>/dev/null; then
+		rm -f "$HOME/.zshrc"
+		logSuccess "Removed the managed ~/.zshrc loader"
+	fi
+
+	if [[ ! -r "$CZSH_STATE_DIR/zshrc.backup" ]]; then
+		latest_zshrc_backup="$(find "$HOME" -maxdepth 1 -type f -name '.zshrc-backup-*' -print 2>/dev/null | sort -r | head -n 1)"
+		[[ -n "$latest_zshrc_backup" ]] && record_backup_path zshrc "$latest_zshrc_backup"
+	fi
+	restore_backup_path "$HOME/.zshrc" zshrc ""
+	if [[ -f "$HOME/.fzf.zsh" ]] && grep -q '/.config/czsh/fzf/' "$HOME/.fzf.zsh" 2>/dev/null; then
+		rm -f "$HOME/.fzf.zsh"
+		logSuccess "Removed the managed FZF shell loader"
+	fi
+
+	for target in "$HOME/.tmux.conf" "$HOME/.config/tmux/tmux.conf"; do
+		if [[ -L "$target" && "$(readlink "$target")" == "$managed_tmux" ]]; then
+			rm -f "$target"
+			logSuccess "Removed managed symlink $target"
+		fi
+	done
+	for target in \
+		"$HOME/.vim/plugin/czsh-tmux-navigator.vim" \
+		"$HOME/.config/nvim/plugin/czsh-tmux-navigator.vim"; do
+		if [[ -L "$target" && "$(readlink "$target")" == "$editor_bridge" ]]; then
+			rm -f "$target"
+			logSuccess "Removed managed editor symlink $target"
+		fi
+	done
+	restore_backup_path "$HOME/.tmux.conf" tmux "$HOME/.tmux.conf.bak"
+	restore_backup_path "$HOME/.config/tmux/tmux.conf" xdg-tmux "$HOME/.config/tmux/tmux.conf.bak"
+
+	if [[ -r "$CZSH_STATE_DIR/ohmyzsh-moved" ]]; then
+		original_ohmyzsh="$(<"$CZSH_STATE_DIR/ohmyzsh-moved")"
+		if [[ -d "$CZSH_HOME/oh-my-zsh" && ! -e "$original_ohmyzsh" ]]; then
+			mv "$CZSH_HOME/oh-my-zsh" "$original_ohmyzsh"
+			logSuccess "Restored the original Oh My Zsh directory to $original_ohmyzsh"
+		fi
+	fi
+
+	# Personal overrides and Marker data are deliberately retained.
+	rm -rf \
+		"${CZSH_HOME:?}/bin" \
+		"${CZSH_HOME:?}/features" \
+		"${CZSH_HOME:?}/editor" \
+		"${CZSH_HOME:?}/fzf" \
+		"${CZSH_HOME:?}/tmux" \
+		"${CZSH_HOME:?}/lazygit"
+	if [[ -z "$original_ohmyzsh" ]]; then
+		rm -rf "${CZSH_HOME:?}/oh-my-zsh"
+	fi
+	rm -f "$CZSH_HOME/czshrc.zsh" "${XDG_CONFIG_HOME:-$HOME/.config}/bat/themes/CZSH.tmTheme"
+
+	logSuccess "CZSH runtime files were removed"
+	if [[ -d "$CZSH_USER_ZSHRC_DIR" ]]; then
+		logNote "Personal overrides were kept in $CZSH_USER_ZSHRC_DIR"
+	fi
+	logInfo "Package-manager tools and ~/.local/bin tools were left installed for safe reuse."
 }
 
 finish_installation() {

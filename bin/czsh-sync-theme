@@ -1,0 +1,65 @@
+#!/usr/bin/env zsh
+
+set -eu
+
+theme_file="${CZSH_THEME_FILE:-$HOME/.config/czsh/features/runtime/10-theme.zsh}"
+[[ -r "$theme_file" ]] || {
+    print -u2 "czsh-sync-theme: cannot read $theme_file"
+    exit 1
+}
+
+source "$theme_file"
+
+tmux_dir="$HOME/.config/czsh/tmux"
+bat_theme_dir="${XDG_CONFIG_HOME:-$HOME/.config}/bat/themes"
+lazygit_dir="$HOME/.config/czsh/lazygit"
+mkdir -p "$tmux_dir" "$bat_theme_dir" "$lazygit_dir"
+
+cat >"$tmux_dir/theme.conf" <<EOF
+# Generated from features/runtime/10-theme.zsh by czsh-sync-theme.
+set -g status-style "fg=$CZSH_THEME_FG,bg=$CZSH_THEME_BG"
+set -g status-left "#{?client_prefix,#[fg=$CZSH_THEME_BG#,bg=$CZSH_THEME_YELLOW#,bold] PREFIX #[fg=$CZSH_THEME_FG#,bg=$CZSH_THEME_BG#,nobold] ,}"
+set -g status-right "#(~/.config/czsh/bin/czsh-tmux-git-status #{q:pane_current_path}) #[fg=$CZSH_THEME_MUTED]#{?pane_synchronized,│ 󰓦 sync ,}│ #(~/.config/czsh/bin/czsh-tmux-battery)#{?#{!=:#{SSH_CONNECTION},},#[fg=$CZSH_THEME_YELLOW]#H #[fg=$CZSH_THEME_MUTED]│ ,}#[fg=$CZSH_THEME_FG]%a %d %b #[fg=$CZSH_THEME_MUTED]│ #[fg=$CZSH_THEME_BLUE,bold]%H:%M "
+setw -g window-status-format "#[fg=$CZSH_THEME_MUTED,bg=$CZSH_THEME_BG] #I #[fg=$CZSH_THEME_FG]#W#{?window_flags, #[fg=$CZSH_THEME_MUTED]#F,} "
+setw -g window-status-current-format "#[fg=$CZSH_THEME_BG,bg=$CZSH_THEME_GREEN,bold] #I #W#{?window_zoomed_flag, 󰊓,} #[fg=$CZSH_THEME_FG,bg=$CZSH_THEME_BG,nobold]"
+setw -g window-status-activity-style "fg=$CZSH_THEME_YELLOW,bg=$CZSH_THEME_BG"
+setw -g window-status-bell-style "fg=$CZSH_THEME_BG,bg=$CZSH_THEME_YELLOW,bold"
+set -g pane-border-style "fg=$CZSH_THEME_BORDER"
+set -g pane-active-border-style "fg=$CZSH_THEME_BLUE"
+set -g message-style "fg=$CZSH_THEME_BG,bg=$CZSH_THEME_BLUE,bold"
+set -g message-command-style "fg=$CZSH_THEME_BG,bg=$CZSH_THEME_GREEN,bold"
+EOF
+
+cat >"$bat_theme_dir/CZSH.tmTheme" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict><key>name</key><string>CZSH</string><key>settings</key><array>
+<dict><key>settings</key><dict><key>background</key><string>$CZSH_THEME_BG</string><key>foreground</key><string>$CZSH_THEME_FG</string><key>caret</key><string>$CZSH_THEME_BLUE</string><key>selection</key><string>$CZSH_THEME_BORDER</string></dict></dict>
+<dict><key>scope</key><string>comment</string><key>settings</key><dict><key>foreground</key><string>$CZSH_THEME_MUTED</string></dict></dict>
+<dict><key>scope</key><string>string</string><key>settings</key><dict><key>foreground</key><string>$CZSH_THEME_GREEN</string></dict></dict>
+<dict><key>scope</key><string>keyword</string><key>settings</key><dict><key>foreground</key><string>$CZSH_THEME_PURPLE</string></dict></dict>
+<dict><key>scope</key><string>constant.numeric</string><key>settings</key><dict><key>foreground</key><string>$CZSH_THEME_YELLOW</string></dict></dict>
+<dict><key>scope</key><string>invalid</string><key>settings</key><dict><key>foreground</key><string>$CZSH_THEME_RED</string></dict></dict>
+</array></dict></plist>
+EOF
+
+cat >"$lazygit_dir/config.yml" <<EOF
+# Generated from features/runtime/10-theme.zsh by czsh-sync-theme.
+gui:
+  theme:
+    activeBorderColor: ["$CZSH_THEME_GREEN", bold]
+    inactiveBorderColor: ["$CZSH_THEME_MUTED"]
+    searchingActiveBorderColor: ["$CZSH_THEME_YELLOW", bold]
+    optionsTextColor: ["$CZSH_THEME_BLUE"]
+    selectedLineBgColor: ["$CZSH_THEME_BORDER"]
+    cherryPickedCommitBgColor: ["$CZSH_THEME_BORDER"]
+    cherryPickedCommitFgColor: ["$CZSH_THEME_GREEN"]
+    unstagedChangesColor: ["$CZSH_THEME_RED"]
+    defaultFgColor: ["$CZSH_THEME_FG"]
+EOF
+
+if command -v bat >/dev/null 2>&1; then
+    bat cache --build >/dev/null 2>&1 || true
+elif command -v batcat >/dev/null 2>&1; then
+    batcat cache --build >/dev/null 2>&1 || true
+fi

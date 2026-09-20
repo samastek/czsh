@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+percent=""
+if command -v pmset >/dev/null 2>&1; then
+  percent="$(pmset -g batt 2>/dev/null | sed -n 's/.*[[:space:]]\([0-9][0-9]*%\).*/\1/p' | head -n 1)"
+elif compgen -G '/sys/class/power_supply/BAT*/capacity' >/dev/null 2>&1; then
+  capacity_file="$(compgen -G '/sys/class/power_supply/BAT*/capacity' | head -n 1)"
+  percent="$(<"$capacity_file")%"
+fi
+
+[[ -n "$percent" ]] && printf '󰁹 %s │ ' "$percent"

@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+
+set -u
+
+doctor() {
+  local failures=0
+  local command_name=""
+  local target=""
+  local expected="$HOME/.config/czsh/tmux/tmux.conf"
+  local editor_expected="$HOME/.config/czsh/editor/czsh-tmux-navigator.vim"
+  local commands=(
+    zsh git wget bat curl jq fc-cache python3 fd rg direnv tmux unzip
+    hyperfine shellcheck eza zoxide delta atuin yazi ya fzf lazygit lazydocker
+  )
+
+  if [[ "${OSTYPE:-}" == linux* ]] && command -v journalctl >/dev/null 2>&1; then
+    commands+=(lazyjournal)
+  fi
+
+  printf 'CZSH doctor\n\n'
+  for command_name in "${commands[@]}"; do
+    if command -v "$command_name" >/dev/null 2>&1; then
+      printf '[OK]   %-12s %s\n' "$command_name" "$(command -v "$command_name")"
+    else
+      printf '[MISS] %-12s not found on PATH\n' "$command_name"
+      failures=$((failures + 1))
+    fi
+  done
+
+  if find "${XDG_DATA_HOME:-$HOME/.local/share}/fonts" "$HOME/Library/Fonts" \
+      -maxdepth 1 -type f -iname '*NerdFont*' -print -quit 2>/dev/null | grep -q .; then
+    printf '[OK]   Nerd Font    installed\n'
+  else
+    printf '[MISS] Nerd Font    no CZSH-compatible Nerd Font found\n'
+    failures=$((failures + 1))
+  fi
+
+  for target in "$HOME/.tmux.conf" "$HOME/.config/tmux/tmux.conf"; do
+    if [[ -L "$target" && "$(readlink "$target")" == "$expected" ]]; then
+      printf '[OK]   %-12s -> %s\n' "${target#$HOME/}" "$expected"
+    else
+      printf '[MISS] %-12s expected symlink to %s\n' "${target#$HOME/}" "$expected"
+      failures=$((failures + 1))
+    fi
+  done
+
+  for target in \
+    "$HOME/.vim/plugin/czsh-tmux-navigator.vim" \
+    "$HOME/.config/nvim/plugin/czsh-tmux-navigator.vim"; do
+    if [[ -L "$target" && "$(readlink "$target")" == "$editor_expected" ]]; then
+      printf '[OK]   %-12s -> %s\n' "${target#$HOME/}" "$editor_expected"
+    else
+      printf '[MISS] %-12s expected navigator bridge symlink\n' "${target#$HOME/}"
+      failures=$((failures + 1))
+    fi
+  done
+
+  if [[ -f "$HOME/.zshrc" ]] && grep -q '/.config/czsh/czshrc.zsh' "$HOME/.zshrc"; then
+    printf '[OK]   .zshrc       managed loader installed\n'
+  else
+    printf '[MISS] .zshrc       managed loader is not installed\n'
+    failures=$((failures + 1))
+  fi
+
+  printf '\n'
+  if (( failures == 0 )); then
+    printf 'Everything looks healthy.\n'
+  else
+    printf '%d check(s) need attention. Re-run install.sh, then run czsh doctor again.\n' "$failures"
+  fi
+  return "$failures"
+}
+
+case "${1:-help}" in
+doctor) doctor ;;
+help|-h|--help)
+  printf 'Usage: czsh doctor\n'
+  ;;
+*)
+  printf 'Unknown command: %s\nUsage: czsh doctor\n' "$1" >&2
+  exit 2
+  ;;
+esac
