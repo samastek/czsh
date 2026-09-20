@@ -15,11 +15,9 @@ entries="$({
     zoxide query -l 2>/dev/null | awk '{ print "directory\t" $0 }'
   fi
   if [[ -d "$HOME/workspace" ]]; then
-    if command -v fd >/dev/null 2>&1; then
-      fd --hidden --type d --max-depth 2 --exclude .git . "$HOME/workspace" 2>/dev/null
-    else
-      find "$HOME/workspace" -mindepth 1 -maxdepth 2 -type d -not -path '*/.git*' 2>/dev/null
-    fi | awk '{ print "directory\t" $0 }'
+    find "$HOME/workspace" -mindepth 1 -maxdepth 2 \
+      \( -type d -exec test -e '{}/.git' \; -print -prune \) -o \
+      -type d -print 2>/dev/null | awk '{ print "directory\t" $0 }'
   fi
 } | awk -F '\t' '!seen[$2]++')"
 
