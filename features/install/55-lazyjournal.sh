@@ -44,17 +44,17 @@ install_feature_lazyjournal() {
 
 	if command -v lazyjournal >/dev/null 2>&1; then
 		had_lazyjournal=true
-		logUpdating "Lazyjournal"
+		if [[ "$UPGRADE_TOOLS" != true ]]; then
+			logAlreadyInstalled "Lazyjournal (use --upgrade to reinstall the configured version)"
+			echo
+			return 0
+		fi
+		logUpdating "Lazyjournal to $LAZYJOURNAL_VERSION"
 	else
-		logInstalling "Lazyjournal"
+		logInstalling "Lazyjournal $LAZYJOURNAL_VERSION"
 	fi
 
-	tag_name="$(github_latest_release_tag "Lifailon/lazyjournal")"
-	if [[ -z "$tag_name" ]]; then
-		logWarning "Failed to determine latest Lazyjournal release"
-		echo
-		return 0
-	fi
+	tag_name="$LAZYJOURNAL_VERSION"
 
 	asset_name="$(lazyjournal_asset_name "$tag_name")"
 	if [[ -z "$asset_name" ]]; then

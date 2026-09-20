@@ -6,6 +6,9 @@ install_feature_tmux() {
   local tpm_dir="$tmux_plugins_dir/tpm"
   local tmux_conf_src="$SCRIPT_DIR/dotfiles/tmux.conf"
   local tmux_conf_dst="$tmux_config_dir/tmux.conf"
+  local editor_bridge_dir="$CZSH_HOME/editor"
+  local editor_bridge="$editor_bridge_dir/czsh-tmux-navigator.vim"
+  local editor_target=""
 
   print_section "Tmux Installation" "$PACKAGE" "$CYAN"
 
@@ -34,6 +37,7 @@ install_feature_tmux() {
     rm "$HOME/.tmux.conf"
   elif [ -f "$HOME/.tmux.conf" ]; then
     mv "$HOME/.tmux.conf" "$HOME/.tmux.conf.bak"
+    record_backup_path tmux "$HOME/.tmux.conf.bak"
     logWarning "Existing ~/.tmux.conf backed up to ~/.tmux.conf.bak"
   fi
   ln -s "$tmux_conf_dst" "$HOME/.tmux.conf"
@@ -47,6 +51,7 @@ install_feature_tmux() {
     rm "$xdg_tmux_dir/tmux.conf"
   elif [ -f "$xdg_tmux_dir/tmux.conf" ]; then
     mv "$xdg_tmux_dir/tmux.conf" "$xdg_tmux_dir/tmux.conf.bak"
+    record_backup_path xdg-tmux "$xdg_tmux_dir/tmux.conf.bak"
     logWarning "Existing ~/.config/tmux/tmux.conf backed up to ~/.config/tmux/tmux.conf.bak"
   fi
   ln -s "$tmux_conf_dst" "$xdg_tmux_dir/tmux.conf"
@@ -67,6 +72,23 @@ install_feature_tmux() {
     "$tpm_dir/bin/install_plugins" >/dev/null 2>&1
     logSuccess "Tmux plugins installed"
   fi
+
+  # TPM provides the tmux half of vim-tmux-navigator. These managed links put
+  # its Vim plugin on both editors' runtime paths without replacing user config.
+  mkdir -p "$editor_bridge_dir" "$HOME/.vim/plugin" "$HOME/.config/nvim/plugin"
+  cp "$SCRIPT_DIR/dotfiles/czsh-tmux-navigator.vim" "$editor_bridge"
+  for editor_target in \
+    "$HOME/.vim/plugin/czsh-tmux-navigator.vim" \
+    "$HOME/.config/nvim/plugin/czsh-tmux-navigator.vim"; do
+    if [[ -L "$editor_target" && "$(readlink "$editor_target")" == "$editor_bridge" ]]; then
+      continue
+    fi
+    if [[ -e "$editor_target" || -L "$editor_target" ]]; then
+      logWarning "Leaving existing editor plugin file untouched: $editor_target"
+      continue
+    fi
+    ln -s "$editor_bridge" "$editor_target"
+  done
 
   # A running tmux server keeps its options in memory. Reload after deployment
   # so reinstalling CZSH updates existing sessions as well as future ones.

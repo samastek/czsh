@@ -24,7 +24,54 @@ s() {
 }
 
 f() {
-    find . -type f -print0 | fzf --read0 --preview "$CZSH_BAT_BIN --color=always {}" | xargs -0 file -b
+    fd --type f --print0 | fzf --read0 --preview "$CZSH_BAT_BIN --color=always {}" | xargs -0 file -b
+}
+
+myip() {
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsS https://ifconfig.me
+        echo
+    elif command -v dig >/dev/null 2>&1; then
+        dig +short myip.opendns.com @resolver1.opendns.com
+    else
+        echo "myip requires curl or dig" >&2
+        return 1
+    fi
+}
+
+kp() {
+    local signal='-TERM'
+    if [[ "${1:-}" == '-9' || "${1:-}" == '--kill' ]]; then
+        signal='-KILL'
+        shift
+    fi
+    if (( $# > 0 )); then
+        echo "Usage: kp [-9|--kill]" >&2
+        return 2
+    fi
+
+    local pids
+    pids="$(ps -eo pid=,user=,command= | fzf --multi --prompt='process> ' | awk '{print $1}')" || return 0
+    [[ -n "$pids" ]] || return 0
+    print -rl -- ${(f)pids} | xargs kill "$signal"
+}
+
+git-update-all() {
+    fd --hidden --type d '^\.git$' --exec git -C {//} pull --rebase --autostash
+}
+
+y() {
+    command -v yazi >/dev/null 2>&1 || {
+        echo "yazi is not installed" >&2
+        return 1
+    }
+
+    local cwd_file cwd
+    cwd_file="$(mktemp -t czsh-yazi-cwd.XXXXXX)" || return 1
+    yazi "$@" --cwd-file="$cwd_file"
+    cwd="$(<"$cwd_file")"
+    rm -f "$cwd_file"
+    [[ -n "$cwd" && "$cwd" != "$PWD" ]] && builtin cd -- "$cwd"
 }
 
 glclone() {

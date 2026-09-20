@@ -22,7 +22,6 @@ neovim_asset_name() {
 
 
 install_neovim_release() {
-	local repo="neovim/neovim"
 	local asset_name=""
 	local archive_path=""
 	local extract_root="$HOME/.local/share"
@@ -35,17 +34,13 @@ install_neovim_release() {
 		return 1
 	fi
 
-	tag_name="$(github_latest_release_tag "$repo")"
-	if [[ -z "$tag_name" ]]; then
-		logWarning "Failed to determine latest Neovim release"
-		return 1
-	fi
+	tag_name="v$NEOVIM_VERSION"
 
 	ensure_directories "$HOME/.cache"
 	archive_path="$HOME/.cache/$asset_name"
 	extract_dir="$extract_root/${asset_name%.tar.gz}"
 
-	if ! download_github_release_asset "$repo" "$asset_name" "$archive_path" "$tag_name"; then
+	if ! download_github_release_asset "neovim/neovim" "$asset_name" "$archive_path" "$tag_name"; then
 		logWarning "Failed to download Neovim release asset $asset_name"
 		return 1
 	fi
@@ -87,7 +82,12 @@ install_feature_neovim() {
 
 	if command -v nvim >/dev/null 2>&1; then
 		had_neovim=true
-		logUpdating "Neovim"
+		if [[ "$UPGRADE_TOOLS" != true ]]; then
+			logAlreadyInstalled "Neovim (use --neovim --upgrade to reinstall the configured version)"
+			echo
+			return 0
+		fi
+		logUpdating "Neovim to $NEOVIM_VERSION"
 	else
 		logInstalling "Neovim"
 	fi

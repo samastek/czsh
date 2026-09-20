@@ -41,19 +41,18 @@ install_feature_lazydocker() {
 
 	if command -v lazydocker >/dev/null 2>&1; then
 		had_lazydocker=true
-		logUpdating "Lazydocker"
+		if [[ "$UPGRADE_TOOLS" != true ]]; then
+			logAlreadyInstalled "Lazydocker (use --upgrade to reinstall the configured version)"
+			echo
+			return 0
+		fi
+		logUpdating "Lazydocker to $LAZYDOCKER_VERSION"
 	else
-		logInstalling "Lazydocker"
+		logInstalling "Lazydocker $LAZYDOCKER_VERSION"
 	fi
 
-	tag_name="$(github_latest_release_tag "jesseduffield/lazydocker")"
-	if [[ -z "$tag_name" ]]; then
-		logWarning "Failed to determine latest Lazydocker release"
-		echo
-		return 0
-	fi
-
-	version="$(version_without_v "$tag_name")"
+	tag_name="v$LAZYDOCKER_VERSION"
+	version="$LAZYDOCKER_VERSION"
 	asset_name="$(lazydocker_asset_name "$version")"
 	if [[ -z "$asset_name" ]]; then
 		logWarning "Skipping Lazydocker installation on unsupported platform: $CZSH_PLATFORM/$CZSH_ARCH"

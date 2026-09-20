@@ -33,6 +33,7 @@ explicit user choices.
 ## Contents
 
 - [Quick start](#quick-start)
+- [Learning guide](#learning-guide)
 - [Capabilities](#capabilities)
 - [Installed components](#installed-components)
 - [Platform support](#platform-support)
@@ -47,21 +48,26 @@ explicit user choices.
 - [Project structure](#project-structure)
 - [Development and community](#development-and-community)
 
+## Learning guide
+
+New to Atuin, zoxide, direnv, the modern CLI tools, or the tmux workflow? Start
+with the [CZSH learning guide](docs/README.md). It includes a guided first
+session, focused chapters with copy-paste examples, practice exercises, and a
+[one-page cheat sheet](docs/cheat-sheet.md).
+
 ## Capabilities
 
 CZSH provides the following as one managed setup:
 
 - Oh My Zsh with the native CZSH prompt and a curated plugin set.
-- FZF-backed Zsh completion with multi-selection, fuzzy history search, and
-  standard FZF shell key bindings.
+- FZF-backed Zsh completion and file/directory pickers, with Atuin providing
+  fuzzy, session-aware, directory-aware history on `Ctrl+R`.
 - Syntax highlighting, inline autosuggestions, additional completion
   definitions, substring history search, directory jumping, and interactive
   Git helpers.
-- A configured tmux environment with a `Ctrl+A` prefix, Vim-style navigation,
-  mouse support, clipboard integration, session persistence, and an in-shell
-  keybinding reference.
-- Architecture-aware installation of Lazygit, Lazydocker, and Lazyjournal from
-  their latest GitHub releases.
+- A configured tmux environment with project/session picking, seamless Vim
+  navigation, popups, clipboard integration, and automatic persistence.
+- Reproducible, architecture-aware installation of pinned GitHub releases.
 - Three Nerd Fonts, FZF, and a managed Vim configuration when Vim is already
   available.
 - Optional Neovim installation, Vim-style Zsh editing, and Bash-history
@@ -78,7 +84,7 @@ CZSH provides the following as one managed setup:
 | Component | Configuration |
 | --- | --- |
 | [Oh My Zsh](https://ohmyz.sh/) | Installed under `~/.config/czsh/oh-my-zsh` and updated on subsequent runs. |
-| CZSH prompt | A two-line native prompt with the home-relative path above a quiet input line; the previous exit code is right-aligned. Git and time context live in tmux. |
+| CZSH prompt | A two-line native prompt with path and exit status. Outside tmux it also shows the Git branch and dirty state. |
 | [FZF](https://github.com/junegunn/fzf) | Installed under `~/.config/czsh/fzf` with Zsh completion and key bindings enabled. |
 | Nerd Fonts | Installs Hack, Roboto Mono, and DejaVu Sans Mono from official release archives. |
 
@@ -86,9 +92,9 @@ The runtime preserves the terminal's advertised `TERM`, enables `no_nomatch`, se
 `SAVEHIST=50000`, and adds the following locations to `PATH`:
 
 ```text
-~/.config/czsh/fzf/bin
-~/.local/bin
 ~/.config/czsh/bin
+~/.local/bin
+~/.config/czsh/fzf/bin
 ```
 
 The prompt uses Zsh built-ins only and never reads from standard input. For more
@@ -110,11 +116,9 @@ CZSH enables these plugins at startup:
 | `zsh-syntax-highlighting` | Command-line syntax highlighting. |
 | `history-substring-search` | History navigation filtered by current input. |
 | `fzf-tab` | Replaces the completion menu with an FZF picker. |
-| `forgit` | FZF-powered Git workflows. |
 | `screen` | GNU Screen aliases and helpers. |
 | `web-search` | Search-engine shortcuts. |
 | `extract` | Archive extraction helper. |
-| `z` | Directory jumping based on usage. |
 | `sudo` | Adds `sudo` to the current command with `Esc` twice. |
 | `docker` | Docker aliases and completions. |
 | `systemd` | systemd aliases; enabled on Linux only. |
@@ -124,12 +128,12 @@ CZSH enables these plugins at startup:
 The following tools are installed or configured by the default `./install.sh`
 run:
 
-- **Lazygit.** Installs the latest supported release to
+- **Lazygit.** Installs the version pinned in `config.conf` to
   `~/.local/bin/lazygit`.
-- **Lazydocker.** Installs the latest supported release to
+- **Lazydocker.** Installs the version pinned in `config.conf` to
   `~/.local/bin/lazydocker`. Docker Engine is not installed by the main
   installer.
-- **Lazyjournal.** Installs the latest release on supported Linux systems
+- **Lazyjournal.** Installs the pinned release on supported Linux systems
   only when `journalctl` is available.
 - **tmux.** Installs through the detected package manager when missing, then
   deploys the CZSH configuration and TPM plugins.
@@ -137,12 +141,17 @@ run:
   [amix/vimrc](https://github.com/amix/vimrc) when `vim` is already installed.
   CZSH does not install Vim itself.
 
+The default setup also installs `eza`, `fd`, ripgrep, zoxide, Delta, Atuin,
+direnv, and Yazi. Zoxide supplies `z`/`zi`, Delta is the Git pager, and `y`
+opens Yazi and changes the shell directory to its exit location.
+
 Neovim is opt-in. It is installed only when `--neovim` is present. That option
-installs the latest release under `~/.local/share` and links `nvim` into
+installs the pinned release under `~/.local/share` and links `nvim` into
 `~/.local/bin`; it does not install a Neovim configuration or plugins.
 
-The prerequisite stage checks for and installs `zsh`, `git`, `wget`, `bat`,
-`curl`, `jq`, `fontconfig`, and `python3` when they are missing.
+Package-manager inputs are readable in `packages/Brewfile` and
+`packages/apt.txt`; portable Linux tools that are unavailable in older distro
+repositories use the versions in `config.conf`.
 
 ## Platform support
 
@@ -170,8 +179,6 @@ installation.
 - A terminal configured to use one of the installed Nerd Fonts.
 - `xclip` on Linux for the configured tmux system-clipboard binding. It is not
   installed automatically.
-- `ripgrep` for the custom `s` search function. It is not installed
-  automatically.
 
 ## Installation
 
@@ -221,6 +228,8 @@ Usage: ./install.sh [options]
   -c, --cp-hist      Import ~/.bash_history into ~/.zsh_history
   -v, --vim-mode     Enable Vim-style Zsh line editing
       --neovim       Install or update Neovim
+      --upgrade      Reinstall versions pinned in config.conf
+      --uninstall    Remove managed loaders/links and restore backups
 ```
 
 Options may be combined:
@@ -243,7 +252,7 @@ Neovim is not part of the default installation. Install or update it explicitly:
 ./install.sh --neovim
 ```
 
-The installer downloads the latest architecture-matched release, extracts it
+The installer downloads the pinned architecture-matched release, extracts it
 under `~/.local/share`, and links the executable into `~/.local/bin`. It does
 not install a Neovim configuration or plugins.
 
@@ -257,7 +266,7 @@ mode, sets `KEYTIMEOUT=1`, and adds these bindings:
 | --- | --- |
 | `Esc` | Enter Vi command mode. |
 | `j` / `k` in command mode | Search through matching history. |
-| `Ctrl+R` | Incremental reverse-history search. |
+| `Ctrl+R` | Open Atuin history search (after post-runtime initialization). |
 | `Ctrl+A` / `Ctrl+E` | Move to the beginning or end of the line. |
 | `Ctrl+U` | Delete backward to the beginning of the line. |
 | `Backspace` / `Ctrl+H` | Delete the previous character. |
@@ -283,20 +292,21 @@ multi-selection, configure the terminal (or terminal multiplexer) to send
 `Ctrl+Space` for `Ctrl+Tab`; FZF will then apply the binding above while plain
 `Tab` continues to move through the choices.
 
-`Ctrl+R` opens FZF history search. The standard FZF file and directory widgets
-are also loaded from the installed FZF shell integration.
+`Ctrl+R` opens Atuin history search. The standard FZF file and directory
+widgets remain loaded from the installed FZF shell integration.
 
 ### Aliases
 
-- **`l`** runs `ls --hyperlink=auto -lAhrtF` for a detailed, time-sorted
-  listing. The hyperlink option requires a compatible `ls`.
+- **`l`** runs `eza -la --git --icons`.
+- **`cat`** runs `bat -p` (`batcat -p` on Debian when needed).
 - **`e`** exits the current shell.
-- **`myip`** retrieves the public IP address from `wtfismyip.com`.
+- **`myip`** retrieves the public IP with `curl` from `ifconfig.me`, with an
+  OpenDNS `dig` fallback.
 - **`ip`** enables colored output when the `ip` command exists.
-- **`kp`** uses FZF to select one or more processes, then runs
-  `sudo kill -9`. Review selections carefully.
-- **`git-update-all`** recursively runs `git pull --rebase --autostash` in
-  every Git repository below the current directory.
+- **`kp`** uses FZF to select processes and sends `TERM`; use `kp -9` to opt
+  into `KILL`.
+- **`git-update-all`** uses fd's parallel executor to pull every Git repository
+  below the current directory with rebase and autostash.
 - **`ta NAME`**, **`tls`**, **`tns NAME`**, and **`tks NAME`** attach, list,
   create, and terminate tmux sessions.
 
@@ -309,6 +319,7 @@ are also loaded from the installed FZF shell integration.
   lines in FZF with a `bat` preview.
 - **`f`** selects a file below the current directory in FZF and prints its
   file type.
+- **`y [PATH]`** opens Yazi and changes directory to Yazi's exit location.
 - **`glclone`** recursively clones a GitLab group, including nested
   subgroups, while preserving the group hierarchy.
 - **`tmux-help`** prints the active tmux keybinding reference.
@@ -342,8 +353,9 @@ and system-clipboard integration are enabled. Window names follow the active
 pane's current folder rather than its foreground process, which keeps multiple
 editors and shells distinguishable.
 
-The status bar uses a low-glare Slate & Sage palette with accessible contrast.
-It shows folder-named windows, Git state, synchronized-pane state, date, and time. Git is collected
+The prompt, tmux, FZF, bat, and Lazygit share the Tokyo Night tokens exported
+by `features/runtime/10-theme.zsh`. The status line shows Git state, optional
+laptop battery, SSH hostname, synchronized-pane state, date, and time. Git is collected
 asynchronously on tmux's refresh interval and includes the branch, upstream
 ahead/behind counts, staged, modified, untracked, conflicted, and stashed item
 counts. Everything else uses native tmux formats. Holding the prefix highlights
@@ -369,7 +381,9 @@ the status bar must reflect the newest remote state.
 | `prefix` + `\|` | Vertical split in the current directory. |
 | `prefix` + `-` | Horizontal split in the current directory. |
 | `prefix` + `c` | Open a window in the current pane directory. |
+| `prefix` + `f` or `Ctrl+F` | Pick a project or existing session. |
 | `prefix` + `h/j/k/l` | Move between panes. |
+| `Ctrl+H/J/K/L` | Move seamlessly between tmux panes and Vim splits. |
 | `prefix` + `H/J/K/L` | Resize panes in five-cell increments. |
 | `Shift+Left` / `Shift+Right` | Change windows without the prefix. |
 | `prefix` + `<` / `>` | Move the current window. |
@@ -377,6 +391,8 @@ the status bar must reflect the newest remote state.
 | `v`, `Ctrl+V`, `y` in copy mode | Select, toggle rectangle, and copy. |
 | `prefix` + `r` | Reload the configuration. |
 | `prefix` + `e` | Open the CZSH tmux help in a popup. |
+| `prefix` + `g` / `D` | Open Lazygit / Lazydocker in a popup. |
+| `prefix` + `/` | Search and select any window or pane. |
 
 ### Tmux plugins
 
@@ -384,10 +400,16 @@ The installer provisions TPM and installs:
 
 - `tmux-sensible`
 - `tmux-resurrect`, including pane-content capture
+- `tmux-continuum`, saving every 15 minutes and restoring automatically
 - `tmux-yank`
+- `vim-tmux-navigator`
+
+CZSH links a small loader into both `~/.vim/plugin` and
+`~/.config/nvim/plugin`, so the editor and tmux halves of the navigator are
+available without modifying an existing Vim or Neovim configuration file.
 
 With `tmux-resurrect`, use `prefix` + `Ctrl+S` to save a session and `prefix` +
-`Ctrl+R` to restore it.
+`Ctrl+R` to restore it manually; continuum also saves and restores sessions.
 
 ## Customization
 
@@ -436,6 +458,8 @@ The main managed layout is:
 ~/.zshrc-backup-*                     Timestamped pre-install backups
 ~/.tmux.conf                          Link to the managed tmux configuration
 ~/.config/tmux/tmux.conf              Second managed tmux link
+~/.vim/plugin/czsh-tmux-navigator.vim Vim navigator bridge link
+~/.config/nvim/plugin/czsh-tmux-navigator.vim Neovim navigator bridge link
 ~/.cache/zsh/                         Zsh completion cache
 ~/.local/bin/                         Release-installed command-line tools
 ~/.local/share/nvim-*                 Optional extracted Neovim release
@@ -450,6 +474,7 @@ The main managed layout is:
 ├── oh-my-zsh/                        Framework and plugins
 ├── tmux/
 │   ├── tmux.conf                     Managed tmux configuration
+│   ├── theme.conf                    Generated from the shared palette
 │   └── plugins/                      TPM and tmux plugins
 └── zshrc/                            Personal configuration files
 ```
@@ -470,14 +495,19 @@ git pull
 ./install.sh
 ```
 
-A subsequent run updates Oh My Zsh, FZF, managed Zsh plugins, TPM, The Ultimate
-vimrc, and the default release-installed tools where supported. Neovim is
-updated only when `--neovim` is supplied. The installer also copies the
+A subsequent run updates Oh My Zsh, FZF, managed Zsh plugins, TPM, and The
+Ultimate vimrc. Release tools remain at their installed version unless
+`--upgrade` is passed; change a pin in `config.conf` and use that flag for an
+explicit upgrade. Neovim is updated only with `--neovim --upgrade`. The installer copies the
 repository's current runtime and post-runtime modules into the managed
 configuration.
 
-Each run backs up the currently installed `~/.zshrc` before replacing it. Files
+Reruns recognize the managed `~/.zshrc` and do not create backup chains. Files
 inside `~/.config/czsh/zshrc` are retained.
+
+To remove the managed loaders and tmux links and restore the backups recorded
+at installation time, run `./install.sh --uninstall`. Personal overrides and
+installed CLI packages are retained.
 
 Some opt-in actions are intentionally not idempotent: `--vim-mode` replaces
 `vim-mode.zsh`, and `--cp-hist` appends the Bash history again. Back up local
@@ -514,10 +544,11 @@ Install `xclip`. The macOS binding uses `pbcopy`, while the Linux binding invoke
 
 ### Restore the previous Zsh configuration
 
-Choose the appropriate timestamped backup and move it back into place:
+Use the idempotent uninstaller, which restores the recorded Zsh and tmux
+backups:
 
 ```bash
-mv ~/.zshrc-backup-YYYY-MM-DD-HHMMSS ~/.zshrc
+./install.sh --uninstall
 ```
 
 ## Project structure
@@ -527,6 +558,8 @@ mv ~/.zshrc-backup-YYYY-MM-DD-HHMMSS ~/.zshrc
 ├── .github/                         CI, ownership, and contribution templates
 ├── bin/                             Managed helper commands
 ├── scripts/                         Development and validation commands
+├── packages/                        Brew and APT package manifests
+├── config.conf                      Pinned GitHub release versions
 ├── install.sh                        Installer entry point
 ├── utils.sh                          Installer output and progress helpers
 ├── .zshrc                            Managed shell loader template
@@ -556,6 +589,8 @@ installer does not execute it.
 
 - Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing code changes.
 - Run `./scripts/validate.sh` locally; the same checks run in GitHub Actions.
+- Run `./scripts/bench.sh` to enforce the 150 ms interactive-startup budget.
+- Run `czsh doctor` after installation to check tools, fonts, and managed links.
 - Use the structured GitHub issue forms for reproducible bugs and focused
   feature requests.
 - Report sensitive problems according to [SECURITY.md](SECURITY.md), never in a

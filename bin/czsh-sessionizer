@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+command -v fzf >/dev/null 2>&1 || {
+  printf 'czsh-sessionizer requires fzf\n' >&2
+  exit 1
+}
+
+entries="$({
+  if command -v tmux >/dev/null 2>&1; then
+    tmux list-sessions -F $'session\t#{session_name}' 2>/dev/null || true
+  fi
+  if command -v zoxide >/dev/null 2>&1; then
+    zoxide query -l 2>/dev/null | awk '{ print "directory\t" $0 }'
+  fi
+  if [[ -d "$HOME/workspace" ]]; then
+    if command -v fd >/dev/null 2>&1; then
+      fd --hidden --type d --max-depth 2 --exclude .git . "$HOME/workspace" 2>/dev/null
+    else
+      find "$HOME/workspace" -mindepth 1 -maxdepth 2 -type d -not -path '*/.git*' 2>/dev/null
+    fi | awk '{ print "directory\t" $0 }'
+  fi
+} | awk -F '\t' '!seen[$2]++')"
+
+selection="$(printf '%s\n' "$entries" | fzf --delimiter=$'\t' --with-nth=2 \
+  --prompt='session/project> ' --height=100% --reverse)" || exit 0
+kind="${selection%%$'\t'*}"
+value="${selection#*$'\t'}"
+
+if [[ "$kind" == session ]]; then
+  if [[ -n "${TMUX:-}" ]]; then
+    tmux switch-client -t "$value"
+  else
+    exec tmux attach-session -t "$value"
+  fi
+fi
+
+session_name="$(basename "$value" | tr '.:' '__' | tr -cs '[:alnum:]_-' '_')"
+if ! tmux has-session -t "=$session_name" 2>/dev/null; then
+  tmux new-session -d -s "$session_name" -c "$value"
+fi
+
+if [[ -n "${TMUX:-}" ]]; then
+  tmux switch-client -t "$session_name"
+else
+  exec tmux attach-session -t "$session_name"
+fi

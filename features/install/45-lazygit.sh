@@ -38,19 +38,18 @@ install_feature_lazygit() {
 
 	if command -v lazygit >/dev/null 2>&1; then
 		had_lazygit=true
-		logUpdating "Lazygit"
+		if [[ "$UPGRADE_TOOLS" != true ]]; then
+			logAlreadyInstalled "Lazygit (use --upgrade to reinstall the configured version)"
+			echo
+			return 0
+		fi
+		logUpdating "Lazygit to $LAZYGIT_VERSION"
 	else
-		logInstalling "Lazygit"
+		logInstalling "Lazygit $LAZYGIT_VERSION"
 	fi
 
-	tag_name="$(github_latest_release_tag "jesseduffield/lazygit")"
-	if [[ -z "$tag_name" ]]; then
-		logWarning "Failed to determine latest Lazygit release"
-		echo
-		return 0
-	fi
-
-	version="$(version_without_v "$tag_name")"
+	tag_name="v$LAZYGIT_VERSION"
+	version="$LAZYGIT_VERSION"
 	asset_name="$(lazygit_asset_name "$version")"
 	if [[ -z "$asset_name" ]]; then
 		logWarning "Skipping Lazygit installation on unsupported platform: $CZSH_PLATFORM/$CZSH_ARCH"
