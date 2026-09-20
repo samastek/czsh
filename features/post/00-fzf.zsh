@@ -14,8 +14,10 @@ fi
 
 export FZF_DEFAULT_OPTS="--extended"
 
-# Keep Tab as the completion trigger, then use it to mark multiple results in
-# fzf-tab. Enter accepts every marked completion.
+# Inside fzf-tab, Tab only moves through the results. Ctrl-Space toggles the
+# current result for multi-selection; terminals that can distinguish Ctrl-Tab
+# may map it to Ctrl-Space to use Ctrl-Tab as the physical shortcut.
 zstyle ':fzf-tab:*' fzf-bindings \
-    'tab:toggle+down' \
-    'btab:toggle+up'
+    'tab:down' \
+    'btab:up' \
+    'ctrl-space:toggle+down'

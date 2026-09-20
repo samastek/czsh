@@ -80,7 +80,7 @@ CZSH provides the following as one managed setup:
 | [Oh My Zsh](https://ohmyz.sh/) | Installed under `~/.config/czsh/oh-my-zsh` and updated on subsequent runs. |
 | CZSH prompt | A two-line native prompt with the home-relative path above a quiet input line; the previous exit code is right-aligned. Git and time context live in tmux. |
 | [FZF](https://github.com/junegunn/fzf) | Installed under `~/.config/czsh/fzf` with Zsh completion and key bindings enabled. |
-| Nerd Fonts | Installs Hack, Roboto Mono, and DejaVu Sans Mono. |
+| Nerd Fonts | Installs Hack, Roboto Mono, and DejaVu Sans Mono from official release archives. |
 
 The runtime preserves the terminal's advertised `TERM`, enables `no_nomatch`, sets
 `SAVEHIST=50000`, and adds the following locations to `PATH`:
@@ -205,6 +205,8 @@ Before deploying CZSH, the installer moves an existing `~/.zshrc` to:
 An existing `~/.oh-my-zsh` directory is moved into the managed CZSH directory.
 Existing tmux configuration files are backed up as `~/.tmux.conf.bak` and
 `~/.config/tmux/tmux.conf.bak` before managed symlinks are created.
+When a tmux server is already running, the installer reloads it so configuration
+and colour changes take effect in existing sessions.
 
 Managed plugin directories are synchronized to each plugin's upstream default
 branch. Do not keep local changes inside
@@ -268,11 +270,18 @@ Press `Tab` to open completion. Inside the FZF picker:
 
 | Key | Action |
 | --- | --- |
-| `Tab` | Toggle the current item and move down. |
-| `Shift+Tab` | Toggle the current item and move up. |
+| `Tab` | Move to the next item. |
+| `Shift+Tab` | Move to the previous item. |
+| `Ctrl+Space` | Toggle the current item and move down. |
 | `Enter` | Insert all marked items. |
 | `F1` / `F2` | Move between completion groups. |
 | `/` | Accept the current directory and continue completing a deeper path. |
+
+Terminals traditionally send the same control code for `Ctrl+Tab` and `Tab`,
+and FZF therefore has no separate `ctrl-tab` key name. To use `Ctrl+Tab` for
+multi-selection, configure the terminal (or terminal multiplexer) to send
+`Ctrl+Space` for `Ctrl+Tab`; FZF will then apply the binding above while plain
+`Tab` continues to move through the choices.
 
 `Ctrl+R` opens FZF history search. The standard FZF file and directory widgets
 are also loaded from the installed FZF shell integration.
@@ -333,8 +342,8 @@ and system-clipboard integration are enabled. Window names follow the active
 pane's current folder rather than its foreground process, which keeps multiple
 editors and shells distinguishable.
 
-The status bar shares the prompt's Tokyo Night palette. It shows folder-named
-windows, Git state, synchronized-pane state, date, and time. Git is collected
+The status bar uses a low-glare Slate & Sage palette with accessible contrast.
+It shows folder-named windows, Git state, synchronized-pane state, date, and time. Git is collected
 asynchronously on tmux's refresh interval and includes the branch, upstream
 ahead/behind counts, staged, modified, untracked, conflicted, and stashed item
 counts. Everything else uses native tmux formats. Holding the prefix highlights
