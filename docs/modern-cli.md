@@ -16,6 +16,10 @@ use <code>--help</code> for the rest.
 | <code>cd</code> with long paths | <code>z</code> / <code>zi</code> | Ranked directory history |
 | Plain Git diff pager | <code>delta</code> | Syntax-aware, readable diffs |
 | Repeated <code>cd</code> in a file manager | <code>y</code> | TUI file manager that can change the shell directory |
+| <code>top</code> / <code>htop</code> | <code>btop</code> | Interactive, mouse-aware CPU/memory/process monitor |
+| <code>du -sh *</code> | <code>dust</code> | Sorted, tree-shaped disk usage at a glance |
+| Reading raw Markdown in a pager | <code>glow</code> | Rendered Markdown, including tables and code blocks |
+| Plaintext secrets in a repo | <code>sops</code> | Encrypts values in YAML/JSON/env files, decryptable in CI |
 
 ## eza: directory listings
 
@@ -247,6 +251,63 @@ lazyjournal
 
 Use it to browse and filter systemd journal entries interactively. It is not
 installed on macOS or on Linux systems without journalctl.
+
+## btop: resource monitor
+
+~~~sh
+btop
+~~~
+
+Press <kbd>Esc</kbd> or <kbd>q</kbd> to quit, <kbd>m</kbd> to cycle layout
+presets, and click or use arrow keys to select a process before pressing
+<kbd>k</kbd> to signal it. Prefer CZSH's <code>kp</code> for a quick
+fuzzy-picked kill; reach for <code>btop</code> when you need to watch load
+over time.
+
+## dust: disk usage
+
+~~~sh
+dust
+dust -d 2 ~/workspace
+dust -X node_modules
+~~~
+
+Output is sorted largest-first with an inline bar chart, so the heaviest
+directories are visible without scrolling past everything else the way
+<code>du -sh *</code> requires.
+
+## glow: reading Markdown
+
+~~~sh
+glow README.md
+glow docs/
+glow -p docs/cheat-sheet.md
+~~~
+
+<code>glow -p</code> paginates long documents. Run <code>glow</code> with a
+directory to get a fuzzy picker over every Markdown file beneath it.
+
+## sops: encrypting secrets
+
+<code>sops</code> encrypts individual values inside a YAML, JSON, ENV, or INI
+file, so the file stays diffable and reviewable in Git while the secret
+values themselves stay opaque. It needs a key backend (age or a cloud KMS)
+before first use:
+
+~~~sh
+age-keygen -o ~/.config/sops/age/keys.txt
+export SOPS_AGE_KEY_FILE=~/.config/sops/age/keys.txt
+~~~
+
+Create a repo-level `.sops.yaml` pointing at your public key, then:
+
+~~~sh
+sops secrets.enc.yaml       # opens the decrypted content in $EDITOR, re-encrypts on save
+sops -d secrets.enc.yaml    # decrypt to stdout
+~~~
+
+CZSH installs the `sops` binary only; it does not generate keys or a
+`.sops.yaml` for you.
 
 ## Small CZSH helpers
 
