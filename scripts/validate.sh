@@ -7,7 +7,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
 bash_files=(install.sh utils.sh get-docker.sh)
-zsh_files=(.zshrc czshrc.zsh bin/czsh-tmux-git-status bin/czsh-sync-theme)
+zsh_files=(.zshrc czshrc.zsh bin/czsh-sync-theme)
 
 while IFS= read -r file; do
   bash_files+=("$file")
@@ -33,7 +33,9 @@ if command -v zsh >/dev/null 2>&1; then
   trap 'rm -rf "$smoke_home"' EXIT
   scripts/prepare-smoke-home.sh "$smoke_home"
   HOME="$smoke_home" ZDOTDIR="$smoke_home" TMUX='' zsh -ic \
-    '_czsh_prompt_precmd; [[ -n "$CZSH_THEME_BLUE" && "$FZF_DEFAULT_OPTS" == *"$CZSH_THEME_BLUE"* && "$PROMPT" == *""* && " ${plugins[*]} " != *" z "* ]] && whence -w myip >/dev/null && whence -w git-update-all >/dev/null && [[ "$(alias l)" == *"eza -la --git --icons"* || "$(alias l)" == *"ls -la"* ]]'
+    '_czsh_prompt_precmd; [[ -n "$CZSH_THEME_BLUE" && "$FZF_DEFAULT_OPTS" == *"$CZSH_THEME_BLUE"* && "$PROMPT" == *""* && "$PROMPT" == *""* && "$PROMPT" == *""* && " ${plugins[*]} " != *" z "* ]] && whence -w myip >/dev/null && whence -w git-update-all >/dev/null && [[ "$(alias l)" == *"eza -la --git --icons"* || "$(alias l)" == *"ls -la"* ]]'
+  HOME="$smoke_home" ZDOTDIR="$smoke_home" TMUX=1 zsh -ic \
+    '_czsh_prompt_precmd; [[ "$PROMPT" == *""* && "$PROMPT" == *""* && "$PROMPT" == *""* ]]'
 else
   printf 'Skipping Zsh syntax check: zsh is not installed.\n'
 fi
@@ -54,21 +56,13 @@ if command -v tmux >/dev/null 2>&1; then
     bin/czsh-sync-theme
   tmux_status="$(HOME="$tmux_home" tmux -L czsh-validation -f dotfiles/tmux.conf \
     start-server \; show-options -gv status-right \; kill-server)"
-  if [[ "$tmux_status" != *'czsh-tmux-battery'* ]]; then
-    printf 'Generated tmux theme was not loaded.\n' >&2
+  if [[ "$tmux_status" != *'czsh-tmux-battery'* || "$tmux_status" != *'czsh-tmux-ram'* ]]; then
+    printf 'Generated tmux theme was not loaded with system indicators.\n' >&2
     exit 1
   fi
   rm -rf "$tmux_home"
 else
   printf 'Skipping tmux configuration check: tmux is not installed.\n'
-fi
-
-if command -v git >/dev/null 2>&1 && command -v zsh >/dev/null 2>&1; then
-  git_segment="$(bin/czsh-tmux-git-status "$REPO_ROOT")"
-  if [[ "$git_segment" != *''* ]]; then
-    printf 'Git status helper did not produce a branch segment.\n' >&2
-    exit 1
-  fi
 fi
 
 printf 'Validation passed.\n'

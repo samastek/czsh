@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Installer `--upgrade` and `--uninstall` options for managing an existing
   CZSH installation.
+- Available RAM is shown in the tmux status bar on supported systems.
 
 ### Fixed
 
