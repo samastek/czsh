@@ -404,8 +404,8 @@ the prompt must reflect the newest remote state.
 The installer provisions TPM and installs:
 
 - `tmux-sensible`
-- `tmux-resurrect`, including pane-content capture
-- `tmux-continuum`, saving every 15 minutes and restoring automatically
+- `tmux-resurrect`, for explicit session restoration without stale pane contents
+- `tmux-continuum`, saving every 15 minutes without automatic restoration
 - `tmux-yank`
 - `vim-tmux-navigator`
 
@@ -414,7 +414,8 @@ CZSH links a small loader into both `~/.vim/plugin` and
 available without modifying an existing Vim or Neovim configuration file.
 
 With `tmux-resurrect`, use `prefix` + `Ctrl+S` to save a session and `prefix` +
-`Ctrl+R` to restore it manually; continuum also saves and restores sessions.
+`Ctrl+R` to restore it manually; continuum keeps the saved state current without
+restoring it automatically when a new tmux server starts.
 
 ## Customization
 

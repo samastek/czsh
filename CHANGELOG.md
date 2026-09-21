@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The active tmux window is now highlighted with a filled pill.
 - Destroying the current tmux session switches to the next remaining session.
+- Tmux sessions save automatically without restoring stale pane contents or
+  restarting sessions when a new tmux server starts.
 - The project picker visually distinguishes existing sessions from directories
   that can open a new session and prompts for the name of newly created
   sessions.
