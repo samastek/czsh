@@ -149,6 +149,10 @@ load_prerequisite_specs() {
 			"delta:git-delta"
 			"atuin:atuin"
 			"yazi:yazi"
+			"btop:btop"
+			"dust:dust"
+			"glow:glow"
+			"sops:sops"
 		)
 	fi
 }

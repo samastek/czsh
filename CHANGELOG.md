@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Available RAM is shown in the tmux status bar on supported systems.
 - `git soft-reset-base` resets a feature branch to its recorded creation
   commit while retaining subsequent changes in the index.
+- Btop, dust, glow, and sops as managed modern CLI tools, installed via
+  Homebrew on macOS and pinned GitHub releases on Linux.
 
 ### Fixed
 

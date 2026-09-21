@@ -144,8 +144,11 @@ run:
   CZSH does not install Vim itself.
 
 The default setup also installs `eza`, `fd`, ripgrep, zoxide, Delta, Atuin,
-direnv, and Yazi. Zoxide supplies `z`/`zi`, Delta is the Git pager, and `y`
-opens Yazi and changes the shell directory to its exit location.
+direnv, Yazi, btop, dust, glow, and sops. Zoxide supplies `z`/`zi`, Delta is
+the Git pager, and `y` opens Yazi and changes the shell directory to its exit
+location. Btop is an interactive resource monitor, dust is a fast disk-usage
+visualizer, glow renders Markdown in the terminal, and sops encrypts secrets
+in files such as `.sops.yaml`-managed configuration.
 
 Neovim is opt-in. It is installed only when `--neovim` is present. That option
 installs the pinned release under `~/.local/share` and links `nvim` into
