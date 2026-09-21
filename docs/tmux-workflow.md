@@ -172,8 +172,8 @@ enabled.
 
 ## Persistence
 
-tmux-continuum saves state every 15 minutes and asks tmux-resurrect to restore
-it when a new tmux server starts.
+tmux-continuum saves state every 15 minutes. Restoration is deliberately manual
+so a new tmux server cannot reopen stale or crashed terminal application state.
 
 Manual controls are useful before a reboot or a large rearrangement:
 
@@ -182,9 +182,10 @@ Manual controls are useful before a reboot or a large rearrangement:
 | prefix + <kbd>Ctrl</kbd>+<kbd>S</kbd> | Save now |
 | prefix + <kbd>Ctrl</kbd>+<kbd>R</kbd> | Restore now |
 
-Resurrect can restore sessions, windows, panes, directories, and captured pane
-contents. It cannot reliably recreate arbitrary in-memory application state.
-Save work inside editors and applications normally.
+Resurrect restores sessions, windows, panes, and directories, but CZSH does not
+capture pane contents. This avoids replaying stale screens from crashed terminal
+applications. It cannot reliably recreate arbitrary in-memory application state;
+save work inside editors and applications normally.
 
 ## Reading the status bar
 
