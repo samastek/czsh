@@ -12,7 +12,8 @@ command -v fzf >/dev/null 2>&1 || {
 reset=$'\033[0m'
 bold=$'\033[1m'
 muted=$'\033[38;2;139;148;158m'
-session_color=$'\033[38;2;125;133;144m'
+running_session_color=$'\033[38;2;158;206;106m'
+current_session_color=$'\033[38;2;125;133;144m'
 project_color=$'\033[38;2;128;168;216m'
 
 session_name_for_directory() {
@@ -98,8 +99,10 @@ entries="$({
     while IFS=$'\t' read -r name attached windows session_path; do
       [[ -n "$name" ]] || continue
       state='running'
+      session_color="$running_session_color"
       if [[ "$name" == "$current_session" ]]; then
         state+=' · current'
+        session_color="$current_session_color"
       elif (( attached > 0 )); then
         state+=" · ${attached} attached"
       fi
