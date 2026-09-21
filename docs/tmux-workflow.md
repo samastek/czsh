@@ -50,11 +50,22 @@ Press prefix + <kbd>f</kbd>, or press <kbd>Ctrl</kbd>+<kbd>F</kbd> without
 the prefix while inside tmux.
 
 The picker combines existing sessions, zoxide history, and project directories
-under <code>~/workspace</code>. Choosing a directory:
+under <code>~/workspace</code>. Existing tmux sessions stay at the top in muted
+<code>● SESSION</code> rows marked as running, with current/attached state and
+window count. Directories
+that can open a project are shown as a blue <code>◆ PROJECT</code> row with the
+project name and full path. If a directory already has a session, only its
+session row is shown. Choosing a directory:
 
-1. derives a safe session name from the directory name,
-2. creates the session in that directory if needed, and
-3. switches the current client to it.
+1. derives a safe default session name from the directory name,
+2. opens a naming prompt for a new session,
+3. uses the default when <kbd>Enter</kbd> is pressed on an empty prompt, and
+4. creates the session in that directory and switches the current client to it.
+
+Custom names may contain letters, numbers, underscores, and hyphens. Press
+<kbd>Ctrl</kbd>+<kbd>C</kbd> at the naming prompt to cancel without creating a
+session. Selecting an existing session switches immediately without showing
+the naming prompt.
 
 Type part of a project name, move to the result, and press
 <kbd>Enter</kbd>. Press <kbd>Esc</kbd> to cancel.
@@ -69,7 +80,9 @@ tks documentation   # terminate it
 ~~~
 
 Inside tmux, the built-in session picker is prefix + <kbd>s</kbd> and session
-rename is prefix + <kbd>$</kbd>.
+rename is prefix + <kbd>$</kbd>. Destroying the current session moves the client
+to the next remaining session in alphabetical order instead of closing the tmux
+client. If no other sessions remain, the client detaches normally.
 
 ## Windows
 

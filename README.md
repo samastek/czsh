@@ -309,6 +309,8 @@ widgets remain loaded from the installed FZF shell integration.
   into `KILL`.
 - **`git-update-all`** uses fd's parallel executor to pull every Git repository
   below the current directory with rebase and autostash.
+- **`git soft-reset-base`** finds the current branch's creation commit in its
+  reflog and soft-resets to it, leaving the removed commits' changes staged.
 - **`ta NAME`**, **`tls`**, **`tns NAME`**, and **`tks NAME`** attach, list,
   create, and terminate tmux sessions.
 

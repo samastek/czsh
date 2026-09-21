@@ -78,6 +78,29 @@ git commit
 The patch mode of <code>git add</code> lets you review and stage individual
 hunks while keeping Git itself as the source of truth.
 
+### Rebuild the current branch's commits
+
+To remove every commit made since the current branch was created while keeping
+their combined changes staged:
+
+~~~sh
+git soft-reset-base --dry-run
+git soft-reset-base
+~~~
+
+The command reads the branch's creation entry from its reflog, shows the current
+and target commits, then runs a soft reset. It does not guess that the parent is
+<code>main</code>, so it also works for branches created from another feature
+branch. It refuses detached HEADs, common long-lived branches, in-progress Git
+operations, and ambiguous history after a rebase unless explicitly forced.
+
+The previous tip remains available through <code>ORIG_HEAD</code> and the reflog.
+Immediately undo the operation with:
+
+~~~sh
+git reset --soft ORIG_HEAD
+~~~
+
 ## Lazygit: full repository interface
 
 Run it directly:

@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+Usage: git soft-reset-base [--dry-run] [--force]
+
+Soft-reset the current branch to the commit recorded when the branch was
+created. Commits after that point are removed while their changes remain
+staged.
+
+Options:
+  -n, --dry-run  Show the detected creation commit without resetting
+  -f, --force    Allow protected branches or a non-ancestor creation commit
+  -h, --help     Show this help
+EOF
+}
+
+die() {
+  printf 'git soft-reset-base: %s\n' "$*" >&2
+  exit 1
+}
+
+dry_run=false
+force=false
+
+while (( $# )); do
+  case "$1" in
+    -n|--dry-run) dry_run=true ;;
+    -f|--force) force=true ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      usage >&2
+      die "unknown option: $1"
+      ;;
+  esac
+  shift
+done
+
+git rev-parse --git-dir >/dev/null 2>&1 || die 'not inside a Git repository'
+
+branch="$(git symbolic-ref --quiet --short HEAD)" ||
+  die 'detached HEAD has no branch creation point'
+
+case "$branch" in
+  main|master|develop|development|trunk)
+    $force || die "refusing to reset protected branch '$branch' (use --force if intentional)"
+    ;;
+esac
+
+for state_name in MERGE_HEAD CHERRY_PICK_HEAD REVERT_HEAD; do
+  state_path="$(git rev-parse --git-path "$state_name")"
+  [[ ! -e "$state_path" ]] || die "finish the in-progress Git operation first ($state_name exists)"
+done
+for state_name in rebase-merge rebase-apply; do
+  state_path="$(git rev-parse --git-path "$state_name")"
+  [[ ! -d "$state_path" ]] || die 'finish the in-progress rebase first'
+done
+
+creation_entry="$(
+  git reflog show --format='%H%x09%gs' "refs/heads/$branch" |
+    awk -F '\t' '$2 ~ /^branch: Created from / { entry=$1 "\t" $2 } END { if (entry) print entry }'
+)"
+
+[[ -n "$creation_entry" ]] || die \
+  "the creation entry for '$branch' is unavailable; its reflog may have expired"
+
+creation_commit="${creation_entry%%$'\t'*}"
+creation_reason="${creation_entry#*$'\t'}"
+git cat-file -e "${creation_commit}^{commit}" 2>/dev/null ||
+  die 'the recorded creation commit no longer exists'
+
+old_head="$(git rev-parse HEAD)"
+if [[ "$old_head" == "$creation_commit" ]]; then
+  printf "Branch '%s' is already at its creation commit %s.\n" \
+    "$branch" "$(git rev-parse --short "$creation_commit")"
+  exit 0
+fi
+
+if ! git merge-base --is-ancestor "$creation_commit" "$old_head"; then
+  $force || die \
+    'the creation commit is no longer an ancestor of HEAD; use --force if this is expected after a rebase'
+fi
+
+printf "Branch:   %s\n" "$branch"
+printf "Current:  %s  %s\n" "$(git rev-parse --short "$old_head")" \
+  "$(git show -s --format=%s "$old_head")"
+printf "Creation: %s  %s\n" "$(git rev-parse --short "$creation_commit")" \
+  "$(git show -s --format=%s "$creation_commit")"
+printf "Reflog:   %s\n" "$creation_reason"
+
+if $dry_run; then
+  printf 'Dry run: no refs or index entries changed.\n'
+  exit 0
+fi
+
+git reset --soft "$creation_commit"
+printf 'Soft reset complete. The removed commits remain recoverable via ORIG_HEAD and the reflog.\n'
+printf 'Undo with: git reset --soft ORIG_HEAD\n'

@@ -7,24 +7,135 @@ command -v fzf >/dev/null 2>&1 || {
   exit 1
 }
 
+# Labels remain readable without color; the palette makes the two entry types
+# distinguishable at a glance in the normal CZSH terminal theme.
+reset=$'\033[0m'
+bold=$'\033[1m'
+muted=$'\033[38;2;139;148;158m'
+session_color=$'\033[38;2;125;133;144m'
+project_color=$'\033[38;2;128;168;216m'
+
+session_name_for_directory() {
+  local directory_name="${1%/}"
+  directory_name="${directory_name##*/}"
+  printf '%s' "$directory_name" | tr '.:' '__' | tr -cs '[:alnum:]_-' '_'
+}
+
+sessions=''
+current_session=''
+if command -v tmux >/dev/null 2>&1; then
+  sessions="$(tmux list-sessions \
+    -F $'#{session_name}\t#{session_attached}\t#{session_windows}\t#{session_path}' \
+    2>/dev/null || true)"
+  if [[ -n "${TMUX:-}" ]]; then
+    current_session="$(tmux display-message -p '#S' 2>/dev/null || true)"
+  fi
+fi
+
+session_exists_for_directory() {
+  local directory="${1%/}"
+  local expected_name name attached windows session_path
+  expected_name="$(session_name_for_directory "$directory")"
+
+  [[ -n "$sessions" ]] || return 1
+  while IFS=$'\t' read -r name attached windows session_path; do
+    session_path="${session_path%/}"
+    if [[ "$session_path" == "$directory" || "$name" == "$expected_name" || \
+      "$name" == "${expected_name}_" ]]; then
+      return 0
+    fi
+  done <<<"$sessions"
+  return 1
+}
+
+print_project_entry() {
+  local directory="${1%/}"
+  local project_name
+
+  [[ -n "$directory" ]] || return
+  session_exists_for_directory "$directory" && return
+  project_name="${directory##*/}"
+  printf 'directory\t%s\t%s◆ PROJECT%s  %s%s%s  %s%s%s\n' \
+    "$directory" "$project_color" "$reset" "$bold" "$project_name" \
+    "$reset" "$muted" "$directory" "$reset"
+}
+
+prompt_for_session_name() {
+  local directory="$1"
+  local default_name="$2"
+  local candidate=''
+
+  if [[ -t 1 ]]; then
+    printf '\033[2J\033[H'
+  fi
+  printf '%sCreate tmux session%s\n\n' "$bold" "$reset"
+  printf 'Project: %s\n\n' "$directory"
+
+  while true; do
+    printf 'Session name [%s]: ' "$default_name"
+    if ! IFS= read -r candidate; then
+      printf '\nSession creation cancelled.\n'
+      return 1
+    fi
+    candidate="${candidate:-$default_name}"
+
+    if [[ ! "$candidate" =~ ^[[:alnum:]_][[:alnum:]_-]*$ ]]; then
+      printf 'Use only letters, numbers, underscores, and hyphens.\n'
+      continue
+    fi
+    if tmux has-session -t "=$candidate" 2>/dev/null; then
+      printf "A session named '%s' already exists; choose another name.\n" "$candidate"
+      continue
+    fi
+
+    REPLY="$candidate"
+    return 0
+  done
+}
+
 entries="$({
-  if command -v tmux >/dev/null 2>&1; then
-    tmux list-sessions -F $'session\t#{session_name}' 2>/dev/null || true
+  if [[ -n "$sessions" ]]; then
+    while IFS=$'\t' read -r name attached windows session_path; do
+      [[ -n "$name" ]] || continue
+      state='running'
+      if [[ "$name" == "$current_session" ]]; then
+        state+=' · current'
+      elif (( attached > 0 )); then
+        state+=" · ${attached} attached"
+      fi
+      if (( windows == 1 )); then
+        window_label='1 window'
+      else
+        window_label="${windows} windows"
+      fi
+      display_name="$(session_name_for_directory "$session_path")"
+      if [[ "$name" != "$display_name" && "$name" != "${display_name}_" ]]; then
+        display_name="$name"
+      fi
+      printf 'session\t%s\t%s● SESSION%s  %s%s%s%s  %s%s · %s%s\n' \
+        "$name" "$session_color" "$reset" "$session_color" "$bold" \
+        "$display_name" "$reset" "$muted" "$state" "$window_label" "$reset"
+    done <<<"$sessions"
   fi
   if command -v zoxide >/dev/null 2>&1; then
-    zoxide query -l 2>/dev/null | awk '{ print "directory\t" $0 }'
+    while IFS= read -r directory; do
+      print_project_entry "$directory"
+    done < <(zoxide query -l 2>/dev/null || true)
   fi
   if [[ -d "$HOME/workspace" ]]; then
     find "$HOME/workspace" -mindepth 1 -maxdepth 2 \
       \( -type d -exec test -e '{}/.git' \; -print -prune \) -o \
-      -type d -print 2>/dev/null | awk '{ print "directory\t" $0 }'
+      -type d -print 2>/dev/null | while IFS= read -r directory; do
+        print_project_entry "$directory"
+      done
   fi
 } | awk -F '\t' '!seen[$2]++')"
 
-selection="$(printf '%s\n' "$entries" | fzf --delimiter=$'\t' --with-nth=2 \
-  --prompt='session/project> ' --height=100% --reverse)" || exit 0
+selection="$(printf '%s\n' "$entries" | fzf --ansi --delimiter=$'\t' --with-nth=3 \
+  --no-sort --prompt='switch/open> ' --height=100% --reverse)" || exit 0
 kind="${selection%%$'\t'*}"
 value="${selection#*$'\t'}"
+value="${value%%$'\t'*}"
 
 if [[ "$kind" == session ]]; then
   if [[ -n "${TMUX:-}" ]]; then
@@ -34,8 +145,11 @@ if [[ "$kind" == session ]]; then
   fi
 fi
 
-session_name="$(basename "$value" | tr '.:' '__' | tr -cs '[:alnum:]_-' '_')"
-if ! tmux has-session -t "=$session_name" 2>/dev/null; then
+default_session_name="$(session_name_for_directory "$value")"
+session_name="$default_session_name"
+if ! tmux has-session -t "=$default_session_name" 2>/dev/null; then
+  prompt_for_session_name "$value" "$default_session_name" || exit 0
+  session_name="$REPLY"
   tmux new-session -d -s "$session_name" -c "$value"
 fi
 
