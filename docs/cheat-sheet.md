@@ -131,7 +131,7 @@ Prefix is <kbd>Ctrl</kbd>+<kbd>A</kbd>.
 | <kbd>y</kbd> | Copy to system clipboard |
 | <kbd>Esc</kbd> | Cancel |
 
-## Tmux Git markers
+## Prompt Git markers
 
 | Marker | Meaning |
 | --- | --- |

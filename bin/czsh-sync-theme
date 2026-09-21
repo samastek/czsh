@@ -19,7 +19,7 @@ cat >"$tmux_dir/theme.conf" <<EOF
 # Generated from features/runtime/10-theme.zsh by czsh-sync-theme.
 set -g status-style "fg=$CZSH_THEME_FG,bg=$CZSH_THEME_BG"
 set -g status-left "#{?client_prefix,#[fg=$CZSH_THEME_BG#,bg=$CZSH_THEME_YELLOW#,bold] PREFIX #[fg=$CZSH_THEME_FG#,bg=$CZSH_THEME_BG#,nobold] ,}"
-set -g status-right "#(~/.config/czsh/bin/czsh-tmux-git-status #{q:pane_current_path}) #[fg=$CZSH_THEME_MUTED]#{?pane_synchronized,│ 󰓦 sync ,}│ #(~/.config/czsh/bin/czsh-tmux-battery)#{?#{!=:#{SSH_CONNECTION},},#[fg=$CZSH_THEME_YELLOW]#H #[fg=$CZSH_THEME_MUTED]│ ,}#[fg=$CZSH_THEME_FG]%a %d %b #[fg=$CZSH_THEME_MUTED]│ #[fg=$CZSH_THEME_BLUE,bold]%H:%M "
+set -g status-right "#[fg=$CZSH_THEME_MUTED]#{?pane_synchronized,│ 󰓦 sync ,}│ #(~/.config/czsh/bin/czsh-tmux-ram)#(~/.config/czsh/bin/czsh-tmux-battery)#{?#{!=:#{SSH_CONNECTION},},#[fg=$CZSH_THEME_YELLOW]#H #[fg=$CZSH_THEME_MUTED]│ ,}#[fg=$CZSH_THEME_FG]%a %d %b #[fg=$CZSH_THEME_MUTED]│ #[fg=$CZSH_THEME_BLUE,bold]%H:%M "
 setw -g window-status-format "#[fg=$CZSH_THEME_MUTED,bg=$CZSH_THEME_BG] #I #[fg=$CZSH_THEME_FG]#W#{?window_flags, #[fg=$CZSH_THEME_MUTED]#F,} "
 setw -g window-status-current-format "#[fg=$CZSH_THEME_BG,bg=$CZSH_THEME_GREEN,bold] #I #W#{?window_zoomed_flag, 󰊓,} #[fg=$CZSH_THEME_FG,bg=$CZSH_THEME_BG,nobold]"
 setw -g window-status-activity-style "fg=$CZSH_THEME_YELLOW,bg=$CZSH_THEME_BG"

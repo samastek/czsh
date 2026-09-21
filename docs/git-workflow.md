@@ -10,18 +10,18 @@ and can be mixed freely.
 
 ## Passive Git context
 
-Outside tmux, the prompt shows the branch and whether staged or unstaged
-changes exist. Inside tmux, the status bar carries richer Git information:
+The prompt shows a Powerlevel10k-style capsule in every terminal, including
+inside tmux, but the renderer is implemented directly in Zsh:
 
 | Marker | Meaning |
 | --- | --- |
 | <code> branch</code> | Current branch |
 | <code>⇡N</code> / <code>⇣N</code> | Ahead / behind upstream |
-| <code>+N</code> | Staged |
-| <code>~N</code> | Modified |
-| <code>?N</code> | Untracked |
-| <code>!N</code> | Conflicted |
-| <code>≡N</code> | Stashed |
+| <code>+N</code> | Staged files |
+| <code>~N</code> | Modified tracked files |
+| <code>?N</code> | Untracked files |
+| <code>!N</code> | Conflicts |
+| <code>≡N</code> | Stashes |
 
 This is context, not a replacement for <code>git status</code>. Run the full
 command before committing or discarding changes.

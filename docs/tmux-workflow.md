@@ -177,26 +177,11 @@ Save work inside editors and applications normally.
 
 The current window is green. The right side can show:
 
-- Git branch and repository state for the active pane.
 - A battery indicator on supported laptops.
+- Available RAM on supported systems.
 - <code>sync</code> when pane input synchronization is enabled.
 - The hostname when connected through SSH.
 - Date and time.
-
-Git markers:
-
-| Marker | Meaning |
-| --- | --- |
-| <code> main</code> | Branch, or short commit when detached |
-| <code>⇡N</code> / <code>⇣N</code> | Commits ahead of / behind upstream |
-| <code>+N</code> | Staged files |
-| <code>~N</code> | Modified tracked files |
-| <code>?N</code> | Untracked files |
-| <code>!N</code> | Conflicts |
-| <code>≡N</code> | Stashes |
-
-Remote counts use locally known refs. Run <code>git fetch</code> when you need
-fresh ahead/behind information.
 
 ## A practical project layout
 

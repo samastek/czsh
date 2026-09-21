@@ -85,7 +85,7 @@ CZSH provides the following as one managed setup:
 | Component | Configuration |
 | --- | --- |
 | [Oh My Zsh](https://ohmyz.sh/) | Installed under `~/.config/czsh/oh-my-zsh` and updated on subsequent runs. |
-| CZSH prompt | A two-line native prompt with path and exit status. Outside tmux it also shows the Git branch and dirty state. |
+| CZSH prompt | A two-line native prompt with path, Git branch/dirty state, and exit status in every terminal. |
 | [FZF](https://github.com/junegunn/fzf) | Installed under `~/.config/czsh/fzf` with Zsh completion and key bindings enabled. |
 | Nerd Fonts | Installs Hack, Roboto Mono, and DejaVu Sans Mono from official release archives. |
 
@@ -98,10 +98,11 @@ The runtime preserves the terminal's advertised `TERM`, enables `no_nomatch`, se
 ~/.config/czsh/fzf/bin
 ```
 
-The prompt uses Zsh built-ins only and never reads from standard input. For more
-Bash-like interactive command handling, unmatched glob characters, `!`, and
-`=command` are passed through literally, interactive comments are accepted, and
-pipeline redirection uses Bash semantics instead of Zsh `MULTIOS` behavior.
+The prompt is implemented in native Zsh and uses Git's porcelain status for its
+repository capsule; it never reads from standard input. For more Bash-like
+interactive command handling, unmatched glob characters, `!`, and `=command`
+are passed through literally, interactive comments are accepted, and pipeline
+redirection uses Bash semantics instead of Zsh `MULTIOS` behavior.
 These settings make pasted commands and text pipelines less surprising without
 changing Zsh into a Bash-compatible script interpreter; Bash scripts should
 still be run with their shebang or explicitly with `bash`.
@@ -355,25 +356,23 @@ pane's current folder rather than its foreground process, which keeps multiple
 editors and shells distinguishable.
 
 The prompt, tmux, FZF, bat, and Lazygit share the Tokyo Night tokens exported
-by `features/runtime/10-theme.zsh`. The status line shows Git state, optional
-laptop battery, SSH hostname, synchronized-pane state, date, and time. Git is collected
-asynchronously on tmux's refresh interval and includes the branch, upstream
-ahead/behind counts, staged, modified, untracked, conflicted, and stashed item
-counts. Everything else uses native tmux formats. Holding the prefix highlights
-a `PREFIX` indicator.
+by `features/runtime/10-theme.zsh`. The prompt always shows the Git branch and
+dirty state. The tmux status line shows optional laptop battery, available RAM,
+SSH hostname, synchronized-pane state, date, and time. Everything else uses
+native tmux formats. Holding the prefix highlights a `PREFIX` indicator.
 
-| Git marker | Meaning |
+| Prompt marker | Meaning |
 | --- | --- |
 | ` main` | Current branch, or the short commit when detached. |
 | `⇡N` / `⇣N` | Commits ahead of / behind the configured upstream. |
-| `+N` | Staged changes. |
+| `+N` | Staged files. |
 | `~N` | Modified tracked files. |
 | `?N` | Untracked files. |
 | `!N` | Conflicted files. |
 | `≡N` | Stashed entries. |
 
 Ahead/behind counts use the locally known tracking ref. Run `git fetch` when
-the status bar must reflect the newest remote state.
+the prompt must reflect the newest remote state.
 
 ### Core bindings
 
