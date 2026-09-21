@@ -49,15 +49,47 @@ else
   printf 'Skipping ShellCheck: shellcheck is not installed.\n'
 fi
 
+if command -v git >/dev/null 2>&1; then
+  printf 'Testing soft reset to branch creation...\n'
+  reset_repo="$(mktemp -d "${TMPDIR:-/tmp}/czsh-soft-reset.XXXXXX")"
+  git init -q "$reset_repo"
+  git -C "$reset_repo" config user.name 'CZSH Test'
+  git -C "$reset_repo" config user.email 'test@example.invalid'
+  git -C "$reset_repo" commit -q --allow-empty -m 'base commit'
+  reset_base="$(git -C "$reset_repo" rev-parse HEAD)"
+  git -C "$reset_repo" checkout -q -b feature/test
+  git -C "$reset_repo" commit -q --allow-empty -m 'feature one'
+  git -C "$reset_repo" commit -q --allow-empty -m 'feature two'
+  reset_tip="$(git -C "$reset_repo" rev-parse HEAD)"
+
+  (
+    cd "$reset_repo"
+    PATH="$REPO_ROOT/bin:$PATH" git soft-reset-base --dry-run >/dev/null
+  )
+  [[ "$(git -C "$reset_repo" rev-parse HEAD)" == "$reset_tip" ]]
+  (
+    cd "$reset_repo"
+    PATH="$REPO_ROOT/bin:$PATH" git soft-reset-base >/dev/null
+  )
+  [[ "$(git -C "$reset_repo" rev-parse HEAD)" == "$reset_base" ]]
+  [[ "$(git -C "$reset_repo" rev-parse ORIG_HEAD)" == "$reset_tip" ]]
+  rm -rf "$reset_repo"
+fi
+
 if command -v tmux >/dev/null 2>&1; then
   printf 'Parsing tmux configuration...\n'
   tmux_home="$(mktemp -d "${TMPDIR:-/tmp}/czsh-tmux.XXXXXX")"
   HOME="$tmux_home" CZSH_THEME_FILE="$REPO_ROOT/features/runtime/10-theme.zsh" \
     bin/czsh-sync-theme
-  tmux_status="$(HOME="$tmux_home" tmux -L czsh-validation -f dotfiles/tmux.conf \
-    start-server \; show-options -gv status-right \; kill-server)"
-  if [[ "$tmux_status" != *'czsh-tmux-battery'* || "$tmux_status" != *'czsh-tmux-ram'* ]]; then
+  tmux_options="$(HOME="$tmux_home" tmux -L czsh-validation -f dotfiles/tmux.conf \
+    start-server \; show-options -gv status-right \; \
+    show-options -gv detach-on-destroy \; kill-server)"
+  if [[ "$tmux_options" != *'czsh-tmux-battery'* || "$tmux_options" != *'czsh-tmux-ram'* ]]; then
     printf 'Generated tmux theme was not loaded with system indicators.\n' >&2
+    exit 1
+  fi
+  if [[ "$tmux_options" != *$'\nnext' ]]; then
+    printf 'Tmux does not switch to the next session after one is destroyed.\n' >&2
     exit 1
   fi
   rm -rf "$tmux_home"

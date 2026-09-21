@@ -76,6 +76,7 @@ layout python3
 | <code>git switch BRANCH</code> | Change branches |
 | <code>git stash</code> | Stash current changes |
 | <code>git worktree list</code> | List worktrees |
+| <code>git soft-reset-base</code> | Soft-reset to the current branch's creation commit |
 | <code>lazygit</code> | Full repository TUI |
 | <code>git-update-all</code> | Pull repositories below current directory |
 
