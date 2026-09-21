@@ -50,9 +50,9 @@ Press prefix + <kbd>f</kbd>, or press <kbd>Ctrl</kbd>+<kbd>F</kbd> without
 the prefix while inside tmux.
 
 The picker combines existing sessions, zoxide history, and project directories
-under <code>~/workspace</code>. Existing tmux sessions stay at the top in muted
+under <code>~/workspace</code>. Existing tmux sessions stay at the top in green
 <code>● SESSION</code> rows marked as running, with current/attached state and
-window count. Directories
+window count; the current session is muted gray. Directories
 that can open a project are shown as a blue <code>◆ PROJECT</code> row with the
 project name and full path. If a directory already has a session, only its
 session row is shown. Choosing a directory:
