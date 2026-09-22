@@ -2,6 +2,16 @@
 
 set -euo pipefail
 
+# tmux keeps the environment from when its server was started.  In long-lived
+# sessions that PATH may predate CZSH, so include the locations where CZSH and
+# common user-level installers place fzf before checking for it.
+for bin_dir in "$HOME/.config/czsh/fzf/bin" "$HOME/.local/bin"; do
+  if [[ -d "$bin_dir" ]]; then
+    PATH="$bin_dir:$PATH"
+  fi
+done
+export PATH
+
 command -v fzf >/dev/null 2>&1 || {
   printf 'czsh-sessionizer requires fzf\n' >&2
   exit 1
