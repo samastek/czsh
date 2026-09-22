@@ -29,6 +29,33 @@ install_pinned_tar_tool() {
 	fi
 }
 
+install_pinned_raw_tool() {
+	local command_name="$1"
+	local display_name="$2"
+	local repo="$3"
+	local asset_name="$4"
+	local version="$5"
+	local tag_name="$6"
+
+	if command -v "$command_name" >/dev/null 2>&1 && [[ "$UPGRADE_TOOLS" != true ]]; then
+		logAlreadyInstalled "$display_name"
+		return 0
+	fi
+
+	if command -v "$command_name" >/dev/null 2>&1; then
+		logUpdating "$display_name to $version"
+	else
+		logInstalling "$display_name $version"
+	fi
+
+	if install_github_release_binary "$repo" "$asset_name" "$HOME/.local/bin/$command_name" "$tag_name"; then
+		logInstalled "$display_name $version"
+	else
+		logWarning "Failed to install $display_name release asset $asset_name"
+		return 1
+	fi
+}
+
 install_yazi_release() {
 	local target="$1"
 	local asset_name="yazi-${target}.zip"
@@ -76,6 +103,10 @@ install_feature_cli_tools() {
 	local delta_target=""
 	local eza_asset=""
 	local yazi_target=""
+	local btop_target=""
+	local dust_target=""
+	local glow_target=""
+	local sops_target=""
 
 	print_section "Modern CLI Tools" "$PACKAGE" "$CYAN"
 
@@ -91,6 +122,10 @@ install_feature_cli_tools() {
 			delta_target="x86_64-unknown-linux-gnu"
 			eza_asset="eza_x86_64-unknown-linux-gnu.tar.gz"
 			yazi_target="x86_64-unknown-linux-gnu"
+			btop_target="x86_64-unknown-linux-musl"
+			dust_target="x86_64-unknown-linux-gnu"
+			glow_target="Linux_x86_64"
+			sops_target="linux.amd64"
 			;;
 		arm64)
 			atuin_target="aarch64-unknown-linux-gnu"
@@ -98,6 +133,10 @@ install_feature_cli_tools() {
 			delta_target="aarch64-unknown-linux-gnu"
 			eza_asset="eza_aarch64-unknown-linux-gnu.tar.gz"
 			yazi_target="aarch64-unknown-linux-gnu"
+			btop_target="aarch64-unknown-linux-musl"
+			dust_target="aarch64-unknown-linux-gnu"
+			glow_target="Linux_arm64"
+			sops_target="linux.arm64"
 			;;
 		*)
 			logWarning "Pinned modern CLI releases are unavailable for $CZSH_ARCH"
@@ -115,6 +154,14 @@ install_feature_cli_tools() {
 		install_pinned_tar_tool eza Eza eza-community/eza \
 			"$eza_asset" eza "$EZA_VERSION" "v$EZA_VERSION" || true
 		install_yazi_release "$yazi_target" || true
+		install_pinned_tar_tool btop Btop aristocratos/btop \
+			"btop-${btop_target}.tar.gz" btop "$BTOP_VERSION" "v$BTOP_VERSION" || true
+		install_pinned_tar_tool dust Dust bootandy/dust \
+			"dust-v${DUST_VERSION}-${dust_target}.tar.gz" dust "$DUST_VERSION" "v$DUST_VERSION" || true
+		install_pinned_tar_tool glow Glow charmbracelet/glow \
+			"glow_${GLOW_VERSION}_${glow_target}.tar.gz" glow "$GLOW_VERSION" "v$GLOW_VERSION" || true
+		install_pinned_raw_tool sops Sops getsops/sops \
+			"sops-v${SOPS_VERSION}.${sops_target}" "$SOPS_VERSION" "v$SOPS_VERSION" || true
 	fi
 
 	# Debian names these binaries differently. Stable command names keep the

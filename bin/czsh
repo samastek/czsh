@@ -11,6 +11,7 @@ doctor() {
   local commands=(
     zsh git wget bat curl jq fc-cache python3 fd rg direnv tmux unzip
     hyperfine shellcheck eza zoxide delta atuin yazi ya fzf lazygit lazydocker
+    btop dust glow sops
   )
 
   if [[ "${OSTYPE:-}" == linux* ]] && command -v journalctl >/dev/null 2>&1; then

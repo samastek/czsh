@@ -11,6 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Installer `--upgrade` and `--uninstall` options for managing an existing
   CZSH installation.
+- Available RAM is shown in the tmux status bar on supported systems.
+- `git soft-reset-base` resets a feature branch to its recorded creation
+  commit while retaining subsequent changes in the index.
+- Btop, dust, glow, and sops as managed modern CLI tools, installed via
+  Homebrew on macOS and pinned GitHub releases on Linux.
 
 ### Fixed
 
@@ -20,6 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The active tmux window is now highlighted with a filled pill.
+- Destroying the current tmux session switches to the next remaining session.
+- The project picker visually distinguishes existing sessions from directories
+  that can open a new session and prompts for the name of newly created
+  sessions.
 
 ## [1.0.1] - 2026-09-19
 

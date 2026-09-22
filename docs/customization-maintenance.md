@@ -87,8 +87,9 @@ CZSH_PROMPT_YELLOW='#f9e2af'
 CZSH_PROMPT_MUTED='#6c7086'
 ~~~
 
-Outside tmux, the prompt shows branch and dirty state. Inside tmux, Git context
-moves to the status bar to avoid showing the same information twice.
+The prompt shows the branch and dirty state in every terminal, including inside
+tmux. Its Git capsule keeps the former tmux colors by default; variables named
+<code>CZSH_GIT_*_FG</code> and <code>CZSH_GIT_*_BG</code> can override them.
 
 Over SSH or as root, the prompt also displays <code>user@host</code>.
 

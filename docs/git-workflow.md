@@ -10,18 +10,18 @@ and can be mixed freely.
 
 ## Passive Git context
 
-Outside tmux, the prompt shows the branch and whether staged or unstaged
-changes exist. Inside tmux, the status bar carries richer Git information:
+The prompt shows a Powerlevel10k-style capsule in every terminal, including
+inside tmux, but the renderer is implemented directly in Zsh:
 
 | Marker | Meaning |
 | --- | --- |
 | <code> branch</code> | Current branch |
 | <code>⇡N</code> / <code>⇣N</code> | Ahead / behind upstream |
-| <code>+N</code> | Staged |
-| <code>~N</code> | Modified |
-| <code>?N</code> | Untracked |
-| <code>!N</code> | Conflicted |
-| <code>≡N</code> | Stashed |
+| <code>+N</code> | Staged files |
+| <code>~N</code> | Modified tracked files |
+| <code>?N</code> | Untracked files |
+| <code>!N</code> | Conflicts |
+| <code>≡N</code> | Stashes |
 
 This is context, not a replacement for <code>git status</code>. Run the full
 command before committing or discarding changes.
@@ -77,6 +77,29 @@ git commit
 
 The patch mode of <code>git add</code> lets you review and stage individual
 hunks while keeping Git itself as the source of truth.
+
+### Rebuild the current branch's commits
+
+To remove every commit made since the current branch was created while keeping
+their combined changes staged:
+
+~~~sh
+git soft-reset-base --dry-run
+git soft-reset-base
+~~~
+
+The command reads the branch's creation entry from its reflog, shows the current
+and target commits, then runs a soft reset. It does not guess that the parent is
+<code>main</code>, so it also works for branches created from another feature
+branch. It refuses detached HEADs, common long-lived branches, in-progress Git
+operations, and ambiguous history after a rebase unless explicitly forced.
+
+The previous tip remains available through <code>ORIG_HEAD</code> and the reflog.
+Immediately undo the operation with:
+
+~~~sh
+git reset --soft ORIG_HEAD
+~~~
 
 ## Lazygit: full repository interface
 

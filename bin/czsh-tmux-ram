@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Report available memory in GiB.  Linux exposes the value directly; macOS
+# derives it from the pages that can be reclaimed without swapping.
+available_gib=""
+
+if [[ -r /proc/meminfo ]]; then
+  available_gib="$(awk '$1 == "MemAvailable:" { printf "%.1f", $2 / 1024 / 1024; exit }' /proc/meminfo)"
+elif command -v vm_stat >/dev/null 2>&1; then
+  page_size="$(vm_stat | awk '/page size of/ { gsub(/[^0-9]/, "", $0); print; exit }')"
+  if [[ -n "$page_size" ]]; then
+    available_gib="$(vm_stat | awk -v page_size="$page_size" '
+      /Pages free/ || /Pages inactive/ || /Pages speculative/ {
+        gsub("[^0-9]", "", $NF)
+        pages += $NF
+      }
+      END { if (pages > 0) printf "%.1f", pages * page_size / 1024 / 1024 / 1024 }
+    ')"
+  fi
+fi
+
+[[ -n "$available_gib" ]] && printf '󰍛 %sG │ ' "$available_gib"
