@@ -355,10 +355,10 @@ glclone https://gitlab.example.com/group/subgroup --clone-dir ~/src --https
 ## Tmux configuration
 
 CZSH uses `Ctrl+A` as the tmux prefix and starts window and pane numbering at 1.
-Mouse support, focus events, automatic window renumbering, a 50,000-line history,
-and system-clipboard integration are enabled. Window names follow the active
-pane's current folder rather than its foreground process, which keeps multiple
-editors and shells distinguishable.
+Mouse input is left to the terminal or application. Focus events, automatic
+window renumbering, a 50,000-line history, and system-clipboard integration are
+enabled. Window names follow the active pane's current folder rather than its
+foreground process, which keeps multiple editors and shells distinguishable.
 
 The prompt, tmux, FZF, bat, and Lazygit share the Tokyo Night tokens exported
 by `features/runtime/10-theme.zsh`. The prompt always shows the Git branch and

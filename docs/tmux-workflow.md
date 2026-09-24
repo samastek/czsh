@@ -164,12 +164,11 @@ Enter copy mode with prefix + <kbd>Enter</kbd>.
 | <kbd>y</kbd> | Copy and stay in copy mode |
 | <kbd>Esc</kbd> | Cancel |
 
-Mouse-drag selection copies to the system clipboard and keeps tmux at the
-selected scrollback position. Continue scrolling or press <kbd>Escape</kbd> to
-leave copy mode. The <kbd>y</kbd> key also copies and stays in copy mode. The copy
-binding uses <code>pbcopy</code> on macOS and <code>xclip</code> on Linux. Linux
-users need xclip installed for system clipboard copying. Mouse scrolling, pane
-activation, and pane resizing are also enabled.
+Tmux mouse handling is off, so the terminal or application receives mouse
+input. Use its normal drag selection and wheel scrolling without entering tmux
+copy mode. To read a pane's tmux history, enter copy mode with prefix +
+<kbd>Enter</kbd> and use the keyboard movement keys. The <kbd>y</kbd> key copies
+to the system clipboard and stays in copy mode; <kbd>Escape</kbd> leaves it.
 
 ## Persistence
 
