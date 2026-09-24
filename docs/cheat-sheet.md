@@ -132,6 +132,9 @@ Prefix is <kbd>Ctrl</kbd>+<kbd>A</kbd>.
 | <kbd>y</kbd> | Copy to system clipboard |
 | <kbd>Esc</kbd> | Cancel |
 
+Mouse-drag selection copies to the clipboard and stays at the selected
+scrollback position.
+
 ## Prompt Git markers
 
 | Marker | Meaning |
