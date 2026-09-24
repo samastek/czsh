@@ -75,7 +75,7 @@ ${B}── General ────────────────────�
   ${Y}prefix + e${R}           ${D}│${R} Show this cheatsheet
   ${Y}prefix + ?${R}           ${D}│${R} Show all keybindings
   ${Y}prefix + t${R}           ${D}│${R} Show clock
-  ${D}Mouse selection copies and keeps the current scrollback position.${R}
+  ${D}Mouse input goes to the terminal or application.${R}
 
 EOF
 }

@@ -132,8 +132,8 @@ Prefix is <kbd>Ctrl</kbd>+<kbd>A</kbd>.
 | <kbd>y</kbd> | Copy to system clipboard |
 | <kbd>Esc</kbd> | Cancel |
 
-Mouse-drag selection copies to the clipboard and stays at the selected
-scrollback position.
+Mouse handling is left to the terminal or application. Use prefix +
+<kbd>Enter</kbd> to browse tmux scrollback with the keyboard.
 
 ## Prompt Git markers
 
