@@ -152,23 +152,16 @@ name. The selected pane becomes active.
 For Lazygit, lowercase <kbd>g</kbd> is used. Lazydocker uses uppercase
 <kbd>D</kbd>, so hold <kbd>Shift</kbd> for that binding.
 
-## Copy mode and scrollback
+## Mouse and scrollback
 
-Enter copy mode with prefix + <kbd>Enter</kbd>.
+Tmux mouse handling is off. Drag normally to select text in your terminal;
+tmux does not enter copy mode or copy the selection. The usual keyboard
+shortcuts for copy mode are also disabled.
 
-| Key in copy mode | Action |
-| --- | --- |
-| Vim movement keys | Move through the 50,000-line history |
-| <kbd>v</kbd> | Begin selection |
-| <kbd>Ctrl</kbd>+<kbd>V</kbd> | Toggle rectangular selection |
-| <kbd>y</kbd> | Copy and leave copy mode |
-| <kbd>Esc</kbd> | Cancel |
-
-The copy binding uses <code>pbcopy</code> on macOS and <code>xclip</code> on
-Linux. Linux users need xclip installed for system clipboard copying.
-
-Mouse scrolling, selection, pane activation, and pane resizing are also
-enabled.
+Tmux leaves GNOME Terminal's main screen active, so the wheel uses the
+terminal's scrollback instead of cycling shell commands. Tmux's 50,000-line
+history buffer is still retained, but its copy-mode navigation is disabled.
+Terminal scrollback may be incomplete when switching tmux windows or panes.
 
 ## Persistence
 

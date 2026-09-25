@@ -182,8 +182,6 @@ installation.
 - `sudo` access when the detected system package manager requires it.
 - `tar` for downloaded release archives.
 - A terminal configured to use one of the installed Nerd Fonts.
-- `xclip` on Linux for the configured tmux system-clipboard binding. It is not
-  installed automatically.
 
 ## Installation
 
@@ -355,10 +353,12 @@ glclone https://gitlab.example.com/group/subgroup --clone-dir ~/src --https
 ## Tmux configuration
 
 CZSH uses `Ctrl+A` as the tmux prefix and starts window and pane numbering at 1.
-Mouse support, focus events, automatic window renumbering, a 50,000-line history,
-and system-clipboard integration are enabled. Window names follow the active
-pane's current folder rather than its foreground process, which keeps multiple
-editors and shells distinguishable.
+Tmux mouse handling and copy-mode shortcuts are disabled. Drag normally to
+select text in your terminal, and use the wheel for terminal scrollback. Focus
+events, automatic window renumbering, a
+50,000-line history buffer, and clipboard integration are enabled. Window names
+follow the active pane's current folder rather than its foreground process,
+which keeps multiple editors and shells distinguishable.
 
 The prompt, tmux, FZF, bat, and Lazygit share the Tokyo Night tokens exported
 by `features/runtime/10-theme.zsh`. The prompt always shows the Git branch and
@@ -392,8 +392,6 @@ the prompt must reflect the newest remote state.
 | `prefix` + `H/J/K/L` | Resize panes in five-cell increments. |
 | `Shift+Left` / `Shift+Right` | Change windows without the prefix. |
 | `prefix` + `<` / `>` | Move the current window. |
-| `prefix` + `Enter` | Enter Vi copy mode. |
-| `v`, `Ctrl+V`, `y` in copy mode | Select, toggle rectangle, and copy. |
 | `prefix` + `r` | Reload the configuration. |
 | `prefix` + `e` | Open the CZSH tmux help in a popup. |
 | `prefix` + `g` / `D` | Open Lazygit / Lazydocker in a popup. |
@@ -406,7 +404,6 @@ The installer provisions TPM and installs:
 - `tmux-sensible`
 - `tmux-resurrect`, including pane-content capture
 - `tmux-continuum`, saving every 15 minutes and restoring automatically
-- `tmux-yank`
 - `vim-tmux-navigator`
 
 CZSH links a small loader into both `~/.vim/plugin` and
@@ -541,11 +538,6 @@ exec zsh
 Select Hack Nerd Font, Roboto Mono Nerd Font, or DejaVu Sans Mono Nerd Font in
 the terminal application's font settings. Installing a font does not make the
 terminal select it automatically.
-
-### Tmux copy mode does not reach the Linux clipboard
-
-Install `xclip`. The macOS binding uses `pbcopy`, while the Linux binding invokes
-`xclip -in -selection clipboard`.
 
 ### Restore the previous Zsh configuration
 
