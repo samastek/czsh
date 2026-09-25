@@ -122,19 +122,11 @@ Prefix is <kbd>Ctrl</kbd>+<kbd>A</kbd>.
 | prefix + <kbd>Ctrl</kbd>+<kbd>R</kbd> | Restore session state |
 | prefix + <kbd>r</kbd> | Reload tmux configuration |
 
-### Copy mode
+### Mouse and selection
 
-| Binding | Action |
-| --- | --- |
-| prefix + <kbd>Enter</kbd> | Enter copy mode |
-| <kbd>v</kbd> | Begin selection |
-| <kbd>Ctrl</kbd>+<kbd>V</kbd> | Rectangle selection |
-| <kbd>y</kbd> | Copy to system clipboard |
-| <kbd>Esc</kbd> | Cancel |
-
-The wheel scrolls tmux history or the active application. Hold
-<kbd>Shift</kbd> while dragging to select text in GNOME Terminal without tmux
-copy mode.
+Tmux does not handle mouse input, and its copy-mode shortcuts are disabled.
+Drag normally to select text in your terminal. The terminal decides what the
+wheel does; in GNOME Terminal inside tmux, it may cycle shell history.
 
 ## Prompt Git markers
 
