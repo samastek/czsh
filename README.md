@@ -354,7 +354,8 @@ glclone https://gitlab.example.com/group/subgroup --clone-dir ~/src --https
 
 CZSH uses `Ctrl+A` as the tmux prefix and starts window and pane numbering at 1.
 Tmux mouse handling and copy-mode shortcuts are disabled. Drag normally to
-select text in your terminal. Focus events, automatic window renumbering, a
+select text in your terminal, and use the wheel for terminal scrollback. Focus
+events, automatic window renumbering, a
 50,000-line history buffer, and clipboard integration are enabled. Window names
 follow the active pane's current folder rather than its foreground process,
 which keeps multiple editors and shells distinguishable.
