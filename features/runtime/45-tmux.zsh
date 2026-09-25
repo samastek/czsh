@@ -75,7 +75,7 @@ ${B}── General ────────────────────�
   ${Y}prefix + e${R}           ${D}│${R} Show this cheatsheet
   ${Y}prefix + ?${R}           ${D}│${R} Show all keybindings
   ${Y}prefix + t${R}           ${D}│${R} Show clock
-  ${D}Mouse input goes to the terminal or application.${R}
+  ${D}Hold Shift while dragging to select in GNOME Terminal.${R}
 
 EOF
 }

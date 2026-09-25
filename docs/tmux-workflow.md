@@ -164,11 +164,14 @@ Enter copy mode with prefix + <kbd>Enter</kbd>.
 | <kbd>y</kbd> | Copy and stay in copy mode |
 | <kbd>Esc</kbd> | Cancel |
 
-Tmux mouse handling is off, so the terminal or application receives mouse
-input. Use its normal drag selection and wheel scrolling without entering tmux
-copy mode. To read a pane's tmux history, enter copy mode with prefix +
-<kbd>Enter</kbd> and use the keyboard movement keys. The <kbd>y</kbd> key copies
-to the system clipboard and stays in copy mode; <kbd>Escape</kbd> leaves it.
+Mouse support is enabled for pane selection, resizing, and scrollback. In a
+shell pane, the wheel scrolls tmux history; in mouse-aware applications such as
+Codex, it scrolls the application. GNOME Terminal lets you bypass tmux mouse
+handling by holding <kbd>Shift</kbd> while dragging, so the terminal selects
+text without entering tmux copy mode. To browse tmux history with the
+keyboard, enter copy mode with prefix + <kbd>Enter</kbd>. The <kbd>y</kbd> key
+copies to the system clipboard and stays in copy mode; <kbd>Escape</kbd> leaves
+it.
 
 ## Persistence
 
