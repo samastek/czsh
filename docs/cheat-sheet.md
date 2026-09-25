@@ -132,8 +132,9 @@ Prefix is <kbd>Ctrl</kbd>+<kbd>A</kbd>.
 | <kbd>y</kbd> | Copy to system clipboard |
 | <kbd>Esc</kbd> | Cancel |
 
-Mouse handling is left to the terminal or application. Use prefix +
-<kbd>Enter</kbd> to browse tmux scrollback with the keyboard.
+The wheel scrolls tmux history or the active application. Hold
+<kbd>Shift</kbd> while dragging to select text in GNOME Terminal without tmux
+copy mode.
 
 ## Prompt Git markers
 
