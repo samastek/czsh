@@ -125,8 +125,8 @@ Prefix is <kbd>Ctrl</kbd>+<kbd>A</kbd>.
 ### Mouse and selection
 
 Tmux does not handle mouse input, and its copy-mode shortcuts are disabled.
-Drag normally to select text in your terminal. The terminal decides what the
-wheel does; in GNOME Terminal inside tmux, it may cycle shell history.
+Drag normally to select text in your terminal. In GNOME Terminal, the wheel
+uses terminal scrollback.
 
 ## Prompt Git markers
 

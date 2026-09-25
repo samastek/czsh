@@ -158,10 +158,10 @@ Tmux mouse handling is off. Drag normally to select text in your terminal;
 tmux does not enter copy mode or copy the selection. The usual keyboard
 shortcuts for copy mode are also disabled.
 
-The terminal decides what the wheel does. In GNOME Terminal inside tmux, wheel
-input may cycle shell command history. Tmux's 50,000-line history buffer is
-still retained, but its copy-mode navigation is disabled. For terminal
-scrollback, use a shell outside tmux.
+Tmux leaves GNOME Terminal's main screen active, so the wheel uses the
+terminal's scrollback instead of cycling shell commands. Tmux's 50,000-line
+history buffer is still retained, but its copy-mode navigation is disabled.
+Terminal scrollback may be incomplete when switching tmux windows or panes.
 
 ## Persistence
 
