@@ -53,13 +53,6 @@ ${B}── Panes ─────────────────────
   ${Y}prefix + !${R}           ${D}│${R} Break pane into new window
   ${Y}prefix + q${R}           ${D}│${R} Show pane numbers (then press N)
 
-${B}── Copy mode ──────────────────────────────────────────────${R}
-  ${Y}prefix + Enter${R}       ${D}│${R} Enter copy mode
-  ${Y}v${R}                    ${D}│${R} Begin selection       ${D}(in copy mode)${R}
-  ${Y}Ctrl+v${R}               ${D}│${R} Toggle rectangle mode ${D}(in copy mode)${R}
-  ${Y}y${R}                    ${D}│${R} Yank to clipboard     ${D}(in copy mode)${R}
-  ${Y}Escape${R}               ${D}│${R} Cancel copy mode
-
 ${B}── Plugins ────────────────────────────────────────────────${R}
   ${Y}prefix + Ctrl+s${R}      ${D}│${R} Save session    ${D}(tmux-resurrect)${R}
   ${Y}prefix + Ctrl+r${R}      ${D}│${R} Restore session ${D}(tmux-resurrect)${R}
@@ -75,7 +68,7 @@ ${B}── General ────────────────────�
   ${Y}prefix + e${R}           ${D}│${R} Show this cheatsheet
   ${Y}prefix + ?${R}           ${D}│${R} Show all keybindings
   ${Y}prefix + t${R}           ${D}│${R} Show clock
-  ${D}Hold Shift while dragging to select in GNOME Terminal.${R}
+  ${D}Tmux ignores the mouse; select text directly in your terminal.${R}
 
 EOF
 }

@@ -152,26 +152,16 @@ name. The selected pane becomes active.
 For Lazygit, lowercase <kbd>g</kbd> is used. Lazydocker uses uppercase
 <kbd>D</kbd>, so hold <kbd>Shift</kbd> for that binding.
 
-## Copy mode and scrollback
+## Mouse and scrollback
 
-Enter copy mode with prefix + <kbd>Enter</kbd>.
+Tmux mouse handling is off. Drag normally to select text in your terminal;
+tmux does not enter copy mode or copy the selection. The usual keyboard
+shortcuts for copy mode are also disabled.
 
-| Key in copy mode | Action |
-| --- | --- |
-| Vim movement keys | Move through the 50,000-line history |
-| <kbd>v</kbd> | Begin selection |
-| <kbd>Ctrl</kbd>+<kbd>V</kbd> | Toggle rectangular selection |
-| <kbd>y</kbd> | Copy and stay in copy mode |
-| <kbd>Esc</kbd> | Cancel |
-
-Mouse support is enabled for pane selection, resizing, and scrollback. In a
-shell pane, the wheel scrolls tmux history; in mouse-aware applications such as
-Codex, it scrolls the application. GNOME Terminal lets you bypass tmux mouse
-handling by holding <kbd>Shift</kbd> while dragging, so the terminal selects
-text without entering tmux copy mode. To browse tmux history with the
-keyboard, enter copy mode with prefix + <kbd>Enter</kbd>. The <kbd>y</kbd> key
-copies to the system clipboard and stays in copy mode; <kbd>Escape</kbd> leaves
-it.
+The terminal decides what the wheel does. In GNOME Terminal inside tmux, wheel
+input may cycle shell command history. Tmux's 50,000-line history buffer is
+still retained, but its copy-mode navigation is disabled. For terminal
+scrollback, use a shell outside tmux.
 
 ## Persistence
 
