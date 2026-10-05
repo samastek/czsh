@@ -74,11 +74,29 @@ doctor() {
 
 case "${1:-help}" in
 doctor) doctor ;;
+scan)
+  shift
+  module="$HOME/.config/czsh/features/runtime/15-tool-environments.zsh"
+  if [[ ! -r "$module" ]]; then
+    printf 'CZSH tool detector is missing. Run ./install.sh first.\n' >&2
+    exit 1
+  fi
+  exec zsh -f -c '
+    source "$1" || exit
+    shift
+    _czsh_scan "$@"
+    result=$?
+    if (( $# == 0 && result == 0 )); then
+      print -r -- "Open a new CZSH shell to load these environments."
+    fi
+    exit "$result"
+  ' czsh-scan "$module" "$@"
+  ;;
 help|-h|--help)
-  printf 'Usage: czsh doctor\n'
+  printf 'Usage: czsh {doctor|scan}\n'
   ;;
 *)
-  printf 'Unknown command: %s\nUsage: czsh doctor\n' "$1" >&2
+  printf 'Unknown command: %s\nUsage: czsh {doctor|scan}\n' "$1" >&2
   exit 2
   ;;
 esac

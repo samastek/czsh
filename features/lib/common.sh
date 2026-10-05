@@ -482,7 +482,11 @@ copy_base_configuration_files() {
 	print_section "Configuration Files" "$GEAR" "$BLUE"
 	logProgress "Copying configuration files and feature modules..."
 
-	cp -f "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc"
+	if [[ -f "$HOME/.zshrc" ]] && grep -q '/.config/czsh/czshrc.zsh' "$HOME/.zshrc"; then
+		logInfo "Keeping existing CZSH .zshrc and third-party additions"
+	else
+		cp -f "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc"
+	fi
 	cp -f "$SCRIPT_DIR/czshrc.zsh" "$CZSH_HOME/czshrc.zsh"
 	sync_runtime_features
 	for helper in "$SCRIPT_DIR"/bin/*; do
