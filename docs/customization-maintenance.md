@@ -9,6 +9,11 @@ The repository is the source for the managed installation. Running
 <code>./install.sh</code> copies runtime files and helper commands into
 <code>~/.config/czsh</code>.
 
+On upgrades, the installer keeps an existing CZSH <code>~/.zshrc</code>
+unchanged. Settings appended by Homebrew, language-manager installers, or other
+tools survive alongside the loader. Only the initial installation replaces an
+unmanaged <code>.zshrc</code>, after creating a timestamped backup.
+
 Personal shell settings belong in:
 
 ~~~text
@@ -30,6 +35,35 @@ Startup order:
 The order explains when a value can be consumed or overwritten. Prompt color
 variables are designed for personal overrides. Managed post-runtime aliases
 such as <code>l</code> and <code>cat</code> intentionally win after Oh My Zsh.
+
+## Automatic tool detection and repair
+
+Homebrew, nvm, fnm, Volta, npm global binaries, pnpm, Cargo, and Bun are detected
+automatically in their standard locations. Existing tool home variables and
+Node-manager initialization take precedence over defaults.
+
+After installing a tool, run:
+
+~~~sh
+czsh scan
+~~~
+
+Inside CZSH, this repairs PATH and initialization in the current session and
+reports detected integrations. Outside CZSH, it detects integrations and caches
+npm's global prefix; start a new CZSH shell to apply the environment.
+
+Scanning queries npm's prefix from your home directory, so a project's
+<code>.npmrc</code> does not become your global shell configuration. The prefix
+is cached in <code>~/.config/czsh/state/npm-prefix</code>. Startup uses the user
+<code>.npmrc</code> or this plain-text cache without launching npm. Simple
+absolute paths, quotes, <code>~/</code>, and <code>${HOME}</code> work in the
+user prefix setting; scanning handles other npm configuration formats.
+
+If several Node managers are installed, an initialized nvm or fnm environment
+is retained; otherwise detection prefers Volta, then fnm, then nvm. Set
+<code>CZSH_AUTO_DETECT_TOOLS=false</code> before startup to opt out. Manual scans
+still work. Detection initializes installed tools; it cannot infer arbitrary
+settings that were already deleted.
 
 ## Personal shell configuration
 
@@ -214,6 +248,7 @@ The validation suite checks:
 
 - Bash and Zsh syntax.
 - A clean-HOME runtime smoke test.
+- Automatic tool detection, scan repair, and preservation of `.zshrc` additions.
 - ShellCheck results.
 - tmux configuration parsing.
 

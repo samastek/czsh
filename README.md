@@ -15,8 +15,10 @@ collection of unrelated dotfiles. The installer is designed to run again when
 the configuration needs to be synchronized or managed tools need to be updated.
 
 > [!IMPORTANT]
-> CZSH replaces `~/.zshrc` after moving the existing file to a timestamped
-> backup. It also manages both standard tmux configuration paths. Review the
+> On first installation, CZSH replaces `~/.zshrc` after moving the existing file
+> to a timestamped backup. Upgrades retain an existing CZSH `.zshrc`, including
+> additions made by other installers. It also manages both standard tmux
+> configuration paths. Review the
 > [files changed by the installer](#files-and-directories) before running it.
 
 ## Quick start
@@ -415,6 +417,44 @@ With `tmux-resurrect`, use `prefix` + `Ctrl+S` to save a session and `prefix` +
 
 ## Customization
 
+### Automatic tool environments
+
+CZSH detects supported installed tools at startup and restores their shell
+environment without requiring you to copy initialization lines into `.zshrc`:
+
+- Homebrew in its standard macOS/Linux locations, on PATH, or at `BREW_LOCATION`.
+- Node through nvm, fnm, or Volta, including npm supplied by the selected manager.
+  nvm is also detected under `$XDG_CONFIG_HOME/nvm` or `~/.config/nvm`.
+- npm global binaries from `NPM_CONFIG_PREFIX`, a `prefix` entry in the user
+  `.npmrc`, the prefix cached by a scan, or `~/.npm-global/bin`.
+- pnpm, Cargo, and Bun in their usual user directories or their configured
+  `PNPM_HOME`, `CARGO_HOME`, and `BUN_INSTALL` locations.
+
+After installing a tool, repair and inspect the current CZSH session with:
+
+```zsh
+czsh scan
+```
+
+The scan also queries npm from your home directory and caches its global prefix
+for future shells. Startup reads the user `.npmrc` and cache without running
+npm. Simple absolute paths, quoted paths, `~/`, and `${HOME}` are supported in
+the `.npmrc` prefix; use `czsh scan` for other npm configuration formats.
+The cache contains a path as plain text, not executable shell code.
+
+When run outside a CZSH session, the command detects tools and updates the npm
+cache; open a new CZSH shell to apply the environment. Detection does not install
+tools or reconstruct arbitrary deleted shell settings.
+
+An already initialized nvm or fnm environment is retained. Otherwise, CZSH
+prefers Volta, then fnm, then nvm if several managers are installed. Homebrew is
+initialized before plugins; other tools are initialized after personal overrides
+and Oh My Zsh so custom locations and existing manager initialization take
+precedence. Set `CZSH_AUTO_DETECT_TOOLS=false` before startup to disable automatic
+detection; `czsh scan` remains available for manual repair.
+
+### Personal overrides
+
 Personal configuration belongs in:
 
 ```text
@@ -504,8 +544,10 @@ explicit upgrade. Neovim is updated only with `--neovim --upgrade`. The installe
 repository's current runtime and post-runtime modules into the managed
 configuration.
 
-Reruns recognize the managed `~/.zshrc` and do not create backup chains. Files
-inside `~/.config/czsh/zshrc` are retained.
+Reruns recognize the CZSH `~/.zshrc` and keep it intact, including symlinks and
+settings appended by other installers. Runtime modules and helper commands are
+updated separately, so no backup chain or manual migration is needed on
+upgrades. Files inside `~/.config/czsh/zshrc` are also retained.
 
 To remove the managed loaders and tmux links and restore the backups recorded
 at installation time, run `./install.sh --uninstall`. Personal overrides and
