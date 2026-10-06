@@ -405,7 +405,7 @@ The installer provisions TPM and installs:
 
 - `tmux-sensible`
 - `tmux-resurrect`, including pane-content capture
-- `tmux-continuum`, saving every 15 minutes and restoring automatically
+- `tmux-continuum`, saving every 15 minutes
 - `vim-tmux-navigator`
 
 CZSH links a small loader into both `~/.vim/plugin` and
@@ -413,7 +413,8 @@ CZSH links a small loader into both `~/.vim/plugin` and
 available without modifying an existing Vim or Neovim configuration file.
 
 With `tmux-resurrect`, use `prefix` + `Ctrl+S` to save a session and `prefix` +
-`Ctrl+R` to restore it manually; continuum also saves and restores sessions.
+`Ctrl+R` to restore it manually. Continuum also saves every 15 minutes;
+automatic restoration is disabled.
 
 ## Customization
 
