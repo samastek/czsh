@@ -56,7 +56,7 @@ ${B}── Panes ─────────────────────
 ${B}── Plugins ────────────────────────────────────────────────${R}
   ${Y}prefix + Ctrl+s${R}      ${D}│${R} Save session    ${D}(tmux-resurrect)${R}
   ${Y}prefix + Ctrl+r${R}      ${D}│${R} Restore session ${D}(tmux-resurrect)${R}
-  ${D}Sessions auto-save every 15 minutes and restore on server start.${R}
+  ${D}Sessions auto-save every 15 minutes; restore manually with prefix + Ctrl+r.${R}
 
 ${B}── Popups ─────────────────────────────────────────────────${R}
   ${Y}prefix + g${R}           ${D}│${R} Lazygit in current directory
