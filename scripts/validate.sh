@@ -36,6 +36,9 @@ if command -v zsh >/dev/null 2>&1; then
     '_czsh_prompt_precmd; [[ -n "$CZSH_THEME_BLUE" && "$FZF_DEFAULT_OPTS" == *"$CZSH_THEME_BLUE"* && "$PROMPT" == *""* && "$PROMPT" == *""* && "$PROMPT" == *""* && " ${plugins[*]} " != *" z "* ]] && whence -w myip >/dev/null && whence -w git-update-all >/dev/null && [[ "$(alias l)" == *"eza -la --git --icons"* || "$(alias l)" == *"ls -la"* ]]'
   HOME="$smoke_home" ZDOTDIR="$smoke_home" TMUX=1 zsh -ic \
     '_czsh_prompt_precmd; [[ "$PROMPT" == *""* && "$PROMPT" == *""* && "$PROMPT" == *""* ]]'
+
+  printf 'Testing tool detection and configuration preservation...\n'
+  python3 scripts/test-tool-environments.py
 else
   printf 'Skipping Zsh syntax check: zsh is not installed.\n'
 fi

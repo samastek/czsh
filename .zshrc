@@ -1,10 +1,5 @@
-################# DO NOT MODIFY THIS FILE #######################
-####### PLACE YOUR CONFIGS IN ~/.config/czsh/zshrc FOLDER #######
-#################################################################
-
-# This file is created by czsh setup.
-# Place all your .zshrc configurations / overrides in a single or multiple files under ~/.config/czsh/zshrc/ folder
-# Your original .zshrc is backed up at ~/.zshrc-backup-%y-%m-%d
+# CZSH keeps this loader and third-party additions intact during upgrades.
+# Optional personal overrides live in ~/.config/czsh/zshrc/.
 
 
 # Load czsh configurations

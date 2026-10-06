@@ -5,6 +5,20 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] - 2026-10-05
+
+### Added
+
+- Automatic detection of Homebrew, nvm, fnm, Volta, npm global binaries,
+  pnpm, Cargo, and Bun shell environments.
+- `czsh scan` to repair the current shell environment and cache npm's global
+  prefix for future sessions.
+
+### Fixed
+
+- Upgrades retain existing CZSH `.zshrc` files and symlinks, preserving settings
+  appended by third-party installers while updating runtime modules separately.
+
 ## [Unreleased]
 
 ### Added

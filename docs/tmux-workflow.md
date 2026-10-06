@@ -165,8 +165,9 @@ Terminal scrollback may be incomplete when switching tmux windows or panes.
 
 ## Persistence
 
-tmux-continuum saves state every 15 minutes and asks tmux-resurrect to restore
-it when a new tmux server starts.
+tmux-continuum saves state every 15 minutes. Automatic restoration is disabled;
+start tmux and use prefix + <kbd>Ctrl</kbd>+<kbd>R</kbd> to restore the latest
+saved state manually.
 
 Manual controls are useful before a reboot or a large rearrangement:
 
