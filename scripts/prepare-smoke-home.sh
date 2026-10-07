@@ -21,6 +21,8 @@ mkdir -p \
   "$smoke_home/.cache/zsh"
 
 cp "$repo_root/.zshrc" "$smoke_home/.zshrc"
+# Oh My Zsh initializes completion after configuring the managed plugin paths.
+printf '%s\n' 'skip_global_compinit=1' > "$smoke_home/.zshenv"
 cp "$repo_root/czshrc.zsh" "$smoke_home/.config/czsh/czshrc.zsh"
 cp "$repo_root"/features/runtime/*.zsh "$smoke_home/.config/czsh/features/runtime/"
 cp "$repo_root"/features/post/*.zsh "$smoke_home/.config/czsh/features/post/"
