@@ -368,8 +368,10 @@ dirty state. The tmux status line shows optional laptop battery, available RAM,
 SSH hostname, synchronized-pane state, date, and time. Everything else uses
 native tmux formats. Holding the prefix highlights a `PREFIX` indicator.
 
-After each command, the right prompt shows its elapsed time in seconds with two
-decimal places beside the exit status, for example `1.23s ✔ 0` or `0.05s ✘ 1`.
+After each command, the right prompt shows its elapsed time beside the exit
+status. Durations under a minute use seconds with two decimal places; longer
+durations use minutes and seconds, such as `1.23s ✔ 0`, `0.05s ✘ 1`, or
+`40m 2.06s ✔ 0`.
 
 | Prompt marker | Meaning |
 | --- | --- |
