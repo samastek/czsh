@@ -87,7 +87,7 @@ CZSH provides the following as one managed setup:
 | Component | Configuration |
 | --- | --- |
 | [Oh My Zsh](https://ohmyz.sh/) | Installed under `~/.config/czsh/oh-my-zsh` and updated on subsequent runs. |
-| CZSH prompt | A two-line native prompt with path, Git branch/dirty state, and exit status in every terminal. |
+| CZSH prompt | A two-line native prompt with path, Git branch/dirty state, command duration in seconds, and exit status in every terminal. |
 | [FZF](https://github.com/junegunn/fzf) | Installed under `~/.config/czsh/fzf` with Zsh completion and key bindings enabled. |
 | Nerd Fonts | Installs Hack, Roboto Mono, and DejaVu Sans Mono from official release archives. |
 
@@ -363,10 +363,16 @@ follow the active pane's current folder rather than its foreground process,
 which keeps multiple editors and shells distinguishable.
 
 The prompt, tmux, FZF, bat, and Lazygit share the Tokyo Night tokens exported
-by `features/runtime/10-theme.zsh`. The prompt always shows the Git branch and
-dirty state. The tmux status line shows optional laptop battery, available RAM,
+by `features/runtime/10-theme.zsh`. The prompt updates the Git branch and dirty
+state in the background, keeping the command line available during slow scans.
+The tmux status line shows optional laptop battery, available RAM,
 SSH hostname, synchronized-pane state, date, and time. Everything else uses
 native tmux formats. Holding the prefix highlights a `PREFIX` indicator.
+
+After each command, the right prompt shows its elapsed time beside the exit
+status. Durations under a minute use seconds with two decimal places; longer
+durations use minutes and seconds, such as `1.23s ✔ 0`, `0.05s ✘ 1`, or
+`40m 2.06s ✔ 0`.
 
 | Prompt marker | Meaning |
 | --- | --- |
@@ -453,6 +459,28 @@ initialized before plugins; other tools are initialized after personal overrides
 and Oh My Zsh so custom locations and existing manager initialization take
 precedence. Set `CZSH_AUTO_DETECT_TOOLS=false` before startup to disable automatic
 detection; `czsh scan` remains available for manual repair.
+
+When using nvm, CZSH reuses an inherited, working Node path or selects an installed
+version from the default alias using numeric version ordering. Numeric versions,
+`node`, and alias chains such as `lts/*` are supported. Node, npm, and global
+binaries remain available immediately; nvm loads on the first `nvm` command or
+`czsh scan`. Defaults that cannot be resolved use normal nvm initialization.
+
+### Shell performance
+
+Startup uses native Zsh file loading and reuses an inherited Homebrew environment.
+Directory-tool initialization is cached under `${XDG_CACHE_HOME:-~/.cache}/czsh/init`
+and refreshed when the executable, initialization options, or cache loader changes.
+Shell functions and aliases wrapping those tools run directly without caching.
+Remove that cache directory to force fresh initialization.
+
+Inline autosuggestions use in-memory shell history by default; Atuin still owns
+`Ctrl+R`. An explicit `ZSH_AUTOSUGGEST_STRATEGY` in personal configuration is retained.
+Git prompt scans run asynchronously in a terminal with job control enabled.
+The previous result is shown
+while refreshing the same directory; changing directories clears it until the
+new result arrives. Set `CZSH_GIT_PROMPT_ASYNC=false` in personal configuration
+to request synchronous updates.
 
 ### Personal overrides
 

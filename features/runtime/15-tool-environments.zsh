@@ -29,9 +29,9 @@ _czsh_tool_path() {
 
 _czsh_init_homebrew() {
     emulate -L zsh
-    local brew_bin="" brew_dir="" brew_env="" candidate=""
+    local brew_bin="" brew_dir="" brew_env="" candidate="" brew_completions=""
     for candidate in \
-        "${BREW_LOCATION:-}" "${commands[brew]:-}" \
+        "${BREW_LOCATION:-}" "$(whence -p brew)" \
         "$HOME/.linuxbrew/bin/brew" /opt/homebrew/bin/brew \
         /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew; do
         if [[ -n "$candidate" && -x "$candidate" ]]; then
@@ -41,6 +41,20 @@ _czsh_init_homebrew() {
     done
     [[ -n "$brew_bin" ]] || return 0
     brew_dir="${brew_bin:h}"
+    if [[ ${_czsh_report:-false} != true && "$brew_dir" == "${HOMEBREW_PREFIX:-}/bin" &&
+          -n ${HOMEBREW_CELLAR:-} && -n ${HOMEBREW_REPOSITORY:-} ]]; then
+        if (( ! ${path[(Ie)$brew_dir]} || ! ${path[(Ie)${HOMEBREW_PREFIX}/sbin]} )); then
+            path=("$brew_dir" "$HOMEBREW_PREFIX/sbin" $path)
+            typeset -gU path
+            export PATH
+        fi
+        brew_completions="$HOMEBREW_PREFIX/share/zsh/site-functions"
+        if [[ -d "$brew_completions" ]] && (( ! ${fpath[(Ie)$brew_completions]} )); then
+            fpath=("$brew_completions" $fpath)
+        fi
+        typeset -g _CZSH_HOMEBREW_BIN="$brew_bin"
+        return 0
+    fi
     if [[ ${_czsh_report:-false} == true || ${_CZSH_HOMEBREW_BIN:-} != "$brew_bin" || -z ${HOMEBREW_PREFIX:-} ]] ||
         (( ! ${path[(Ie)$brew_dir]} )); then
         if brew_env="$("$brew_bin" shellenv 2>/dev/null)" && eval "$brew_env"; then
@@ -53,11 +67,56 @@ _czsh_init_homebrew() {
     _czsh_tool_report Homebrew "$brew_bin"
 }
 
+_czsh_load_nvm() {
+    local nvm_script="$_CZSH_NVM_SCRIPT"
+    unset _CZSH_NVM_SCRIPT
+    unfunction nvm
+    source "$nvm_script" --no-use
+}
+
+_czsh_nvm_default_bin() {
+    emulate -L zsh
+    local version=default alias_file="" node_dir=""
+    local -i depth=0
+    local -a versions
+    REPLY=""
+
+    while (( depth++ < 16 )); do
+        [[ "$version" != /* && "$version" != *..* ]] || return 1
+        alias_file="$NVM_DIR/alias/$version"
+        if [[ -r "$alias_file" ]]; then
+            version="$(<"$alias_file")"
+            version="${version%%$'\n'*}"
+            continue
+        fi
+
+        if [[ "$version" == node ]]; then
+            versions=("$NVM_DIR"/versions/node/v<->.<->.<->(N/))
+        elif [[ "$version" =~ '^v?[0-9]+(\.[0-9]+){0,2}$' ]]; then
+            version="${version#v}"
+            versions=("$NVM_DIR"/versions/node/v${version}(N/) "$NVM_DIR"/versions/node/v${version}.*(N/))
+        else
+            return 1
+        fi
+
+        versions=("${(@On)versions}")
+        for node_dir in "${versions[@]}"; do
+            if [[ -x "$node_dir/bin/node" ]]; then
+                REPLY="$node_dir/bin"
+                return 0
+            fi
+        done
+        return 1
+    done
+    return 1
+}
+
 _czsh_init_node() {
     emulate -L zsh
     local volta_home="${VOLTA_HOME:-$HOME/.volta}"
     local nvm_home="${NVM_DIR:-${XDG_CONFIG_HOME:+$XDG_CONFIG_HOME/nvm}}" nvm_script=""
-    local fnm_bin="${commands[fnm]:-}" fnm_env="" candidate=""
+    local nvm_bin="" REPLY=""
+    local fnm_bin="$(whence -p fnm)" fnm_env="" candidate=""
     [[ -n "$nvm_home" ]] || nvm_home="$HOME/.nvm"
     local -a nvm_scripts=("$nvm_home/nvm.sh")
     if [[ -z ${NVM_DIR:-} ]]; then
@@ -65,6 +124,12 @@ _czsh_init_node() {
     fi
 
     if (( $+functions[nvm] )); then
+        if [[ ${_czsh_report:-false} == true && -n ${_CZSH_NVM_SCRIPT:-} ]]; then
+            if ! _czsh_load_nvm; then
+                _czsh_tool_error "nvm initialization failed: $nvm_home/nvm.sh"
+                return 0
+            fi
+        fi
         _czsh_tool_path nvm "${NVM_BIN:-}" || true
         return 0
     fi
@@ -115,6 +180,27 @@ _czsh_init_node() {
     fi
     if [[ -n "$nvm_script" ]]; then
         export NVM_DIR="$nvm_home"
+        if [[ ${_czsh_report:-false} != true ]]; then
+            if [[ ${NVM_BIN:-} == "$NVM_DIR"/versions/node/*/bin &&
+                  -x "$NVM_BIN/node" && ${commands[node]:-} == "$NVM_BIN/node" ]]; then
+                nvm_bin="$NVM_BIN"
+            elif _czsh_nvm_default_bin; then
+                nvm_bin="$REPLY"
+                export MANPATH="${nvm_bin:h}/share/man:${MANPATH:-}"
+            fi
+        fi
+        if [[ -n "$nvm_bin" ]]; then
+            export NVM_BIN="$nvm_bin"
+            export NVM_INC="${nvm_bin:h}/include/node"
+            _czsh_tool_path nvm "$nvm_bin"
+            typeset -g _CZSH_NVM_SCRIPT="$nvm_script"
+            nvm() {
+                _czsh_load_nvm || return $?
+                (( $+functions[nvm] )) || return 127
+                nvm "$@"
+            }
+            return 0
+        fi
         if source "$nvm_script"; then
             _czsh_tool_report nvm "$nvm_script"
         else

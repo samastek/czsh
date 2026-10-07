@@ -39,6 +39,7 @@ if command -v zsh >/dev/null 2>&1; then
 
   printf 'Testing tool detection and configuration preservation...\n'
   python3 scripts/test-tool-environments.py
+  python3 scripts/test-startup.py
 else
   printf 'Skipping Zsh syntax check: zsh is not installed.\n'
 fi

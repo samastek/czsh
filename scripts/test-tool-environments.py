@@ -126,6 +126,114 @@ class ToolEnvironmentTests(unittest.TestCase):
             "zsh", "-ic", "whence -p node",
         ]), str(node))
 
+    def inherit_nvm(self):
+        self.prepare_runtime()
+        self.env["NVM_DIR"] = str(self.home / ".nvm")
+        self.env["NVM_BIN"] = str(self.home / ".nvm/versions/node/test/bin")
+        self.env["PATH"] = self.env["NVM_BIN"] + ":/usr/bin:/bin"
+        self.write(
+            ".nvm/nvm.sh",
+            '(( NVM_LOAD_COUNT += 1 ))\n'
+            'print -r -- "$*" >> "$HOME/nvm-loads"\n'
+            'nvm() { print -r -- "nvm:$#:$*"; return 7; }\n',
+        )
+        self.write(
+            ".nvm/versions/node/test/bin/npm",
+            '#!/bin/sh\n[ "$*" = "config get prefix" ] || exit 2\n'
+            'printf "%s/.nvm/versions/node/test\\n" "$HOME"\n', True,
+        )
+        return self.write(
+            ".nvm/versions/node/test/bin/node",
+            "#!/bin/sh\nprintf 'inherited-node\\n'\n", True,
+        )
+
+    def test_inherited_node_is_available_without_loading_nvm(self):
+        node = self.inherit_nvm()
+        self.assertEqual(self.run_command([
+            "zsh", "-ic", 'whence -p node; node',
+        ]), str(node) + "\ninherited-node")
+        self.assertFalse((self.home / "nvm-loads").exists())
+
+    def test_fresh_shell_selects_latest_matching_default_without_loading_nvm(self):
+        self.inherit_nvm()
+        del self.env["NVM_BIN"]
+        self.env["PATH"] = "/usr/bin:/bin"
+        self.write(".nvm/alias/default", "22\n")
+        for version in ("v2.9.0", "v22.9.0", "v22.19.0", "v22.20.0", "v24.1.0"):
+            self.write(
+                f".nvm/versions/node/{version}/bin/node",
+                f"#!/bin/sh\nprintf '{version}\\n'\n", True,
+            )
+        self.install_base()
+        self.assertEqual(self.run_command([
+            "zsh", "-ic", 'node; print -rl -- "$NVM_BIN" "$NVM_INC"',
+        ]), f"v22.20.0\n{self.home}/.nvm/versions/node/v22.20.0/bin\n"
+            f"{self.home}/.nvm/versions/node/v22.20.0/include/node")
+        self.assertFalse((self.home / "nvm-loads").exists())
+
+    def test_fresh_shell_resolves_nvm_default_alias_chains(self):
+        for default in ("work", "lts/*", "node", "v22.10.0", "22.10", "2"):
+            with self.subTest(default=default):
+                self.inherit_nvm()
+                del self.env["NVM_BIN"]
+                self.env["PATH"] = "/usr/bin:/bin"
+                self.write(".nvm/alias/default", default + "\n")
+                self.write(".nvm/alias/work", "lts/*\n")
+                self.write(".nvm/alias/lts/*", "lts/jod\n")
+                self.write(".nvm/alias/lts/jod", "v22.10.0\n")
+                for version in ("v2.9.0", "v22.9.0", "v22.10.0"):
+                    self.write(
+                        f".nvm/versions/node/{version}/bin/node",
+                        f"#!/bin/sh\nprintf '{version}\\n'\n", True,
+                    )
+                wanted = "v2.9.0" if default == "2" else "v22.10.0"
+                self.assertEqual(self.run_command(["zsh", "-ic", "node"]), wanted)
+                self.assertFalse((self.home / "nvm-loads").exists())
+
+    def test_unresolved_nvm_default_falls_back_to_normal_initialization(self):
+        for aliases in ({"default": "missing"}, {"default": "loop", "loop": "default"}):
+            with self.subTest(aliases=aliases):
+                self.inherit_nvm()
+                del self.env["NVM_BIN"]
+                self.env["PATH"] = "/usr/bin:/bin"
+                for name, value in aliases.items():
+                    self.write(f".nvm/alias/{name}", value + "\n")
+                self.run_command(["zsh", "-ic", "exit 0"])
+                self.assertEqual((self.home / "nvm-loads").read_text(), "\n")
+                (self.home / "nvm-loads").unlink()
+
+    def test_deferred_nvm_loads_once_and_preserves_arguments_and_status(self):
+        self.inherit_nvm()
+        self.assertEqual(self.run_command([
+            "zsh", "-ic",
+            'nvm use "version with spaces"; print -r -- $?\n'
+            'nvm current; print -r -- "$?:$NVM_LOAD_COUNT"',
+        ]), "nvm:2:use version with spaces\n7\nnvm:1:current\n7:1")
+        self.assertEqual((self.home / "nvm-loads").read_text(), "--no-use\n")
+
+    def test_scan_initializes_deferred_nvm_and_repairs_node_path(self):
+        node = self.inherit_nvm()
+        self.assertEqual(self.run_command([
+            "zsh", "-ic",
+            'path=(/usr/bin /bin)\n'
+            'czsh scan >/dev/null && czsh scan >/dev/null || exit\n'
+            'print -r -- "$NVM_LOAD_COUNT"; whence -p node',
+        ]), "1\n" + str(node))
+
+    def test_stale_inherited_node_environment_initializes_nvm(self):
+        self.inherit_nvm()
+        self.env["NVM_BIN"] = str(self.home / ".nvm/versions/node/missing/bin")
+        self.env["PATH"] = self.env["NVM_BIN"] + ":/usr/bin:/bin"
+        self.run_command(["zsh", "-ic", "exit 0"])
+        self.assertEqual((self.home / "nvm-loads").read_text(), "\n")
+
+    def test_deferred_nvm_reports_initialization_failure(self):
+        self.inherit_nvm()
+        self.write(".nvm/nvm.sh", "return 9\n")
+        self.assertEqual(self.run_command([
+            "zsh", "-ic", 'nvm current; print -r -- $? ',
+        ]), "9")
+
     def test_scan_repairs_current_shell_without_loading_nvm_twice(self):
         self.prepare_runtime()
         self.write(
