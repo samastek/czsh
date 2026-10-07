@@ -34,5 +34,8 @@ PY
 printf 'Mean startup: %s ms\n' "$mean_ms"
 if awk -v mean="$mean_ms" -v budget="$budget_ms" 'BEGIN { exit !(mean > budget) }'; then
   printf 'Startup budget exceeded: %s ms > %s ms\n' "$mean_ms" "$budget_ms" >&2
+  printf '%s\n' 'zmodload zsh/zprof' >> "$smoke_home/.zshenv"
+  env -i HOME="$smoke_home" ZDOTDIR="$smoke_home" PATH=/usr/bin:/bin \
+    TERM=xterm-256color CZSH_AUTO_DETECT_TOOLS=false zsh -ic zprof
   exit 1
 fi
