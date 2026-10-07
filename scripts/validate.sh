@@ -6,6 +6,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
+# A writable completion parent makes compinit rebuild its cache on every startup.
+if [[ ${GITHUB_ACTIONS:-false} == true && -d /usr/share/zsh ]]; then
+  sudo chmod go-w /usr/share/zsh
+fi
+
 bash_files=(install.sh utils.sh get-docker.sh)
 zsh_files=(.zshrc czshrc.zsh bin/czsh-sync-theme)
 
