@@ -4,6 +4,7 @@ import os
 import pty
 import select
 import signal
+import shutil
 from pathlib import Path
 import subprocess
 import tempfile
@@ -46,6 +47,43 @@ class StartupTests(unittest.TestCase):
                                 timeout=15)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         return result.stdout.strip()
+
+    @unittest.skipUnless(Path('/etc/zsh/zshrc').is_file() and
+                         'skip_global_compinit' in Path('/etc/zsh/zshrc').read_text(),
+                         'requires Ubuntu global completion initialization')
+    def test_fixture_avoids_global_completion_prompt_for_insecure_directories(self):
+        completions = self.home / 'insecure-completions'
+        completions.mkdir(mode=0o777)
+        completions.chmod(0o777)
+        self.write('insecure-completions/_test', '#compdef test-command\n')
+        env_file = self.home / '.zshenv'
+        original = env_file.read_text() if env_file.exists() else ''
+        env_file.write_text(original + 'fpath=("$HOME/insecure-completions" $fpath)\n')
+        result = subprocess.run(['zsh', '-ic', 'print ready'], env=self.env,
+                                cwd=self.home, capture_output=True, text=True,
+                                timeout=15)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), 'ready')
+        self.assertNotIn('compinit', result.stderr)
+
+    def test_validation_checks_bash_helpers_without_ripgrep(self):
+        validation = self.home / 'validation'
+        self.write('validation/scripts/validate.sh',
+                   (REPO_ROOT / 'scripts/validate.sh').read_text())
+        (validation / 'features').mkdir()
+        for name in ('install.sh', 'utils.sh', 'get-docker.sh'):
+            self.write(f'validation/{name}', 'true\n')
+        self.write('validation/bin/broken-helper', '#!/usr/bin/env bash\nif\n')
+        tools = self.home / 'validation-tools'
+        tools.mkdir()
+        for name in ('bash', 'dirname', 'find', 'sort', 'grep'):
+            (tools / name).symlink_to(shutil.which(name))
+        env = dict(self.env, PATH=str(tools))
+        result = subprocess.run([str(tools / 'bash'), 'scripts/validate.sh'],
+                                env=env, cwd=validation, capture_output=True,
+                                text=True, timeout=15)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('syntax error', result.stderr)
 
     def test_inherited_homebrew_restores_paths_without_running_brew(self):
         prefix = self.home / "brew"

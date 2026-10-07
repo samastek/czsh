@@ -6,12 +6,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$REPO_ROOT"
 
+# A writable completion parent makes compinit rebuild its cache on every startup.
+if [[ ${GITHUB_ACTIONS:-false} == true && -d /usr/share/zsh ]]; then
+  sudo chmod go-w /usr/share/zsh
+fi
+
 bash_files=(install.sh utils.sh get-docker.sh)
 zsh_files=(.zshrc czshrc.zsh bin/czsh-sync-theme)
 
 while IFS= read -r file; do
   bash_files+=("$file")
-done < <(rg -l '^#!(/usr/bin/env bash|/bin/bash)$' bin | sort)
+done < <(find bin -type f -exec grep -lE '^#!(/usr/bin/env bash|/bin/bash)$' {} + | sort)
 
 while IFS= read -r file; do
   bash_files+=("$file")
@@ -22,11 +27,15 @@ while IFS= read -r file; do
 done < <(find features -type f -name '*.zsh' -print | sort)
 
 printf 'Checking Bash syntax...\n'
-bash -n "${bash_files[@]}"
+for file in "${bash_files[@]}"; do
+  bash -n "$file"
+done
 
 if command -v zsh >/dev/null 2>&1; then
   printf 'Checking Zsh syntax...\n'
-  zsh -n "${zsh_files[@]}"
+  for file in "${zsh_files[@]}"; do
+    zsh -n "$file"
+  done
 
   printf 'Smoke-testing runtime in a clean HOME...\n'
   smoke_home="$(mktemp -d "${TMPDIR:-/tmp}/czsh-smoke.XXXXXX")"
