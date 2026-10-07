@@ -658,7 +658,9 @@ installer does not execute it.
 - Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing code changes.
 - See [CHANGELOG.md](CHANGELOG.md) for release history.
 - Run `./scripts/validate.sh` locally; the same checks run in GitHub Actions.
-- Run `./scripts/bench.sh` to enforce the 150 ms interactive-startup budget.
+- Run `./scripts/bench.sh` to enforce the 150 ms interactive-startup budget with
+  a clean HOME and environment. Tool discovery remains enabled, but inherited
+  settings such as `NVM_DIR` are excluded from this baseline.
 - Run `czsh doctor` after installation to check tools, fonts, and managed links.
 - Use the structured GitHub issue forms for reproducible bugs and focused
   feature requests.
