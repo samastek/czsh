@@ -87,7 +87,7 @@ CZSH provides the following as one managed setup:
 | Component | Configuration |
 | --- | --- |
 | [Oh My Zsh](https://ohmyz.sh/) | Installed under `~/.config/czsh/oh-my-zsh` and updated on subsequent runs. |
-| CZSH prompt | A two-line native prompt with path, Git branch/dirty state, and exit status in every terminal. |
+| CZSH prompt | A two-line native prompt with path, Git branch/dirty state, command duration in seconds, and exit status in every terminal. |
 | [FZF](https://github.com/junegunn/fzf) | Installed under `~/.config/czsh/fzf` with Zsh completion and key bindings enabled. |
 | Nerd Fonts | Installs Hack, Roboto Mono, and DejaVu Sans Mono from official release archives. |
 
@@ -367,6 +367,9 @@ by `features/runtime/10-theme.zsh`. The prompt always shows the Git branch and
 dirty state. The tmux status line shows optional laptop battery, available RAM,
 SSH hostname, synchronized-pane state, date, and time. Everything else uses
 native tmux formats. Holding the prefix highlights a `PREFIX` indicator.
+
+After each command, the right prompt shows its elapsed time in seconds with two
+decimal places beside the exit status, for example `1.23s ✔ 0` or `0.05s ✘ 1`.
 
 | Prompt marker | Meaning |
 | --- | --- |

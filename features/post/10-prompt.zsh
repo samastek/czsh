@@ -3,6 +3,7 @@
 [[ -o interactive ]] || return
 
 autoload -Uz add-zsh-hook
+zmodload zsh/datetime
 
 # Prompt substitution is unnecessary here and can reinterpret text embedded in
 # prompt values. Standard percent escapes such as %~ continue to work without it.
@@ -72,10 +73,21 @@ _czsh_git_prompt() {
     fi
 }
 
+_czsh_prompt_preexec() {
+    typeset -gF _CZSH_COMMAND_STARTED_AT=$EPOCHREALTIME
+}
+
 _czsh_prompt_precmd() {
     local last_status=$?
     local context=''
     local git_context=''
+    local duration_context=''
+
+    if [[ -n $_CZSH_COMMAND_STARTED_AT ]]; then
+        printf -v duration_context '%.2fs' "$(( EPOCHREALTIME - _CZSH_COMMAND_STARTED_AT ))"
+        duration_context="%F{$CZSH_PROMPT_MUTED}${duration_context}%f "
+        unset _CZSH_COMMAND_STARTED_AT
+    fi
 
     # Identity is normally noise, but remains useful over SSH or as root.
     if [[ -n $SSH_CONNECTION || EUID == 0 ]]; then
@@ -94,8 +106,10 @@ _czsh_prompt_precmd() {
     else
         RPROMPT="%F{$CZSH_PROMPT_RED}✘ ${last_status}%f"
     fi
+    RPROMPT="${duration_context}${RPROMPT}"
 }
 
+add-zsh-hook preexec _czsh_prompt_preexec
 add-zsh-hook precmd _czsh_prompt_precmd
 
 # Capture command status before other precmd hooks can replace it.
