@@ -363,8 +363,9 @@ follow the active pane's current folder rather than its foreground process,
 which keeps multiple editors and shells distinguishable.
 
 The prompt, tmux, FZF, bat, and Lazygit share the Tokyo Night tokens exported
-by `features/runtime/10-theme.zsh`. The prompt always shows the Git branch and
-dirty state. The tmux status line shows optional laptop battery, available RAM,
+by `features/runtime/10-theme.zsh`. The prompt updates the Git branch and dirty
+state in the background, keeping the command line available during slow scans.
+The tmux status line shows optional laptop battery, available RAM,
 SSH hostname, synchronized-pane state, date, and time. Everything else uses
 native tmux formats. Holding the prefix highlights a `PREFIX` indicator.
 
@@ -464,6 +465,22 @@ version from the default alias using numeric version ordering. Numeric versions,
 `node`, and alias chains such as `lts/*` are supported. Node, npm, and global
 binaries remain available immediately; nvm loads on the first `nvm` command or
 `czsh scan`. Defaults that cannot be resolved use normal nvm initialization.
+
+### Shell performance
+
+Startup uses native Zsh file loading and reuses an inherited Homebrew environment.
+Directory-tool initialization is cached under `${XDG_CACHE_HOME:-~/.cache}/czsh/init`
+and refreshed when the executable, initialization options, or cache loader changes.
+Shell functions and aliases wrapping those tools run directly without caching.
+Remove that cache directory to force fresh initialization.
+
+Inline autosuggestions use in-memory shell history by default; Atuin still owns
+`Ctrl+R`. An explicit `ZSH_AUTOSUGGEST_STRATEGY` in personal configuration is retained.
+Git prompt scans run asynchronously in a terminal with job control enabled.
+The previous result is shown
+while refreshing the same directory; changing directories clears it until the
+new result arrives. Set `CZSH_GIT_PROMPT_ASYNC=false` in personal configuration
+to request synchronous updates.
 
 ### Personal overrides
 
