@@ -459,6 +459,12 @@ and Oh My Zsh so custom locations and existing manager initialization take
 precedence. Set `CZSH_AUTO_DETECT_TOOLS=false` before startup to disable automatic
 detection; `czsh scan` remains available for manual repair.
 
+When using nvm, CZSH reuses an inherited, working Node path or selects an installed
+version from the default alias using numeric version ordering. Numeric versions,
+`node`, and alias chains such as `lts/*` are supported. Node, npm, and global
+binaries remain available immediately; nvm loads on the first `nvm` command or
+`czsh scan`. Defaults that cannot be resolved use normal nvm initialization.
+
 ### Personal overrides
 
 Personal configuration belongs in:
