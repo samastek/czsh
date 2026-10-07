@@ -82,9 +82,20 @@ _czsh_prompt_precmd() {
     local context=''
     local git_context=''
     local duration_context=''
+    local -F elapsed seconds
+    local -i hundredths minutes
 
     if [[ -n $_CZSH_COMMAND_STARTED_AT ]]; then
-        printf -v duration_context '%.2fs' "$(( EPOCHREALTIME - _CZSH_COMMAND_STARTED_AT ))"
+        elapsed=$(( EPOCHREALTIME - _CZSH_COMMAND_STARTED_AT ))
+        hundredths=$(( elapsed * 100 + 0.5 ))
+        if (( hundredths >= 6000 )); then
+            minutes=$(( hundredths / 6000 ))
+            seconds=$(( hundredths % 6000 / 100.0 ))
+            printf -v duration_context '%dm %.2fs' "$minutes" "$seconds"
+        else
+            seconds=$(( hundredths / 100.0 ))
+            printf -v duration_context '%.2fs' "$seconds"
+        fi
         duration_context="%F{$CZSH_PROMPT_MUTED}${duration_context}%f "
         unset _CZSH_COMMAND_STARTED_AT
     fi
