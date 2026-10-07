@@ -16,9 +16,7 @@ command -v hyperfine >/dev/null 2>&1 || {
 "$script_dir/prepare-smoke-home.sh" "$smoke_home" --full
 
 printf 'Benchmarking interactive CZSH startup (budget: %s ms)...\n' "$budget_ms"
-env -i HOME="$smoke_home" ZDOTDIR="$smoke_home" PATH=/usr/bin:/bin \
-  TERM=xterm-256color CZSH_AUTO_DETECT_TOOLS=false \
-  "$(command -v hyperfine)" \
+HOME="$smoke_home" ZDOTDIR="$smoke_home" TMUX='' hyperfine \
   --warmup 3 --runs 10 --export-json "$results_file" 'zsh -ic exit'
 
 mean_ms="$(python3 - "$results_file" <<'PY'
@@ -35,7 +33,6 @@ printf 'Mean startup: %s ms\n' "$mean_ms"
 if awk -v mean="$mean_ms" -v budget="$budget_ms" 'BEGIN { exit !(mean > budget) }'; then
   printf 'Startup budget exceeded: %s ms > %s ms\n' "$mean_ms" "$budget_ms" >&2
   printf '%s\n' 'zmodload zsh/zprof' >> "$smoke_home/.zshenv"
-  env -i HOME="$smoke_home" ZDOTDIR="$smoke_home" PATH=/usr/bin:/bin \
-    TERM=xterm-256color CZSH_AUTO_DETECT_TOOLS=false zsh -ic zprof
+  HOME="$smoke_home" ZDOTDIR="$smoke_home" TMUX='' zsh -ic zprof
   exit 1
 fi
