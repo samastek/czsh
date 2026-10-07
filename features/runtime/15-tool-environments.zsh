@@ -29,9 +29,9 @@ _czsh_tool_path() {
 
 _czsh_init_homebrew() {
     emulate -L zsh
-    local brew_bin="" brew_dir="" brew_env="" candidate=""
+    local brew_bin="" brew_dir="" brew_env="" candidate="" brew_completions=""
     for candidate in \
-        "${BREW_LOCATION:-}" "${commands[brew]:-}" \
+        "${BREW_LOCATION:-}" "$(whence -p brew)" \
         "$HOME/.linuxbrew/bin/brew" /opt/homebrew/bin/brew \
         /usr/local/bin/brew /home/linuxbrew/.linuxbrew/bin/brew; do
         if [[ -n "$candidate" && -x "$candidate" ]]; then
@@ -41,6 +41,20 @@ _czsh_init_homebrew() {
     done
     [[ -n "$brew_bin" ]] || return 0
     brew_dir="${brew_bin:h}"
+    if [[ ${_czsh_report:-false} != true && "$brew_dir" == "${HOMEBREW_PREFIX:-}/bin" &&
+          -n ${HOMEBREW_CELLAR:-} && -n ${HOMEBREW_REPOSITORY:-} ]]; then
+        if (( ! ${path[(Ie)$brew_dir]} || ! ${path[(Ie)${HOMEBREW_PREFIX}/sbin]} )); then
+            path=("$brew_dir" "$HOMEBREW_PREFIX/sbin" $path)
+            typeset -gU path
+            export PATH
+        fi
+        brew_completions="$HOMEBREW_PREFIX/share/zsh/site-functions"
+        if [[ -d "$brew_completions" ]] && (( ! ${fpath[(Ie)$brew_completions]} )); then
+            fpath=("$brew_completions" $fpath)
+        fi
+        typeset -g _CZSH_HOMEBREW_BIN="$brew_bin"
+        return 0
+    fi
     if [[ ${_czsh_report:-false} == true || ${_CZSH_HOMEBREW_BIN:-} != "$brew_bin" || -z ${HOMEBREW_PREFIX:-} ]] ||
         (( ! ${path[(Ie)$brew_dir]} )); then
         if brew_env="$("$brew_bin" shellenv 2>/dev/null)" && eval "$brew_env"; then
@@ -102,7 +116,7 @@ _czsh_init_node() {
     local volta_home="${VOLTA_HOME:-$HOME/.volta}"
     local nvm_home="${NVM_DIR:-${XDG_CONFIG_HOME:+$XDG_CONFIG_HOME/nvm}}" nvm_script=""
     local nvm_bin="" REPLY=""
-    local fnm_bin="${commands[fnm]:-}" fnm_env="" candidate=""
+    local fnm_bin="$(whence -p fnm)" fnm_env="" candidate=""
     [[ -n "$nvm_home" ]] || nvm_home="$HOME/.nvm"
     local -a nvm_scripts=("$nvm_home/nvm.sh")
     if [[ -z ${NVM_DIR:-} ]]; then

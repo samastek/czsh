@@ -4,6 +4,8 @@
 
 autoload -Uz add-zsh-hook
 zmodload zsh/datetime
+zmodload zsh/system
+typeset -g _CZSH_GIT_JOB_CONTROL=$options[monitor]
 
 # Prompt substitution is unnecessary here and can reinterpret text embedded in
 # prompt values. Standard percent escapes such as %~ continue to work without it.
@@ -45,7 +47,7 @@ _czsh_git_prompt() {
             'u '*) (( conflicted++ )) ;;
             '? '*) (( untracked++ )) ;;
         esac
-    done < <(command git status --porcelain=v2 --branch --show-stash 2>/dev/null)
+    done < <(GIT_OPTIONAL_LOCKS=0 command git status --porcelain=v2 --branch --show-stash </dev/null 2>/dev/null)
 
     [[ -n $head ]] || return
     [[ $head == '(detached)' ]] && head="@${oid[1,7]}"
@@ -73,6 +75,57 @@ _czsh_git_prompt() {
     fi
 }
 
+_czsh_git_cancel() {
+    if [[ -n ${_CZSH_GIT_FD:-} ]]; then
+        zle -F "$_CZSH_GIT_FD"
+        exec {_CZSH_GIT_FD}<&-
+        unset _CZSH_GIT_FD
+    fi
+    if (( ${_CZSH_GIT_PID:-0} > 0 )); then
+        kill -TERM -- "-$_CZSH_GIT_PID" 2>/dev/null ||
+            kill -TERM "$_CZSH_GIT_PID" 2>/dev/null
+        unset _CZSH_GIT_PID
+    fi
+    return 0
+}
+
+_czsh_prompt_render() {
+    local git_context=''
+    if [[ ${_CZSH_GIT_PROMPT_PWD:-} == "$PWD" && -n ${_CZSH_GIT_CONTEXT:-} ]]; then
+        git_context=" $_CZSH_GIT_CONTEXT"
+    fi
+    PROMPT="${_CZSH_PROMPT_PREFIX}${git_context}"$'\n'
+    PROMPT+="%F{$CZSH_PROMPT_MUTED}╰─%f %F{$CZSH_PROMPT_GREEN}❯%f "
+}
+
+_czsh_git_ready() {
+    [[ "$1" == "${_CZSH_GIT_FD:-}" ]] || return 0
+    local git_context='' request_pwd="$_CZSH_GIT_REQUEST_PWD"
+    IFS= read -r git_context <&"$_CZSH_GIT_FD"
+    unset _CZSH_GIT_PID
+    _czsh_git_cancel
+    [[ "$request_pwd" == "$PWD" ]] || return 0
+    typeset -g _CZSH_GIT_CONTEXT="$git_context" _CZSH_GIT_PROMPT_PWD="$request_pwd"
+    _czsh_prompt_render
+    if (( $+functions[__atuin_osc133_wrap_prompt] )); then
+        __atuin_osc133_wrap_prompt
+    fi
+    zle reset-prompt
+}
+
+_czsh_git_request() {
+    if [[ -n ${_CZSH_GIT_FD:-} && $_CZSH_GIT_REQUEST_PWD == "$PWD" ]]; then
+        return 0
+    fi
+    _czsh_git_cancel
+    typeset -g _CZSH_GIT_REQUEST_PWD="$PWD"
+    exec {_CZSH_GIT_FD}< <(
+        { print -r -- "$sysparams[pid]"; _czsh_git_prompt; print -r -- "$REPLY"; } 2>/dev/null
+    )
+    IFS= read -r _CZSH_GIT_PID <&"$_CZSH_GIT_FD"
+    zle -F "$_CZSH_GIT_FD" _czsh_git_ready
+}
+
 _czsh_prompt_preexec() {
     typeset -gF _CZSH_COMMAND_STARTED_AT=$EPOCHREALTIME
 }
@@ -80,7 +133,6 @@ _czsh_prompt_preexec() {
 _czsh_prompt_precmd() {
     local last_status=$?
     local context=''
-    local git_context=''
     local duration_context=''
     local -F elapsed seconds
     local -i hundredths minutes
@@ -105,12 +157,16 @@ _czsh_prompt_precmd() {
         context="%F{$CZSH_PROMPT_YELLOW}%n@%m%f "
     fi
 
-    _czsh_git_prompt
-    [[ -n $REPLY ]] && git_context=" ${REPLY}"
+    if [[ ${CZSH_GIT_PROMPT_ASYNC:-true} == true && $_CZSH_GIT_JOB_CONTROL == on && -t 0 && -o zle ]]; then
+        _czsh_git_request
+    else
+        _czsh_git_prompt
+        typeset -g _CZSH_GIT_CONTEXT="$REPLY" _CZSH_GIT_PROMPT_PWD="$PWD"
+    fi
 
     # Preserve the two-line shape, home-relative path, and original Git visuals.
-    PROMPT="%F{$CZSH_PROMPT_MUTED}╭─%f ${context}%F{$CZSH_PROMPT_BLUE}󰉋 %~%f${git_context}"$'\n'
-    PROMPT+="%F{$CZSH_PROMPT_MUTED}╰─%f %F{$CZSH_PROMPT_GREEN}❯%f "
+    typeset -g _CZSH_PROMPT_PREFIX="%F{$CZSH_PROMPT_MUTED}╭─%f ${context}%F{$CZSH_PROMPT_BLUE}󰉋 %~%f"
+    _czsh_prompt_render
 
     if (( last_status == 0 )); then
         RPROMPT="%F{$CZSH_PROMPT_GREEN}✔ 0%f"
@@ -122,6 +178,7 @@ _czsh_prompt_precmd() {
 
 add-zsh-hook preexec _czsh_prompt_preexec
 add-zsh-hook precmd _czsh_prompt_precmd
+add-zsh-hook zshexit _czsh_git_cancel
 
 # Capture command status before other precmd hooks can replace it.
 precmd_functions=(_czsh_prompt_precmd ${precmd_functions:#_czsh_prompt_precmd})
