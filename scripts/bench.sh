@@ -16,7 +16,9 @@ command -v hyperfine >/dev/null 2>&1 || {
 "$script_dir/prepare-smoke-home.sh" "$smoke_home" --full
 
 printf 'Benchmarking interactive CZSH startup (budget: %s ms)...\n' "$budget_ms"
-HOME="$smoke_home" ZDOTDIR="$smoke_home" TMUX='' hyperfine \
+env -i HOME="$smoke_home" ZDOTDIR="$smoke_home" PATH=/usr/bin:/bin \
+  TERM=xterm-256color CZSH_AUTO_DETECT_TOOLS=false \
+  "$(command -v hyperfine)" \
   --warmup 3 --runs 10 --export-json "$results_file" 'zsh -ic exit'
 
 mean_ms="$(python3 - "$results_file" <<'PY'

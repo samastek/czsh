@@ -658,7 +658,10 @@ installer does not execute it.
 - Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing code changes.
 - See [CHANGELOG.md](CHANGELOG.md) for release history.
 - Run `./scripts/validate.sh` locally; the same checks run in GitHub Actions.
-- Run `./scripts/bench.sh` to enforce the 150 ms interactive-startup budget.
+- Run `./scripts/bench.sh` to enforce the 150 ms interactive-startup budget in a
+  clean environment with Oh My Zsh and all managed plugins. Automatic tool
+  discovery is disabled so preinstalled host tools do not affect this baseline;
+  it does not measure startup with your detected tool environments.
 - Run `czsh doctor` after installation to check tools, fonts, and managed links.
 - Use the structured GitHub issue forms for reproducible bugs and focused
   feature requests.
