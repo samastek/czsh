@@ -154,14 +154,14 @@ For Lazygit, lowercase <kbd>g</kbd> is used. Lazydocker uses uppercase
 
 ## Mouse and scrollback
 
-Tmux mouse handling is off. Drag normally to select text in your terminal;
-tmux does not enter copy mode or copy the selection. The usual keyboard
-shortcuts for copy mode are also disabled.
+Tmux mouse handling is on. Scroll with the wheel to view the pane's own
+50,000-line history buffer; press <kbd>q</kbd> to exit scroll mode. Applications
+that request mouse input handle wheel events themselves.
 
-Tmux leaves GNOME Terminal's main screen active, so the wheel uses the
-terminal's scrollback instead of cycling shell commands. Tmux's 50,000-line
-history buffer is still retained, but its copy-mode navigation is disabled.
-Terminal scrollback may be incomplete when switching tmux windows or panes.
+Hold <kbd>Shift</kbd> while dragging to select text directly in GNOME Terminal.
+The usual keyboard shortcuts for entering copy mode remain disabled.
+Tmux uses the terminal's alternate screen so redraws from different windows
+and panes do not mix into the terminal's scrollback.
 
 ## Persistence
 
