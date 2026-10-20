@@ -53,7 +53,7 @@ kp() {
     local pids
     pids="$(ps -eo pid=,user=,command= | fzf --multi --prompt='process> ' | awk '{print $1}')" || return 0
     [[ -n "$pids" ]] || return 0
-    print -rl -- ${(f)pids} | xargs kill "$signal"
+    print -rl -- ${(f)pids} | xargs sudo kill "$signal"
 }
 
 git-update-all() {
