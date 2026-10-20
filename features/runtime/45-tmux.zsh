@@ -68,7 +68,8 @@ ${B}── General ────────────────────�
   ${Y}prefix + e${R}           ${D}│${R} Show this cheatsheet
   ${Y}prefix + ?${R}           ${D}│${R} Show all keybindings
   ${Y}prefix + t${R}           ${D}│${R} Show clock
-  ${D}Tmux ignores the mouse; select text directly in your terminal.${R}
+  ${D}Scroll with the wheel; press q to exit scroll mode.${R}
+  ${D}Hold Shift while dragging to select text in your terminal.${R}
 
 EOF
 }
