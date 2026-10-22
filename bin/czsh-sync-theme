@@ -56,6 +56,15 @@ gui:
     cherryPickedCommitFgColor: ["$CZSH_THEME_GREEN"]
     unstagedChangesColor: ["$CZSH_THEME_RED"]
     defaultFgColor: ["$CZSH_THEME_FG"]
+git:
+  diffRenderers:
+    - type: stdinFilter
+      colorArg: always
+      command: delta --dark --paging=never --side-by-side --line-numbers
+    # --no-gitconfig keeps a user's delta.side-by-side from overriding the inline view.
+    - type: stdinFilter
+      colorArg: always
+      command: delta --no-gitconfig --dark --paging=never --line-numbers
 EOF
 
 if command -v bat >/dev/null 2>&1; then

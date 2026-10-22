@@ -112,6 +112,10 @@ lazygit
 Inside tmux, prefix + <kbd>g</kbd> opens Lazygit in a large popup rooted at
 the current pane's directory.
 
+Lazygit renders diffs through Delta, side by side by default. Press
+<kbd>|</kbd> to switch to the inline view and back, and <kbd>+</kbd> to widen
+the diff panel.
+
 Lazygit is best learned through its contextual help:
 
 - Press <kbd>?</kbd> to see keys for the focused panel.
