@@ -116,6 +116,14 @@ Lazygit renders diffs through Delta, side by side by default. Press
 <kbd>|</kbd> to switch to the inline view and back, and <kbd>+</kbd> to widen
 the diff panel.
 
+Press <kbd>Ctrl+T</kbd> on a file to open it in Meld. Changes saved there land
+in the working tree, so Meld's arrows revert individual hunks. To review the
+whole working tree against a branch in Meld's folder view, run:
+
+~~~sh
+git difftool --dir-diff main
+~~~
+
 Lazygit is best learned through its contextual help:
 
 - Press <kbd>?</kbd> to see keys for the focused panel.

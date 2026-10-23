@@ -140,6 +140,7 @@ load_prerequisite_specs() {
 		"unzip:unzip"
 		"hyperfine:hyperfine"
 		"shellcheck:shellcheck"
+		"meld:meld"
 	)
 
 	if [[ "$CZSH_PACKAGE_MANAGER" == "brew" ]]; then
