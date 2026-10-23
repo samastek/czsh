@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pnpm, Cargo, and Bun shell environments.
 - `czsh scan` to repair the current shell environment and cache npm's global
   prefix for future sessions.
+- Lazygit shows diffs through Delta, side by side, with <kbd>|</kbd> switching
+  to the inline view.
+- Meld is installed and set as the Git diff tool when none is configured, so
+  Lazygit's <kbd>Ctrl+T</kbd> opens files in it.
 
 ### Fixed
 

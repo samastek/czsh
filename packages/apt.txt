@@ -14,3 +14,4 @@ tmux:tmux
 unzip:unzip
 hyperfine:hyperfine
 shellcheck:shellcheck
+meld:meld

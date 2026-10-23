@@ -71,3 +71,15 @@ install_feature_lazygit() {
 }
 
 register_install_feature install_feature_lazygit
+
+# Lazygit's ctrl+t runs git difftool; respect a tool the user already chose.
+configure_feature_difftool() {
+	command -v meld >/dev/null 2>&1 || return 0
+	if [[ -z "$(git config --global --get diff.tool)" ]]; then
+		git config --global diff.tool meld
+		git config --global difftool.prompt false
+		logSuccess "Set Meld as the Git diff tool"
+	fi
+}
+
+register_install_feature configure_feature_difftool
