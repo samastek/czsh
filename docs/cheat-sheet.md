@@ -124,10 +124,12 @@ Prefix is <kbd>Ctrl</kbd>+<kbd>A</kbd>.
 
 ### Mouse and selection
 
-Use the wheel to scroll the tmux pane's history; press <kbd>q</kbd> to exit
-scroll mode. Applications that request mouse input handle the wheel themselves.
-Hold <kbd>Shift</kbd> while dragging to select text directly in GNOME Terminal.
-Keyboard shortcuts for entering copy mode remain disabled.
+Use the wheel, or prefix + <kbd>[</kbd> / <kbd>PgUp</kbd>, to scroll the pane's
+history; press <kbd>q</kbd> to exit scroll mode. Drag or double/triple-click to
+copy to the clipboard without jumping to the bottom. In scroll mode,
+<kbd>v</kbd> starts a selection and <kbd>y</kbd> copies it. Hold
+<kbd>Shift</kbd> (<kbd>Option</kbd> in iTerm2) while dragging to use the
+terminal's own selection.
 
 ## Prompt Git markers
 

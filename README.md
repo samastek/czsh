@@ -356,10 +356,11 @@ glclone https://gitlab.example.com/group/subgroup --clone-dir ~/src --https
 ## Tmux configuration
 
 CZSH uses `Ctrl+A` as the tmux prefix and starts window and pane numbering at 1.
-Use the wheel to scroll the pane's history and press `q` to exit scroll mode.
-Applications that request mouse input handle the wheel themselves. Hold Shift
-while dragging to select text directly in your terminal. Keyboard shortcuts
-for entering copy mode remain disabled. Focus events, automatic window renumbering,
+Use the wheel, or prefix + `[` / PgUp, to scroll the pane's history and press
+`q` to exit scroll mode. Dragging or double/triple-clicking copies to the system
+clipboard without jumping back to the bottom; Shift+drag (Option+drag in iTerm2)
+uses the terminal's own selection. Don't run GNU Screen inside tmux: each keeps
+its own scrollback, so neither can scroll the other's output. Focus events, automatic window renumbering,
 a 50,000-line history buffer, and clipboard integration are enabled. Window names
 follow the active pane's current folder rather than its foreground process,
 which keeps multiple editors and shells distinguishable.

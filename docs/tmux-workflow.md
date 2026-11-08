@@ -154,12 +154,26 @@ For Lazygit, lowercase <kbd>g</kbd> is used. Lazydocker uses uppercase
 
 ## Mouse and scrollback
 
-Tmux mouse handling is on. Scroll with the wheel to view the pane's own
-50,000-line history buffer; press <kbd>q</kbd> to exit scroll mode. Applications
-that request mouse input handle wheel events themselves.
+Tmux owns each pane's 50,000-line history, so scroll through tmux rather than
+the terminal:
 
-Hold <kbd>Shift</kbd> while dragging to select text directly in GNOME Terminal.
-The usual keyboard shortcuts for entering copy mode remain disabled.
+| Action | How |
+| --- | --- |
+| Scroll | Mouse wheel, or prefix + <kbd>[</kbd> / <kbd>PgUp</kbd> then arrows, <kbd>Ctrl</kbd>+<kbd>u</kbd>/<kbd>d</kbd> |
+| Select | Drag, double-click (word), triple-click (line), or <kbd>v</kbd> / <kbd>Ctrl</kbd>+<kbd>v</kbd> (block) |
+| Copy | Mouse selections copy on release and keep your position; <kbd>y</kbd> copies and exits |
+| Search | <kbd>/</kbd> or <kbd>?</kbd> in scroll mode |
+| Leave | <kbd>q</kbd> |
+| Native terminal selection | Hold <kbd>Shift</kbd> (<kbd>Option</kbd> in iTerm2) while dragging |
+
+Copies reach the system clipboard through OSC 52. Terminals without it, such as
+GNOME Terminal, need `wl-copy` or `xclip` installed.
+
+Applications that handle the mouse themselves, and full-screen tools such as
+Codex, scroll with their own keys. Don't start GNU Screen inside tmux: each
+keeps its own history, so tmux cannot scroll Screen's output. Use tmux windows
+and sessions instead.
+
 Tmux uses the terminal's alternate screen so redraws from different windows
 and panes do not mix into the terminal's scrollback.
 

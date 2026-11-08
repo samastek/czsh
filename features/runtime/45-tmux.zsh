@@ -53,6 +53,15 @@ ${B}── Panes ─────────────────────
   ${Y}prefix + !${R}           ${D}│${R} Break pane into new window
   ${Y}prefix + q${R}           ${D}│${R} Show pane numbers (then press N)
 
+${B}── Scroll and copy ────────────────────────────────────────${R}
+  ${Y}Mouse wheel${R}          ${D}│${R} Scroll pane history
+  ${Y}prefix + [ / PgUp${R}    ${D}│${R} Enter scroll mode from the keyboard
+  ${Y}v / Ctrl+v${R}           ${D}│${R} Start selection / toggle block ${D}(scroll mode)${R}
+  ${Y}y${R}                    ${D}│${R} Copy to clipboard and exit     ${D}(scroll mode)${R}
+  ${Y}Drag / 2x / 3x click${R} ${D}│${R} Copy selection, keep position
+  ${Y}q${R}                    ${D}│${R} Leave scroll mode
+  ${D}Shift+drag (Option+drag in iTerm2) selects with the terminal instead.${R}
+
 ${B}── Plugins ────────────────────────────────────────────────${R}
   ${Y}prefix + Ctrl+s${R}      ${D}│${R} Save session    ${D}(tmux-resurrect)${R}
   ${Y}prefix + Ctrl+r${R}      ${D}│${R} Restore session ${D}(tmux-resurrect)${R}
@@ -68,8 +77,6 @@ ${B}── General ────────────────────�
   ${Y}prefix + e${R}           ${D}│${R} Show this cheatsheet
   ${Y}prefix + ?${R}           ${D}│${R} Show all keybindings
   ${Y}prefix + t${R}           ${D}│${R} Show clock
-  ${D}Scroll with the wheel; press q to exit scroll mode.${R}
-  ${D}Hold Shift while dragging to select text in your terminal.${R}
 
 EOF
 }
