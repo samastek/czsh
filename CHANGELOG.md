@@ -5,7 +5,7 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] - 2026-10-05
+## [Unreleased]
 
 ### Added
 
@@ -13,20 +13,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pnpm, Cargo, and Bun shell environments.
 - `czsh scan` to repair the current shell environment and cache npm's global
   prefix for future sessions.
-- Lazygit shows diffs through Delta, side by side, with <kbd>|</kbd> switching
-  to the inline view.
-- Meld is installed and set as the Git diff tool when none is configured, so
-  Lazygit's <kbd>Ctrl+T</kbd> opens files in it.
-
-### Fixed
-
-- Upgrades retain existing CZSH `.zshrc` files and symlinks, preserving settings
-  appended by third-party installers while updating runtime modules separately.
-
-## [Unreleased]
-
-### Added
-
 - Installer `--upgrade` and `--uninstall` options for managing an existing
   CZSH installation.
 - Available RAM is shown in the tmux status bar on supported systems.
@@ -34,19 +20,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   commit while retaining subsequent changes in the index.
 - Btop, dust, glow, and sops as managed modern CLI tools, installed via
   Homebrew on macOS and pinned GitHub releases on Linux.
-
-### Fixed
-
-- Sessionizer no longer lists every subdirectory of a git repository.
-- Fuzzy-finder navigation keys separated from multi-select keys.
+- Lazygit shows diffs through Delta, side by side, with <kbd>|</kbd> switching
+  to the inline view.
+- Meld is installed and set as the Git diff tool when none is configured, so
+  Lazygit's <kbd>Ctrl+T</kbd> opens files in it.
+- Tmux scroll mode from the keyboard (prefix + <kbd>[</kbd> or <kbd>PgUp</kbd>)
+  with vi keys; mouse selections copy to the system clipboard and keep the
+  scroll position.
+- `extract` (alias `x`) unpacks common archive formats.
 
 ### Changed
 
+- Oh My Zsh is no longer used. A small built-in core sets history, completion,
+  key bindings and the window title and loads the plugins from
+  `~/.config/czsh/plugins`. Shell startup is roughly a third faster.
+- <kbd>Ctrl+R</kbd> uses FZF history search again; Atuin is no longer installed.
+- Tmux uses no plugins. TPM, tmux-sensible, tmux-resurrect and tmux-continuum
+  are removed; <kbd>Ctrl+H/J/K/L</kbd> navigation across tmux panes and Vim
+  splits is built in, and prefix + <kbd>Ctrl+L</kbd> clears the screen.
+- The Ultimate vimrc, the history-substring-search, screen, web-search,
+  docker and systemd plugins, and the wget dependency are removed.
 - The active tmux window is now highlighted with a filled pill.
 - Destroying the current tmux session switches to the next remaining session.
 - The project picker visually distinguishes existing sessions from directories
   that can open a new session and prompts for the name of newly created
   sessions.
+
+### Fixed
+
+- Upgrades retain existing CZSH `.zshrc` files and symlinks, preserving settings
+  appended by third-party installers, and remove the former Oh My Zsh loader.
+- Sessionizer no longer lists every subdirectory of a git repository.
+- Fuzzy-finder navigation keys separated from multi-select keys.
 
 ## [1.0.1] - 2026-09-19
 
