@@ -15,9 +15,7 @@ for file in "$ZSH_CONFIGS_DIR"/*(N-.) "$ZSH_CONFIGS_DIR"/.*(N-.); do
     source "$file"
 done
 
-# Now source oh-my-zsh.sh so that any plugins added in ~/.config/czsh/zshrc/* files also get loaded
-source "$ZSH/oh-my-zsh.sh"
-
+# Post features load plugins, including any added in ~/.config/czsh/zshrc/*.
 CZSH_POST_FEATURES_DIR="$HOME/.config/czsh/features/post"
 for feature_file in "$CZSH_POST_FEATURES_DIR"/*.zsh(N-.); do
     source "$feature_file"

@@ -19,7 +19,7 @@ install_feature_core() {
 	logSuccess "Created configuration directories"
 	echo
 
-	configure_ohmyzsh
+	retire_ohmyzsh
 	copy_base_configuration_files
 }
 

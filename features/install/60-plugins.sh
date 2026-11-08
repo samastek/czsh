@@ -34,7 +34,7 @@ install_feature_plugins() {
 		((plugin_count++))
 		plugin_name="${plugin_entry%%:*}"
 		plugin_repo="${plugin_entry#*:}"
-		plugin_path="$OHMYZSH_CUSTOM_PLUGIN_PATH/$plugin_name"
+		plugin_path="$CZSH_PLUGIN_PATH/$plugin_name"
 
 		logStepProgress "$plugin_count" "$total_plugins" "$plugin_name"
 

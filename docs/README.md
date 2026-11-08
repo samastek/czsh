@@ -40,8 +40,7 @@ Zsh prompt
 └── tmux: persistent workspaces
     ├── sessionizer: choose a project
     ├── panes and windows: arrange work
-    ├── popups: Lazygit and Lazydocker
-    └── continuum/resurrect: save and restore
+    └── popups: Lazygit and Lazydocker
 ~~~
 
 The tools reinforce one another. Visiting a directory teaches zoxide about it.

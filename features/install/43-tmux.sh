@@ -2,8 +2,6 @@
 
 install_feature_tmux() {
   local tmux_config_dir="$CZSH_HOME/tmux"
-  local tmux_plugins_dir="$tmux_config_dir/plugins"
-  local tpm_dir="$tmux_plugins_dir/tpm"
   local tmux_conf_src="$SCRIPT_DIR/dotfiles/tmux.conf"
   local tmux_conf_dst="$tmux_config_dir/tmux.conf"
   local editor_bridge_dir="$CZSH_HOME/editor"
@@ -28,7 +26,7 @@ install_feature_tmux() {
 
   # ── Deploy configuration ───────────────────
   logConfiguring "tmux config"
-  mkdir -p "$tmux_config_dir" "$tmux_plugins_dir"
+  mkdir -p "$tmux_config_dir"
 
   cp "$tmux_conf_src" "$tmux_conf_dst"
 
@@ -55,26 +53,11 @@ install_feature_tmux() {
     logWarning "Existing ~/.config/tmux/tmux.conf backed up to ~/.config/tmux/tmux.conf.bak"
   fi
   ln -s "$tmux_conf_dst" "$xdg_tmux_dir/tmux.conf"
-  # ── Install TPM (Tmux Plugin Manager) ──────
-  if [ -d "$tpm_dir/.git" ]; then
-    logUpdating "TPM"
-    git -C "$tpm_dir" pull --quiet >/dev/null 2>&1
-    logUpdated "TPM"
-  else
-    logInstalling "TPM (Tmux Plugin Manager)"
-    git clone --quiet https://github.com/tmux-plugins/tpm "$tpm_dir" >/dev/null 2>&1
-    logInstalled "TPM"
-  fi
+  # Earlier versions installed TPM and its plugins here; CZSH no longer uses them.
+  rm -rf "$tmux_config_dir/plugins"
 
-  # Install TPM plugins headlessly
-  logProgress "Installing tmux plugins..."
-  if [ -x "$tpm_dir/bin/install_plugins" ]; then
-    "$tpm_dir/bin/install_plugins" >/dev/null 2>&1
-    logSuccess "Tmux plugins installed"
-  fi
-
-  # TPM provides the tmux half of vim-tmux-navigator. These managed links put
-  # its Vim plugin on both editors' runtime paths without replacing user config.
+  # tmux.conf holds the tmux half of Ctrl+h/j/k/l navigation. These managed
+  # links put the Vim half on both editors' runtime paths.
   mkdir -p "$editor_bridge_dir" "$HOME/.vim/plugin" "$HOME/.config/nvim/plugin"
   cp "$SCRIPT_DIR/dotfiles/czsh-tmux-navigator.vim" "$editor_bridge"
   for editor_target in \

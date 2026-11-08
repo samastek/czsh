@@ -328,3 +328,24 @@ EOF
 
     [[ $failed_clones -eq 0 ]]
 }
+
+# Unpack one or more archives into the current directory.
+extract() {
+    local file
+    (( $# )) || { print -u2 'Usage: extract ARCHIVE...'; return 2; }
+    for file in "$@"; do
+        [[ -f $file ]] || { print -u2 "extract: $file: no such file"; return 1; }
+        case ${file:l} in
+            *.tar|*.tar.*|*.tgz|*.tbz|*.tbz2|*.txz|*.tzst) tar -xf "$file" ;;
+            *.zip|*.jar|*.whl) unzip -q "$file" ;;
+            *.gz)  gunzip -k "$file" ;;
+            *.bz2) bunzip2 -k "$file" ;;
+            *.xz)  unxz -k "$file" ;;
+            *.zst) unzstd "$file" ;;
+            *.7z)  7z x "$file" ;;
+            *.rar) unrar x "$file" ;;
+            *) print -u2 "extract: $file: unknown archive type"; return 1 ;;
+        esac || return
+    done
+}
+alias x=extract

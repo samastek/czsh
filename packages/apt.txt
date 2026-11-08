@@ -1,7 +1,6 @@
 # command-or-alternatives:apt-package
 zsh:zsh
 git:git
-wget:wget
 bat|batcat:bat
 curl:curl
 jq:jq

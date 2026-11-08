@@ -1,7 +1,6 @@
 # macOS package manifest consumed by install.sh.
 brew "zsh"
 brew "git"
-brew "wget"
 brew "bat"
 brew "curl"
 brew "jq"

@@ -84,6 +84,23 @@ class ToolEnvironmentTests(unittest.TestCase):
             "zsh", "-ic", 'print -r -- "$THIRD_PARTY_SETTING"',
         ]), "keep me")
 
+    def test_upgrade_removes_oh_my_zsh_loader_through_symlink(self):
+        self.prepare_runtime()
+        zshrc = self.home / ".zshrc"
+        old = ('source "$HOME/.config/czsh/czshrc.zsh"\n'
+               '# Now source oh-my-zsh.sh so that plugins load\n'
+               'source $ZSH/oh-my-zsh.sh\n'
+               'export THIRD_PARTY_SETTING="keep me"\n')
+        target = self.write("dotfiles/zshrc", old)
+        zshrc.unlink()
+        zshrc.symlink_to(target)
+
+        self.install_base()
+
+        self.assertTrue(zshrc.is_symlink())
+        self.assertEqual(target.read_text(), 'source "$HOME/.config/czsh/czshrc.zsh"\n'
+                         'export THIRD_PARTY_SETTING="keep me"\n')
+
     def test_first_install_backs_up_unmanaged_configuration(self):
         contents = 'export ORIGINAL_SETTING="original"\n'
         self.write(".zshrc", contents)

@@ -66,6 +66,25 @@ class StartupTests(unittest.TestCase):
         self.assertEqual(result.stdout.strip(), 'ready')
         self.assertNotIn('compinit', result.stderr)
 
+    def test_personal_plugin_loads_from_plugin_directory(self):
+        self.write(".config/czsh/plugins/demo/demo.plugin.zsh", "demo_loaded=yes\n")
+        self.write(".config/czsh/zshrc/plugins.zsh", "plugins+=(demo)\n")
+        self.assertEqual(self.shell('print -r -- "$demo_loaded"'), "yes")
+
+    def test_extract_unpacks_tar_and_zip(self):
+        import tarfile
+        import zipfile
+        self.write("src/a.txt", "from-tar\n")
+        with tarfile.open(self.home / "a.tar.gz", "w:gz") as archive:
+            archive.add(self.home / "src/a.txt", arcname="t/a.txt")
+        with zipfile.ZipFile(self.home / "b.zip", "w") as archive:
+            archive.writestr("z/b.txt", "from-zip\n")
+        self.assertEqual(self.shell("extract a.tar.gz b.zip && cat t/a.txt z/b.txt"),
+                         "from-tar\nfrom-zip")
+        result = subprocess.run(["zsh", "-ic", "extract missing.rar"], env=self.env,
+                                cwd=self.home, capture_output=True, text=True, timeout=15)
+        self.assertEqual(result.returncode, 1)
+
     def test_validation_checks_bash_helpers_without_ripgrep(self):
         validation = self.home / 'validation'
         self.write('validation/scripts/validate.sh',

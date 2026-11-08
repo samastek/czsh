@@ -131,7 +131,9 @@ Ctrl+K  up
 Ctrl+L  right
 ~~~
 
-The installer links the editor-side navigator bridge for both Vim and Neovim.
+The installer links CZSH's small Vim script for both Vim and Neovim; no tmux
+plugin is involved. Because <kbd>Ctrl</kbd>+<kbd>L</kbd> moves panes, use
+prefix + <kbd>Ctrl</kbd>+<kbd>L</kbd> to clear the screen.
 Run <code>czsh doctor</code> if the keys work in tmux but not across editor
 splits.
 
@@ -179,20 +181,9 @@ and panes do not mix into the terminal's scrollback.
 
 ## Persistence
 
-tmux-continuum saves state every 15 minutes. Automatic restoration is disabled;
-start tmux and use prefix + <kbd>Ctrl</kbd>+<kbd>R</kbd> to restore the latest
-saved state manually.
-
-Manual controls are useful before a reboot or a large rearrangement:
-
-| Binding | Action |
-| --- | --- |
-| prefix + <kbd>Ctrl</kbd>+<kbd>S</kbd> | Save now |
-| prefix + <kbd>Ctrl</kbd>+<kbd>R</kbd> | Restore now |
-
-Resurrect can restore sessions, windows, panes, directories, and captured pane
-contents. It cannot reliably recreate arbitrary in-memory application state.
-Save work inside editors and applications normally.
+Sessions live as long as the tmux server: detach with prefix + <kbd>d</kbd> and
+reattach later, also over SSH. CZSH does not save sessions across a reboot;
+recreate them quickly with the sessionizer (prefix + <kbd>f</kbd>).
 
 ## Reading the status bar
 
@@ -226,7 +217,7 @@ Build it:
 3. Split with prefix + <kbd>|</kbd> and start tests.
 4. Create window 2 with prefix + <kbd>c</kbd>.
 5. Split with prefix + <kbd>-</kbd> for logs.
-6. Save with prefix + <kbd>Ctrl</kbd>+<kbd>S</kbd>.
+6. Detach with prefix + <kbd>d</kbd> and reattach with prefix + <kbd>f</kbd>.
 
 ## Recovery and help
 

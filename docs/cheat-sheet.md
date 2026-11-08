@@ -9,6 +9,9 @@ live in the other chapters of the [learning guide](README.md).
 | --- | --- |
 | <kbd>Ctrl</kbd>+<kbd>R</kbd> | Fuzzy-search command history with FZF |
 | <kbd>Tab</kbd> | Context-aware fuzzy completion |
+| <kbd>Up</kbd> / <kbd>Down</kbd> | History entries starting with what is typed |
+| <kbd>Esc</kbd> <kbd>Esc</kbd> | Toggle <code>sudo</code> in front of the command |
+| <code>x ARCHIVE</code> | Unpack an archive (<code>extract</code>) |
 | <code>l</code> | Detailed eza listing with Git and icons |
 | <code>cat FILE</code> | Plain-style bat output |
 | <code>fd PATTERN</code> | Find paths by name |
@@ -117,8 +120,7 @@ Prefix is <kbd>Ctrl</kbd>+<kbd>A</kbd>.
 | prefix + <kbd>g</kbd> | Lazygit popup |
 | prefix + <kbd>Shift</kbd>+<kbd>D</kbd> | Lazydocker popup |
 | prefix + <kbd>/</kbd> | Search windows and panes |
-| prefix + <kbd>Ctrl</kbd>+<kbd>S</kbd> | Save session state |
-| prefix + <kbd>Ctrl</kbd>+<kbd>R</kbd> | Restore session state |
+| prefix + <kbd>Ctrl</kbd>+<kbd>L</kbd> | Clear the screen |
 | prefix + <kbd>r</kbd> | Reload tmux configuration |
 
 ### Mouse and selection

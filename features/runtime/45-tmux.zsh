@@ -62,11 +62,6 @@ ${B}── Scroll and copy ─────────────────�
   ${Y}q${R}                    ${D}│${R} Leave scroll mode
   ${D}Shift+drag (Option+drag in iTerm2) selects with the terminal instead.${R}
 
-${B}── Plugins ────────────────────────────────────────────────${R}
-  ${Y}prefix + Ctrl+s${R}      ${D}│${R} Save session    ${D}(tmux-resurrect)${R}
-  ${Y}prefix + Ctrl+r${R}      ${D}│${R} Restore session ${D}(tmux-resurrect)${R}
-  ${D}Sessions auto-save every 15 minutes; restore manually with prefix + Ctrl+r.${R}
-
 ${B}── Popups ─────────────────────────────────────────────────${R}
   ${Y}prefix + g${R}           ${D}│${R} Lazygit in current directory
   ${Y}prefix + D${R}           ${D}│${R} Lazydocker
@@ -77,6 +72,7 @@ ${B}── General ────────────────────�
   ${Y}prefix + e${R}           ${D}│${R} Show this cheatsheet
   ${Y}prefix + ?${R}           ${D}│${R} Show all keybindings
   ${Y}prefix + t${R}           ${D}│${R} Show clock
+  ${Y}prefix + Ctrl+l${R}      ${D}│${R} Clear the screen
 
 EOF
 }

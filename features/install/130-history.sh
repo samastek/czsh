@@ -1,8 +1,6 @@
 #!/bin/bash
 
 install_feature_history_copy() {
-	local script_path="$HOME/.cache/bash-to-zsh-hist.py"
-
 	print_section "Bash History Migration" "$FOLDER" "$YELLOW"
 
 	if [ "$COPY_HISTORY_FLAG" != true ]; then
@@ -18,14 +16,16 @@ install_feature_history_copy() {
 	fi
 
 	logProgress "Copying bash_history to zsh_history..."
-	if wget -q --show-progress "https://gist.githubusercontent.com/muendelezaji/c14722ab66b505a49861b8a74e52b274/raw/49f0fb7f661bdf794742257f58950d209dd6cb62/bash-to-zsh-hist.py" -O "$script_path" 2>/dev/null; then
-		if python3 "$script_path" <"$HOME/.bash_history" >>"$HOME/.zsh_history" 2>/dev/null; then
-			logSuccess "bash_history copied to zsh_history"
-		else
-			logWarning "History conversion script failed"
-		fi
+	# Bash writes "#<epoch>" before a command when HISTTIMEFORMAT is set; zsh's
+	# extended format is ": <epoch>:0;<command>".
+	# shortcut: non-ASCII bytes are not zsh-metafied; such lines may show garbled.
+	if awk -v now="$(date +%s)" '
+		/^#[0-9]+$/ { stamp = substr($0, 2); next }
+		{ print ": " (stamp ? stamp : now) ":0;" $0; stamp = "" }
+	' "$HOME/.bash_history" >>"$HOME/.zsh_history"; then
+		logSuccess "bash_history copied to zsh_history"
 	else
-		logWarning "Failed to download history conversion script"
+		logWarning "History conversion failed"
 	fi
 	echo
 }

@@ -23,8 +23,8 @@ virtual machine.
 ## Project structure
 
 - `features/install/` contains installation and update steps.
-- `features/runtime/` is loaded before Oh My Zsh.
-- `features/post/` is loaded after Oh My Zsh.
+- `features/runtime/` is loaded before personal overrides.
+- `features/post/` is loaded after them; `00-core.zsh` sets up completion and plugins.
 - `features/lib/` contains shared installer functions.
 - `dotfiles/` contains managed application configuration.
 - `bin/` contains helper commands installed into `~/.config/czsh/bin`.

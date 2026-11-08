@@ -13,7 +13,6 @@ UNINSTALL_FLAG=false
 # shellcheck source=../../config.conf
 source "$SCRIPT_DIR/config.conf"
 
-OH_MY_ZSH_REPO="https://github.com/ohmyzsh/ohmyzsh.git"
 FZF_REPO="https://github.com/junegunn/fzf.git"
 
 PLUGIN_DEFINITIONS=(
@@ -21,7 +20,6 @@ PLUGIN_DEFINITIONS=(
 	"zsh-syntax-highlighting:https://github.com/zsh-users/zsh-syntax-highlighting.git"
 	"zsh-autosuggestions:https://github.com/zsh-users/zsh-autosuggestions.git"
 	"zsh-completions:https://github.com/zsh-users/zsh-completions.git"
-	"history-substring-search:https://github.com/zsh-users/zsh-history-substring-search.git"
 )
 
 PREREQUISITE_SPECS=()
@@ -37,9 +35,7 @@ configure_install_paths() {
 	CZSH_RUNTIME_FEATURES_TARGET_DIR="$CZSH_HOME/features/runtime"
 	CZSH_POST_FEATURES_TARGET_DIR="$CZSH_HOME/features/post"
 	CZSH_STATE_DIR="$CZSH_HOME/state"
-	OH_MY_ZSH_FOLDER="$CZSH_HOME/oh-my-zsh"
-	OHMYZSH_CUSTOM_PLUGIN_PATH="$OH_MY_ZSH_FOLDER/custom/plugins"
-	OHMYZSH_CUSTOM_THEME_PATH="$OH_MY_ZSH_FOLDER/custom/themes"
+	CZSH_PLUGIN_PATH="$CZSH_HOME/plugins"
 	FZF_INSTALLATION_PATH="$CZSH_HOME/fzf"
 
 	export CZSH_HOME
@@ -49,9 +45,7 @@ configure_install_paths() {
 	export CZSH_RUNTIME_FEATURES_TARGET_DIR
 	export CZSH_POST_FEATURES_TARGET_DIR
 	export CZSH_STATE_DIR
-	export OH_MY_ZSH_FOLDER
-	export OHMYZSH_CUSTOM_PLUGIN_PATH
-	export OHMYZSH_CUSTOM_THEME_PATH
+	export CZSH_PLUGIN_PATH
 	export FZF_INSTALLATION_PATH
 }
 
@@ -127,7 +121,6 @@ load_prerequisite_specs() {
 	PREREQUISITE_SPECS=(
 		"zsh:zsh"
 		"git:git"
-		"wget:wget"
 		"bat|batcat:bat"
 		"curl:curl"
 		"jq:jq"
@@ -417,40 +410,31 @@ recover_unmerged_checkout() {
 	return 1
 }
 
-configure_ohmyzsh() {
-	print_section "Oh My Zsh Setup" "$STAR" "$GREEN"
+# Earlier CZSH versions loaded Oh My Zsh from $CZSH_HOME/oh-my-zsh. Give a
+# directory moved from ~/.oh-my-zsh back to its owner, keep any personal custom
+# plugins, then remove the managed checkout.
+retire_ohmyzsh() {
+	local old_dir="$CZSH_HOME/oh-my-zsh"
+	local original="" plugin=""
 
-	if [ -d "$OH_MY_ZSH_FOLDER" ]; then
-		logAlreadyInstalled "oh-my-zsh"
-		logUpdating "oh-my-zsh"
-		git -C "$OH_MY_ZSH_FOLDER" remote set-url origin "$OH_MY_ZSH_REPO"
-		export ZSH="$OH_MY_ZSH_FOLDER"
-		if ! recover_unmerged_checkout "$OH_MY_ZSH_FOLDER" oh-my-zsh; then
-			logWarning "Skipping Oh My Zsh update until its checkout is repaired"
-		elif git -C "$OH_MY_ZSH_FOLDER" pull --quiet --ff-only 2>/dev/null; then
-			logUpdated "oh-my-zsh"
-		else
-			logWarning "Oh My Zsh has local or divergent changes; leaving them untouched"
+	[[ -d "$old_dir" ]] || return 0
+
+	if [[ -r "$CZSH_STATE_DIR/ohmyzsh-moved" ]]; then
+		original="$(<"$CZSH_STATE_DIR/ohmyzsh-moved")"
+		if [[ -n "$original" && ! -e "$original" ]] && mv "$old_dir" "$original"; then
+			rm -f "$CZSH_STATE_DIR/ohmyzsh-moved"
+			logInfo "Oh My Zsh is no longer used; restored your copy to $original"
+			return 0
 		fi
-	elif [ -d "$HOME/.oh-my-zsh" ]; then
-		logProgress "Moving existing oh-my-zsh into $OH_MY_ZSH_FOLDER"
-		mv "$HOME/.oh-my-zsh" "$OH_MY_ZSH_FOLDER"
-		ensure_directories "$CZSH_STATE_DIR"
-		printf '%s\n' "$HOME/.oh-my-zsh" >"$CZSH_STATE_DIR/ohmyzsh-moved"
-		git -C "$OH_MY_ZSH_FOLDER" remote set-url origin "$OH_MY_ZSH_REPO"
-		export ZSH="$OH_MY_ZSH_FOLDER"
-		if git -C "$OH_MY_ZSH_FOLDER" pull --quiet --ff-only 2>/dev/null; then
-			logSuccess "oh-my-zsh moved and updated successfully"
-		else
-			logSuccess "oh-my-zsh moved successfully"
-		fi
-	else
-		logInstalling "oh-my-zsh"
-		git clone --depth=1 --quiet "$OH_MY_ZSH_REPO" "$OH_MY_ZSH_FOLDER"
-		export ZSH="$OH_MY_ZSH_FOLDER"
-		logInstalled "oh-my-zsh"
 	fi
-	echo
+
+	ensure_directories "$CZSH_PLUGIN_PATH"
+	for plugin in "$old_dir"/custom/plugins/*; do
+		[[ -d "$plugin" && "$(basename "$plugin")" != example ]] || continue
+		[[ -e "$CZSH_PLUGIN_PATH/$(basename "$plugin")" ]] || mv "$plugin" "$CZSH_PLUGIN_PATH/"
+	done
+	rm -rf "$old_dir"
+	logInfo "Removed Oh My Zsh; plugins now live in $CZSH_PLUGIN_PATH"
 }
 
 sync_runtime_features() {
@@ -476,6 +460,18 @@ record_backup_path() {
 	printf '%s\n' "$path" >"$CZSH_STATE_DIR/${name}.backup"
 }
 
+# Drop the Oh My Zsh loader line from a kept .zshrc. Writing through the
+# existing file keeps a symlinked .zshrc pointing at the same target.
+migrate_zshrc_without_ohmyzsh() {
+	local updated=""
+	local loader='^[[:space:]]*source[[:space:]]+"?\$ZSH/oh-my-zsh\.sh"?[[:space:]]*$'
+
+	grep -qE "$loader" "$HOME/.zshrc" || return 0
+	updated="$(grep -vE -e "$loader" -e '^# Now source oh-my-zsh\.sh' "$HOME/.zshrc")" || return 0
+	printf '%s\n' "$updated" >"$HOME/.zshrc"
+	logInfo "Removed the Oh My Zsh loader from ~/.zshrc"
+}
+
 copy_base_configuration_files() {
 	local helper=""
 
@@ -484,6 +480,7 @@ copy_base_configuration_files() {
 
 	if [[ -f "$HOME/.zshrc" ]] && grep -q '/.config/czsh/czshrc.zsh' "$HOME/.zshrc"; then
 		logInfo "Keeping existing CZSH .zshrc and third-party additions"
+		migrate_zshrc_without_ohmyzsh
 	else
 		cp -f "$SCRIPT_DIR/.zshrc" "$HOME/.zshrc"
 	fi
@@ -585,6 +582,9 @@ uninstall_czsh() {
 		"${CZSH_HOME:?}/fzf" \
 		"${CZSH_HOME:?}/tmux" \
 		"${CZSH_HOME:?}/lazygit"
+	for target in "${PLUGIN_DEFINITIONS[@]}"; do
+		rm -rf "${CZSH_PLUGIN_PATH:?}/${target%%:*}"
+	done
 	if [[ -z "$original_ohmyzsh" ]]; then
 		rm -rf "${CZSH_HOME:?}/oh-my-zsh"
 	fi

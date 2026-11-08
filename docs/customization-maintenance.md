@@ -21,20 +21,19 @@ Personal shell settings belong in:
 ~~~
 
 Files in that directory survive installer reruns. Do not keep personal edits
-inside the managed Oh My Zsh or plugin checkouts.
+inside the managed plugin checkouts.
 
 Startup order:
 
 ~~~text
 1. ~/.config/czsh/features/runtime/*.zsh
 2. ~/.config/czsh/zshrc/*
-3. Oh My Zsh and its plugins
-4. ~/.config/czsh/features/post/*.zsh
+3. ~/.config/czsh/features/post/*.zsh (core, plugins, prompt)
 ~~~
 
 The order explains when a value can be consumed or overwritten. Prompt color
 variables are designed for personal overrides. Managed post-runtime aliases
-such as <code>l</code> and <code>cat</code> intentionally win after Oh My Zsh.
+such as <code>l</code> and <code>cat</code> intentionally win because they load last.
 
 ## Automatic tool detection and repair
 
@@ -80,7 +79,7 @@ Example:
 export EDITOR=nvim
 export VISUAL=nvim
 
-plugins+=(kubectl)
+plugins+=(zsh-you-should-use)   # from ~/.config/czsh/plugins/
 
 alias g='git'
 alias dc='docker compose'

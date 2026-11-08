@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-9ece6a)](LICENSE)
 
 CZSH is an opinionated Zsh and terminal-environment bootstrapper for macOS and
-Linux. It installs a managed Oh My Zsh setup, configures fuzzy completion and a
+Linux. It sets up Zsh with a small built-in core (no framework), configures fuzzy completion and a
 fast native Zsh prompt, provisions a practical set of terminal tools, and keeps
 personal shell overrides separate from generated configuration.
 
@@ -62,11 +62,11 @@ session, focused chapters with copy-paste examples, practice exercises, and a
 
 CZSH provides the following as one managed setup:
 
-- Oh My Zsh with the native CZSH prompt and a curated plugin set.
-- FZF-backed Zsh completion and file/directory pickers, and fuzzy history search
+- A native Zsh core and prompt with a small, directly loaded plugin set.
+- FZF-backed Zsh completion, file/directory pickers, and fuzzy history search
   on `Ctrl+R`.
 - Syntax highlighting, inline autosuggestions, additional completion
-  definitions, substring history search, directory jumping, and interactive
+  definitions, prefix history search on the arrow keys, directory jumping, and interactive
   Git helpers.
 - A configured tmux environment with project/session picking, seamless Vim
   navigation, popups, clipboard integration, and automatic persistence.
@@ -86,7 +86,7 @@ CZSH provides the following as one managed setup:
 
 | Component | Configuration |
 | --- | --- |
-| [Oh My Zsh](https://ohmyz.sh/) | Installed under `~/.config/czsh/oh-my-zsh` and updated on subsequent runs. |
+| Shell core | `features/post/00-core.zsh` sets history, completion, key bindings and the window title, then loads the plugins. No framework is installed. |
 | CZSH prompt | A two-line native prompt with path, Git branch/dirty state, command duration in seconds, and exit status in every terminal. |
 | [FZF](https://github.com/junegunn/fzf) | Installed under `~/.config/czsh/fzf` with Zsh completion and key bindings enabled. |
 | Nerd Fonts | Installs Hack, Roboto Mono, and DejaVu Sans Mono from official release archives. |
@@ -111,21 +111,19 @@ still be run with their shebang or explicitly with `bash`.
 
 ### Zsh plugins
 
-CZSH enables these plugins at startup:
+CZSH clones these plugins into `~/.config/czsh/plugins` and loads them at startup:
 
 | Plugin | Purpose |
 | --- | --- |
 | `zsh-completions` | Additional completion definitions. |
 | `zsh-autosuggestions` | Suggestions based on command history. |
 | `zsh-syntax-highlighting` | Command-line syntax highlighting. |
-| `history-substring-search` | History navigation filtered by current input. |
 | `fzf-tab` | Replaces the completion menu with an FZF picker. |
-| `screen` | GNU Screen aliases and helpers. |
-| `web-search` | Search-engine shortcuts. |
-| `extract` | Archive extraction helper. |
-| `sudo` | Adds `sudo` to the current command with `Esc` twice. |
-| `docker` | Docker aliases and completions. |
-| `systemd` | systemd aliases; enabled on Linux only. |
+
+Built in without a plugin: <kbd>Up</kbd>/<kbd>Down</kbd> search history for
+commands starting with what is typed, <kbd>Esc</kbd> twice toggles `sudo` in
+front of the command, and `extract` (alias `x`) unpacks tar, zip, gz, bz2, xz,
+zst, 7z and rar archives.
 
 ### Command-line tools
 
@@ -140,10 +138,7 @@ run:
 - **Lazyjournal.** Installs the pinned release on supported Linux systems
   only when `journalctl` is available.
 - **tmux.** Installs through the detected package manager when missing, then
-  deploys the CZSH configuration and TPM plugins.
-- **The Ultimate vimrc.** Installs or updates
-  [amix/vimrc](https://github.com/amix/vimrc) when `vim` is already installed.
-  CZSH does not install Vim itself.
+  deploys the CZSH configuration. No tmux plugin manager is used.
 
 The default setup also installs `eza`, `fd`, ripgrep, zoxide, Delta,
 direnv, Yazi, btop, dust, glow, and sops. Zoxide supplies `z`/`zi`, Delta is
@@ -215,7 +210,6 @@ Before deploying CZSH, the installer moves an existing `~/.zshrc` to:
 ~/.zshrc-backup-YYYY-MM-DD-HHMMSS
 ```
 
-An existing `~/.oh-my-zsh` directory is moved into the managed CZSH directory.
 Existing tmux configuration files are backed up as `~/.tmux.conf.bak` and
 `~/.config/tmux/tmux.conf.bak` before managed symlinks are created.
 When a tmux server is already running, the installer reloads it so configuration
@@ -223,7 +217,7 @@ and colour changes take effect in existing sessions.
 
 Managed plugin directories are synchronized to each plugin's upstream default
 branch. Do not keep local changes inside
-`~/.config/czsh/oh-my-zsh/custom/plugins`.
+`~/.config/czsh/plugins` for the managed plugins listed above.
 
 ## Installer options
 
@@ -408,22 +402,13 @@ the prompt must reflect the newest remote state.
 | `prefix` + `g` / `D` | Open Lazygit / Lazydocker in a popup. |
 | `prefix` + `/` | Search and select any window or pane. |
 
-### Tmux plugins
+### Pane navigation
 
-The installer provisions TPM and installs:
-
-- `tmux-sensible`
-- `tmux-resurrect`, including pane-content capture
-- `tmux-continuum`, saving every 15 minutes
-- `vim-tmux-navigator`
-
-CZSH links a small loader into both `~/.vim/plugin` and
-`~/.config/nvim/plugin`, so the editor and tmux halves of the navigator are
-available without modifying an existing Vim or Neovim configuration file.
-
-With `tmux-resurrect`, use `prefix` + `Ctrl+S` to save a session and `prefix` +
-`Ctrl+R` to restore it manually. Continuum also saves every 15 minutes;
-automatic restoration is disabled.
+CZSH uses no tmux plugins. `Ctrl+H/J/K/L` moves between panes; when Vim, Neovim
+or fzf runs in the pane, the key goes to it instead, and CZSH's small Vim script
+moves between Vim splits and hands over to tmux at the edge. CZSH links that
+script into both `~/.vim/plugin` and `~/.config/nvim/plugin` without modifying
+an existing editor configuration. `prefix` + `Ctrl+L` clears the screen.
 
 ## Customization
 
@@ -459,7 +444,7 @@ tools or reconstruct arbitrary deleted shell settings.
 An already initialized nvm or fnm environment is retained. Otherwise, CZSH
 prefers Volta, then fnm, then nvm if several managers are installed. Homebrew is
 initialized before plugins; other tools are initialized after personal overrides
-and Oh My Zsh so custom locations and existing manager initialization take
+and plugins so custom locations and existing manager initialization take
 precedence. Set `CZSH_AUTO_DETECT_TOOLS=false` before startup to disable automatic
 detection; `czsh scan` remains available for manual repair.
 
@@ -493,15 +478,15 @@ Personal configuration belongs in:
 ```
 
 Every regular file in this directory, including dotfiles, is sourced after the
-CZSH runtime modules and before Oh My Zsh. This makes it possible to modify the
-`plugins` array, override prompt variables, add aliases and functions, or set
+CZSH runtime modules and before plugins load. This makes it possible to add
+plugins to the `plugins` array, override prompt variables, add aliases and functions, or set
 environment variables without editing generated files.
 
 For example:
 
 ```zsh
 # ~/.config/czsh/zshrc/local.zsh
-plugins+=(kubectl)
+plugins+=(zsh-you-should-use)   # cloned into ~/.config/czsh/plugins/
 export EDITOR=nvim
 alias g='git'
 ```
@@ -515,7 +500,7 @@ CZSH_PROMPT_GREEN='#a6e3a1'
 CZSH_PROMPT_RED='#f38ba8'
 ```
 
-Post-runtime features are loaded after Oh My Zsh. Repository contributors can
+Post-runtime features load the plugins and everything that depends on them. Repository contributors can
 place plugin-dependent configuration in `features/post`; personal users should
 normally keep local changes in `~/.config/czsh/zshrc`.
 
@@ -541,14 +526,13 @@ The main managed layout is:
 ├── bin/                              Managed helper commands
 ├── czshrc.zsh                        Runtime feature loader
 ├── features/
-│   ├── runtime/                      Loaded before Oh My Zsh
-│   └── post/                         Loaded after Oh My Zsh
+│   ├── runtime/                      Loaded before personal overrides
+│   └── post/                         Core, plugins, prompt; loaded after
 ├── fzf/                              FZF checkout and shell integration
-├── oh-my-zsh/                        Framework and plugins
+├── plugins/                          Zsh plugins
 ├── tmux/
 │   ├── tmux.conf                     Managed tmux configuration
-│   ├── theme.conf                    Generated from the shared palette
-│   └── plugins/                      TPM and tmux plugins
+│   └── theme.conf                    Generated from the shared palette
 └── zshrc/                            Personal configuration files
 ```
 
@@ -556,8 +540,7 @@ At startup, files are loaded in this order:
 
 1. `~/.config/czsh/features/runtime/*.zsh`
 2. `~/.config/czsh/zshrc/*`
-3. Oh My Zsh and the configured plugins
-4. `~/.config/czsh/features/post/*.zsh`
+3. `~/.config/czsh/features/post/*.zsh`, starting with the core and plugins
 
 ## Updating
 
@@ -568,8 +551,7 @@ git pull
 ./install.sh
 ```
 
-A subsequent run updates Oh My Zsh, FZF, managed Zsh plugins, TPM, and The
-Ultimate vimrc. Release tools remain at their installed version unless
+A subsequent run updates FZF and the managed Zsh plugins. Release tools remain at their installed version unless
 `--upgrade` is passed; change a pin in `config.conf` and use that flag for an
 explicit upgrade. Neovim is updated only with `--neovim --upgrade`. The installer copies the
 repository's current runtime and post-runtime modules into the managed
@@ -642,8 +624,8 @@ backups:
 └── features/
     ├── install/                      Installer features
     ├── lib/                          Shared installer and platform helpers
-    ├── runtime/                      Pre-Oh-My-Zsh shell features
-    └── post/                         Post-Oh-My-Zsh shell features
+    ├── runtime/                      Shell features before personal overrides
+    └── post/                         Core, plugins and prompt
 ```
 
 Installer feature files register themselves with `register_install_feature` and

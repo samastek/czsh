@@ -32,8 +32,8 @@ bindkey '^H' backward-delete-char
 bindkey '^U' backward-kill-line
 bindkey '^A' beginning-of-line
 bindkey '^E' end-of-line
-bindkey -M vicmd 'k' history-substring-search-up
-bindkey -M vicmd 'j' history-substring-search-down
+bindkey -M vicmd 'k' up-line-or-beginning-search
+bindkey -M vicmd 'j' down-line-or-beginning-search
 bindkey '^R' history-incremental-search-backward
 
 export KEYTIMEOUT=1

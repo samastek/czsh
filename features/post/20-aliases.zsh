@@ -1,5 +1,4 @@
-# Oh My Zsh defines its own `l` alias while loading. Apply CZSH's modern-tool
-# defaults afterwards so the documented commands are the ones users receive.
+# Prefer the modern tools when they are installed.
 if command -v eza >/dev/null 2>&1; then
     alias l='eza -la --git --icons'
 else
