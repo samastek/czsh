@@ -392,7 +392,7 @@ the prompt must reflect the newest remote state.
 | `prefix` + `-` | Horizontal split in the current directory. |
 | `prefix` + `c` | Open a window in the current pane directory. |
 | `prefix` + `f` or `Ctrl+F` | Pick a project or existing session. |
-| `prefix` + `S` or `Ctrl+S` | Pick a host from `~/.ssh/config` (shown with its user@address) and SSH to it in a new window. |
+| `prefix` + `S` or `Ctrl+S` | Pick a host from `~/.ssh/config` or your SSH history and connect in a new window. |
 | `prefix` + `h/j/k/l` | Move between panes. |
 | `Ctrl+H/J/K/L` | Move seamlessly between tmux panes and Vim splits. |
 | `prefix` + `H/J/K/L` | Resize panes in five-cell increments. |

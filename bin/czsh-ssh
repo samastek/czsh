@@ -12,11 +12,26 @@ hosts="$(awk 'tolower($1) == "host" { for (i = 2; i <= NF; i++) if ($i !~ /[*?!]
 entries="$(while read -r host; do
   [[ -n "$host" ]] || continue
   target="$(ssh -n -G "$host" 2>/dev/null | awk '$1 == "user" { u = $2 } $1 == "hostname" { h = $2 } END { print u "@" h }')"
-  printf '%s\t%-20s \033[38;2;139;148;158m%s\033[0m\n' "$host" "$host" "$target"
+  printf '%s\t%-30s \033[38;2;139;148;158m%s\033[0m\n' "$host" "$host" "$target"
 done <<<"$hosts")"
+
+# Also offer plain `ssh [user@]host` commands from history, newest first, so
+# hosts never added to ~/.ssh/config still appear with the user last used.
+# shortcut: matches only `ssh [user@]host` with no flags; parse options if hosts go missing.
+history_file="${HISTFILE:-$HOME/.zsh_history}"
+history_entries="$({ tac "$history_file" 2>/dev/null || tail -r "$history_file" 2>/dev/null || true; } |
+  LC_ALL=C sed -nE 's/^(: [0-9]+:[0-9]+;)?ssh ([A-Za-z0-9._-]+@)?([A-Za-z0-9._-]+) *$/\2\3/p' |
+  awk -v known="${hosts//$'\n'/ }" 'BEGIN { n = split(known, k, " "); for (i = 1; i <= n; i++) skip[k[i]] = 1 }
+    { host = $0; sub(/.*@/, "", host) } !(host in skip) && !seen[host]++' |
+  while read -r target; do
+    # Typos and failed attempts never reach known_hosts; -F also matches hashed entries.
+    ssh-keygen -F "${target#*@}" >/dev/null 2>&1 || continue
+    printf '%s\t%-30s \033[38;2;139;148;158m%s (history)\033[0m\n' "$target" "${target#*@}" "$target"
+  done)"
+entries="$entries${history_entries:+$'\n'$history_entries}"
 
 selection="$(printf '%s\n' "$entries" |
   fzf --ansi --delimiter=$'\t' --with-nth=2 --prompt='ssh> ' --height=100% --reverse)" || exit 0
 host="${selection%%$'\t'*}"
 
-tmux new-window -n "$host" "ssh $(printf '%q' "$host")"
+tmux new-window -n "${host#*@}" "ssh $(printf '%q' "$host")"
