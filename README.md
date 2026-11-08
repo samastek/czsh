@@ -53,7 +53,7 @@ explicit user choices.
 
 ## Learning guide
 
-New to Atuin, zoxide, direnv, the modern CLI tools, or the tmux workflow? Start
+New to FZF, zoxide, direnv, the modern CLI tools, or the tmux workflow? Start
 with the [CZSH learning guide](docs/README.md). It includes a guided first
 session, focused chapters with copy-paste examples, practice exercises, and a
 [one-page cheat sheet](docs/cheat-sheet.md).
@@ -63,8 +63,8 @@ session, focused chapters with copy-paste examples, practice exercises, and a
 CZSH provides the following as one managed setup:
 
 - Oh My Zsh with the native CZSH prompt and a curated plugin set.
-- FZF-backed Zsh completion and file/directory pickers, with Atuin providing
-  fuzzy, session-aware, directory-aware history on `Ctrl+R`.
+- FZF-backed Zsh completion and file/directory pickers, and fuzzy history search
+  on `Ctrl+R`.
 - Syntax highlighting, inline autosuggestions, additional completion
   definitions, substring history search, directory jumping, and interactive
   Git helpers.
@@ -145,7 +145,7 @@ run:
   [amix/vimrc](https://github.com/amix/vimrc) when `vim` is already installed.
   CZSH does not install Vim itself.
 
-The default setup also installs `eza`, `fd`, ripgrep, zoxide, Delta, Atuin,
+The default setup also installs `eza`, `fd`, ripgrep, zoxide, Delta,
 direnv, Yazi, btop, dust, glow, and sops. Zoxide supplies `z`/`zi`, Delta is
 the Git pager, and `y` opens Yazi and changes the shell directory to its exit
 location. Btop is an interactive resource monitor, dust is a fast disk-usage
@@ -272,7 +272,7 @@ mode, sets `KEYTIMEOUT=1`, and adds these bindings:
 | --- | --- |
 | `Esc` | Enter Vi command mode. |
 | `j` / `k` in command mode | Search through matching history. |
-| `Ctrl+R` | Open Atuin history search (after post-runtime initialization). |
+| `Ctrl+R` | Open FZF history search (after post-runtime initialization). |
 | `Ctrl+A` / `Ctrl+E` | Move to the beginning or end of the line. |
 | `Ctrl+U` | Delete backward to the beginning of the line. |
 | `Backspace` / `Ctrl+H` | Delete the previous character. |
@@ -298,8 +298,8 @@ multi-selection, configure the terminal (or terminal multiplexer) to send
 `Ctrl+Space` for `Ctrl+Tab`; FZF will then apply the binding above while plain
 `Tab` continues to move through the choices.
 
-`Ctrl+R` opens Atuin history search. The standard FZF file and directory
-widgets remain loaded from the installed FZF shell integration.
+`Ctrl+R` opens FZF history search, and `Ctrl+T` / `Alt+C` pick files and
+directories. All three come from the installed FZF shell integration.
 
 ### Aliases
 
@@ -477,8 +477,7 @@ and refreshed when the executable, initialization options, or cache loader chang
 Shell functions and aliases wrapping those tools run directly without caching.
 Remove that cache directory to force fresh initialization.
 
-Inline autosuggestions use in-memory shell history by default; Atuin still owns
-`Ctrl+R`. An explicit `ZSH_AUTOSUGGEST_STRATEGY` in personal configuration is retained.
+Inline autosuggestions use in-memory shell history by default. An explicit `ZSH_AUTOSUGGEST_STRATEGY` in personal configuration is retained.
 Git prompt scans run asynchronously in a terminal with job control enabled.
 The previous result is shown
 while refreshing the same directory; changing directories clears it until the

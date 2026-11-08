@@ -1,32 +1,26 @@
 # History, navigation, and project environments
 
-Atuin, zoxide, and direnv solve three related problems:
+Shell history, zoxide, and direnv solve three related problems:
 
-- Atuin remembers what you ran.
+- <kbd>Ctrl</kbd>+<kbd>R</kbd> finds what you ran.
 - zoxide remembers where you worked.
 - direnv remembers what a project needs in its environment.
 
 Together they remove much of the repeated setup from changing projects.
 
-## Atuin: searchable shell history
+## FZF: searchable shell history
 
-CZSH binds <kbd>Ctrl</kbd>+<kbd>R</kbd> to Atuin. Atuin records more context
-than a plain history file, including the directory, session, time, duration,
-and exit status of a command.
-
-### Everyday workflow
+CZSH binds <kbd>Ctrl</kbd>+<kbd>R</kbd> to FZF's history widget, which searches
+the normal Zsh history file.
 
 1. Press <kbd>Ctrl</kbd>+<kbd>R</kbd>.
 2. Type fragments from anywhere in the command.
-3. Move to the desired result.
-4. Press <kbd>Tab</kbd> to return it to the prompt.
-5. Review or edit it, then execute it.
+3. Move to the desired result with the arrow keys or <kbd>Ctrl</kbd>+<kbd>J</kbd>/<kbd>K</kbd>.
+4. Press <kbd>Enter</kbd> to put it on the prompt, review or edit it, then run it.
 
-With Atuin's default <code>enter_accept = true</code> setting,
-<kbd>Enter</kbd> executes the selected command immediately. Use
-<kbd>Tab</kbd> when you want the safer review-and-edit path. If you set
-<code>enter_accept = false</code> in Atuin's config, both keys return the
-selection to the prompt.
+Press <kbd>Ctrl</kbd>+<kbd>R</kbd> again inside the picker to switch between
+newest-first and relevance ordering. Prefix a word with <code>'</code> for an
+exact match, or <code>^</code> to match the start of the command.
 
 For example, after running:
 
@@ -37,82 +31,16 @@ docker compose -f compose.dev.yml up --build
 you might retrieve it later with <code>compose build</code>. Fuzzy search does
 not require those words to be adjacent.
 
-The interactive display includes its current search and filter mode plus
-keybinding hints. Those hints are the authoritative reference because Atuin
-can use either Emacs or Vim keymaps.
-
-### Search from the command line
-
-Atuin is also useful outside the interactive picker:
+Plain Zsh commands cover history outside the picker:
 
 ~~~sh
-# Search all history
-atuin search docker
-
-# Limit results to the current directory
-atuin search --cwd "$PWD" migration
-
-# Find successful commands
-atuin search --exit 0 deploy
-
-# Exclude commands that returned exit code 1
-atuin search --exclude-exit 1 test
-
-# Return only command text
-atuin search --cmd-only --limit 10 git
-
-# Inspect usage patterns
-atuin stats
+history -20          # last 20 commands
+fc -l 1 | rg docker  # search all history
 ~~~
-
-Run <code>atuin search --help</code> to see filters for date, host, session,
-directory, shell, and exit status.
-
-### Local history versus sync
-
-Atuin works locally immediately. Cloud synchronization is optional and is not
-enabled by the CZSH installer.
-
-To create an Atuin account, let the CLI prompt for credentials rather than
-putting a password in shell history:
-
-~~~sh
-atuin register
-atuin status
-atuin sync
-~~~
-
-On another machine:
-
-~~~sh
-atuin login
-atuin sync
-~~~
-
-Save the encryption key shown during registration in a password manager.
-History is encrypted with that key, and losing it can make synchronized data
-unrecoverable. Inspect account and synchronization commands before enabling
-them:
-
-~~~sh
-atuin account --help
-atuin key
-atuin status
-~~~
-
-### Privacy habits
 
 Do not type secrets directly into commands when an application can read them
-from a prompt, file descriptor, keychain, or environment provided securely.
-Shell history tools cannot protect a secret that was entered as a command-line
-argument.
-
-For one-off sensitive commands, consult the tool's own history-filter settings:
-
-~~~sh
-atuin default-config | less
-atuin info
-~~~
+from a prompt, file, or keychain. A command that starts with a space is not
+saved to history.
 
 ## zoxide: ranked directory jumping
 
@@ -315,8 +243,8 @@ name. The directory change loads the environment automatically.
 ## Practice
 
 1. Retrieve a command using two non-adjacent words with <kbd>Ctrl</kbd>+<kbd>R</kbd>.
-2. Compare <code>atuin search git</code> with
-   <code>atuin search --cwd "$PWD" git</code>.
+2. Inside the <kbd>Ctrl</kbd>+<kbd>R</kbd> picker, press <kbd>Ctrl</kbd>+<kbd>R</kbd>
+   again and compare the two orderings.
 3. Visit three projects, then use <code>zi</code> to choose between them.
 4. Create a disposable <code>.envrc</code>, allow it, leave the directory,
    and confirm that its variable disappears.

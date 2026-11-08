@@ -155,13 +155,6 @@ class StartupTests(unittest.TestCase):
         binary.symlink_to(replacement)
         self.assertEqual(self.shell('print -r -- "$DIRECTORY_HOOK"'), "new")
 
-    def test_atuin_keeps_in_memory_inline_suggestions(self):
-        self.env["PATH"] = f"{self.home}/.local/bin:/usr/bin:/bin"
-        self.write(".local/bin/atuin", '#!/bin/sh\n'
-                   '[ "$*" = "init zsh --disable-up-arrow" ] || exit 2\n'
-                   'echo "ZSH_AUTOSUGGEST_STRATEGY=(atuin)"\n', True)
-        self.assertEqual(self.shell('print -rl -- $ZSH_AUTOSUGGEST_STRATEGY'), "history")
-
     def test_prompt_does_not_wait_for_slow_git_in_a_terminal(self):
         self.env["PATH"] = f"{self.home}/.local/bin:/usr/bin:/bin"
         self.write(".local/bin/git", '#!/bin/sh\nsleep 3\n'

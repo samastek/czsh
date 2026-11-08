@@ -148,7 +148,6 @@ load_prerequisite_specs() {
 			"eza:eza"
 			"zoxide:zoxide"
 			"delta:git-delta"
-			"atuin:atuin"
 			"yazi:yazi"
 			"btop:btop"
 			"dust:dust"

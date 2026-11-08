@@ -107,9 +107,6 @@ _czsh_git_ready() {
     [[ "$request_pwd" == "$PWD" ]] || return 0
     typeset -g _CZSH_GIT_CONTEXT="$git_context" _CZSH_GIT_PROMPT_PWD="$request_pwd"
     _czsh_prompt_render
-    if (( $+functions[__atuin_osc133_wrap_prompt] )); then
-        __atuin_osc133_wrap_prompt
-    fi
     zle reset-prompt
 }
 

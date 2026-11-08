@@ -31,7 +31,7 @@ large command:
 
 ~~~text
 Zsh prompt
-├── Atuin: command history
+├── shell history: Ctrl+R through FZF
 ├── zoxide: directory history
 ├── direnv: per-project environment
 ├── FZF: interactive selection
@@ -45,7 +45,7 @@ Zsh prompt
 ~~~
 
 The tools reinforce one another. Visiting a directory teaches zoxide about it.
-Running a command teaches Atuin about it. Opening a project through the tmux
+Opening a project through the tmux
 sessionizer combines existing tmux sessions, zoxide results, and directories
 under <code>~/workspace</code>.
 
@@ -92,9 +92,8 @@ printf 'learning-czsh\n'
 ~~~
 
 Press <kbd>Ctrl</kbd>+<kbd>R</kbd>, type <code>learning</code>, and press
-<kbd>Tab</kbd>. Atuin places the command on the prompt so it can be reviewed
-or edited before execution. With Atuin's default setting, <kbd>Enter</kbd>
-executes the selected command immediately.
+<kbd>Enter</kbd>. FZF places the command on the prompt so it can be reviewed
+or edited before execution.
 
 ### 3. Teach zoxide a project
 

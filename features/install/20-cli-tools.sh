@@ -98,7 +98,6 @@ install_yazi_release() {
 }
 
 install_feature_cli_tools() {
-	local atuin_target=""
 	local zoxide_target=""
 	local delta_target=""
 	local eza_asset=""
@@ -117,7 +116,6 @@ install_feature_cli_tools() {
 	else
 		case "$CZSH_ARCH" in
 		x86_64)
-			atuin_target="x86_64-unknown-linux-gnu"
 			zoxide_target="x86_64-unknown-linux-musl"
 			delta_target="x86_64-unknown-linux-gnu"
 			eza_asset="eza_x86_64-unknown-linux-gnu.tar.gz"
@@ -128,7 +126,6 @@ install_feature_cli_tools() {
 			sops_target="linux.amd64"
 			;;
 		arm64)
-			atuin_target="aarch64-unknown-linux-gnu"
 			zoxide_target="aarch64-unknown-linux-musl"
 			delta_target="aarch64-unknown-linux-gnu"
 			eza_asset="eza_aarch64-unknown-linux-gnu.tar.gz"
@@ -145,8 +142,6 @@ install_feature_cli_tools() {
 			;;
 		esac
 
-		install_pinned_tar_tool atuin Atuin atuinsh/atuin \
-			"atuin-${atuin_target}.tar.gz" atuin "$ATUIN_VERSION" "v$ATUIN_VERSION" || true
 		install_pinned_tar_tool zoxide Zoxide ajeetdsouza/zoxide \
 			"zoxide-${ZOXIDE_VERSION}-${zoxide_target}.tar.gz" zoxide "$ZOXIDE_VERSION" "v$ZOXIDE_VERSION" || true
 		install_pinned_tar_tool delta Delta dandavison/delta \

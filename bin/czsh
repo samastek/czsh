@@ -9,8 +9,8 @@ doctor() {
   local expected="$HOME/.config/czsh/tmux/tmux.conf"
   local editor_expected="$HOME/.config/czsh/editor/czsh-tmux-navigator.vim"
   local commands=(
-    zsh git wget bat curl jq fc-cache python3 fd rg direnv tmux unzip
-    hyperfine shellcheck eza zoxide delta atuin yazi ya fzf lazygit lazydocker
+    zsh git bat curl jq fc-cache python3 fd rg direnv tmux unzip
+    hyperfine shellcheck eza zoxide delta yazi ya fzf lazygit lazydocker
     btop dust glow sops
   )
 

@@ -223,12 +223,11 @@ Useful focused checks:
 
 ~~~sh
 command -v rg
-command -v atuin
+command -v fzf
 alias l
 echo "$GIT_PAGER"
 echo "$BAT_THEME"
 direnv status
-atuin doctor
 tmux list-sessions
 ~~~
 
@@ -318,7 +317,7 @@ Then narrow the layer:
 | --- | --- |
 | Command missing | <code>command -v NAME</code>, <code>echo "$PATH"</code> |
 | Alias surprising | <code>type NAME</code>, <code>alias NAME</code> |
-| History picker missing | <code>atuin doctor</code>, <code>bindkey '^R'</code> |
+| History picker missing | <code>command -v fzf</code>, <code>bindkey '^R'</code> |
 | Project env not loaded | <code>direnv status</code>, contents of <code>.envrc</code> |
 | Wrong zoxide destination | <code>zoxide query -l</code> |
 | tmux key not working | prefix + <kbd>?</kbd>, <code>tmux show-options -g</code> |

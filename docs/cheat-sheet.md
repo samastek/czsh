@@ -7,7 +7,7 @@ live in the other chapters of the [learning guide](README.md).
 
 | Command or key | Action |
 | --- | --- |
-| <kbd>Ctrl</kbd>+<kbd>R</kbd> | Search command history with Atuin |
+| <kbd>Ctrl</kbd>+<kbd>R</kbd> | Fuzzy-search command history with FZF |
 | <kbd>Tab</kbd> | Context-aware fuzzy completion |
 | <code>l</code> | Detailed eza listing with Git and icons |
 | <code>cat FILE</code> | Plain-style bat output |
@@ -41,9 +41,8 @@ s "status-interval"
 ## History, directories, and environments
 
 ~~~sh
-atuin search --cwd "$PWD" git
-atuin search --exit 0 deploy
-atuin stats
+history -20
+fc -l 1 | rg docker
 
 z project-name
 zi
