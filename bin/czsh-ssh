@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Same PATH fix as czsh-sessionizer: the tmux server may predate CZSH.
+PATH="$HOME/.config/czsh/fzf/bin:$HOME/.local/bin:$PATH"
+
+# shortcut: reads only ~/.ssh/config itself, not Include'd files; follow Includes if they get used.
+hosts="$(awk 'tolower($1) == "host" { for (i = 2; i <= NF; i++) if ($i !~ /[*?!]/) print $i }' "$HOME/.ssh/config" 2>/dev/null | sort -u)"
+
+# ssh -G resolves the effective user and address without connecting.
+entries="$(while read -r host; do
+  [[ -n "$host" ]] || continue
+  target="$(ssh -n -G "$host" 2>/dev/null | awk '$1 == "user" { u = $2 } $1 == "hostname" { h = $2 } END { print u "@" h }')"
+  printf '%s\t%-20s \033[38;2;139;148;158m%s\033[0m\n' "$host" "$host" "$target"
+done <<<"$hosts")"
+
+selection="$(printf '%s\n' "$entries" |
+  fzf --ansi --delimiter=$'\t' --with-nth=2 --prompt='ssh> ' --height=100% --reverse)" || exit 0
+host="${selection%%$'\t'*}"
+
+tmux new-window -n "$host" "ssh $(printf '%q' "$host")"
