@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `grep`, `egrep` and `fgrep` use ugrep when it is installed, a faster
+  drop-in replacement with GNU grep's options and behavior.
 - Oh My Zsh is no longer used. A small built-in core sets history, completion,
   key bindings and the window title and loads the plugins from
   `~/.config/czsh/plugins`. Shell startup is roughly a third faster.

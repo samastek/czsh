@@ -12,6 +12,7 @@ use <code>--help</code> for the rest.
 | <code>cat file</code> | <code>cat</code> / <code>bat</code> | Syntax highlighting and Git-aware display |
 | <code>find</code> | <code>fd</code> | Short syntax, smart defaults, parallel execution |
 | <code>grep -R</code> | <code>rg</code> | Very fast recursive text search |
+| <code>grep</code> | <code>grep</code> (ugrep) | Faster drop-in grep with the same flags and results |
 | Manual JSON reading | <code>jq</code> | Query and transform structured data |
 | <code>cd</code> with long paths | <code>z</code> / <code>zi</code> | Ranked directory history |
 | Plain Git diff pager | <code>delta</code> | Syntax-aware, readable diffs |

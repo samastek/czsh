@@ -8,6 +8,7 @@ fc-cache:fontconfig
 python3:python3
 fd|fdfind:fd-find
 rg:ripgrep
+ugrep:ugrep
 direnv:direnv
 tmux:tmux
 unzip:unzip

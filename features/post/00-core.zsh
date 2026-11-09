@@ -18,7 +18,11 @@ alias -- -='cd -'
 alias ...='../..' ....='../../..' md='mkdir -p'
 export CLICOLOR=1 PAGER="${PAGER:-less}" LESS="${LESS:--R}"
 [[ $CZSH_PLATFORM == linux ]] && alias ls='ls --color=auto'
-alias grep='grep --color=auto'
+if (( $+commands[ugrep] )); then
+    alias grep='ugrep -G' egrep='ugrep -E' fgrep='ugrep -F'
+else
+    alias grep='grep --color=auto'
+fi
 
 # ─── Completion ──────────────────────────────
 setopt complete_in_word always_to_end
