@@ -25,8 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Meld is installed and set as the Git diff tool when none is configured, so
   Lazygit's <kbd>Ctrl+T</kbd> opens files in it.
 - Tmux scroll mode from the keyboard (prefix + <kbd>[</kbd> or <kbd>PgUp</kbd>)
-  with vi keys; mouse selections copy to the system clipboard and keep the
-  scroll position.
+  with vi keys; mouse selections copy to the system clipboard and leave scroll
+  mode, unless you scrolled back, where they keep the scroll position.
 - `extract` (alias `x`) unpacks common archive formats.
 
 ### Changed

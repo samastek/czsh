@@ -163,7 +163,7 @@ the terminal:
 | --- | --- |
 | Scroll | Mouse wheel, or prefix + <kbd>[</kbd> / <kbd>PgUp</kbd> then arrows, <kbd>Ctrl</kbd>+<kbd>u</kbd>/<kbd>d</kbd> |
 | Select | Drag, double-click (word), triple-click (line), or <kbd>v</kbd> / <kbd>Ctrl</kbd>+<kbd>v</kbd> (block) |
-| Copy | Mouse selections copy on release and keep your position; <kbd>y</kbd> copies and exits |
+| Copy | Mouse selections copy on release and leave scroll mode, unless you scrolled back; <kbd>y</kbd> copies and exits |
 | Search | <kbd>/</kbd> or <kbd>?</kbd> in scroll mode |
 | Leave | <kbd>q</kbd> |
 | Native terminal selection | Hold <kbd>Shift</kbd> (<kbd>Option</kbd> in iTerm2) while dragging |
